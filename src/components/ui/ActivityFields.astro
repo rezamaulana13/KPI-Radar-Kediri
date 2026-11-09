@@ -1,0 +1,54 @@
+---
+// Field detail yang berubah sesuai jenis aktivitas (DESIGN §10.4). Semua blok dirender; JS kecil menampilkan yang aktif.
+import { db } from "../../lib/data/store";
+import { noReasonCategories, oplahSources, progressTypes } from "../../lib/data/mock";
+import FormError from "./FormError.astro";
+const { errors = {}, values = {}, offerId, ownerId } = Astro.props as { errors?: Record<string, string>; values?: Record<string, any>; offerId?: string; ownerId: string };
+const v = (k: string) => values[k] ?? "";
+const myClients = db.clients.filter((c) => c.ownerId === ownerId);
+const myOffers = db.offers.filter((o) => o.ownerId === ownerId);
+const clientOpts = myClients.length ? myClients : db.clients;
+const offerOpts = myOffers.length ? myOffers : db.offers;
+---
+<div data-block="oplah" class="form-grid">
+  <div class="field"><label for="source">Sumber oplah</label><select class="select" id="source" name="source"><option value="">Pilih sumber</option>{oplahSources.map((s) => <option selected={v("source") === s}>{s}</option>)}</select><FormError message={errors.source} /></div>
+  <div class="field"><label for="sourceName">Nama agen/loper/pembaca</label><input class="input" id="sourceName" name="sourceName" value={v("sourceName")} /><FormError message={errors.sourceName} /></div>
+  <div class="field"><label for="qty">Jumlah (eksemplar)</label><input class="input" id="qty" name="qty" type="number" min="1" step="1" value={v("qty")} /><FormError message={errors.qty} /></div>
+</div>
+<div data-block="client" class="form-grid">
+  <div class="field"><label for="clientName">Nama client</label><input class="input" id="clientName" name="clientName" value={v("clientName")} /><FormError message={errors.clientName} /></div>
+  <div class="field"><label for="sector">Sektor usaha</label><input class="input" id="sector" name="sector" value={v("sector")} /><FormError message={errors.sector} /></div>
+  <div class="field"><label for="contact">Nama kontak</label><input class="input" id="contact" name="contact" value={v("contact")} /><FormError message={errors.contact} /></div>
+  <div class="field"><label for="phone">Telepon/WhatsApp</label><input class="input" id="phone" name="phone" inputmode="tel" value={v("phone")} /><FormError message={errors.phone} /></div>
+  <div class="field"><label for="city">Kota/kabupaten</label><input class="input" id="city" name="city" value={v("city")} /><FormError message={errors.city} /></div>
+</div>
+<div data-block="profiling offer" class="form-grid">
+  <div class="field"><label for="clientId">Client</label><select class="select" id="clientId" name="clientId"><option value="">Pilih client</option>{clientOpts.map((c) => <option value={c.id} selected={v("clientId") === c.id}>{c.name}</option>)}</select><FormError message={errors.clientId} /></div>
+</div>
+<div data-block="profiling" class="form-grid">
+  <div class="field"><label for="potential">Potensi client</label><select class="select" id="potential" name="potential"><option value="">Pilih potensi</option>{["Tinggi", "Sedang", "Rendah"].map((s) => <option selected={v("potential") === s}>{s}</option>)}</select><FormError message={errors.potential} /></div>
+</div>
+<div data-block="offer" class="form-grid">
+  <div class="field"><label for="programName">Nama paket penawaran</label><input class="input" id="programName" name="programName" value={v("programName")} /><FormError message={errors.programName} /></div>
+  <div class="field"><label for="value">Nilai penawaran (Rp)</label><input class="input" id="value" name="value" type="number" min="1" step="1000" value={v("value")} /><FormError message={errors.value} /></div>
+</div>
+<div data-block="progress outcome" class="form-grid">
+  <div class="field"><label for="offerId">Penawaran</label><select class="select" id="offerId" name="offerId"><option value="">Pilih penawaran</option>{offerOpts.map((o) => <option value={o.id} selected={(offerId ?? v("offerId")) === o.id}>{o.id} · {db.clients.find((c) => c.id === o.clientId)?.name} · {o.programName}</option>)}</select><FormError message={errors.offerId} /></div>
+</div>
+<div data-block="progress" class="form-grid">
+  <div class="field"><label for="progressType">Tipe progress</label><select class="select" id="progressType" name="progressType"><option value="">Pilih tipe</option>{progressTypes.map((s) => <option selected={v("progressType") === s}>{s}</option>)}</select><FormError message={errors.progressType} /></div>
+</div>
+<div data-block="program" class="form-grid">
+  <div class="field"><label for="programName2">Nama program</label><input class="input" id="programName2" name="programName" value={v("programName")} /><FormError message={errors.programName} /></div>
+  <div class="field"><label for="kind">Jenis</label><select class="select" id="kind" name="kind"><option value="">Pilih jenis</option><option value="program" selected={v("kind") === "program"}>Program</option><option value="barter" selected={v("kind") === "barter"}>Barter</option></select><FormError message={errors.kind} /></div>
+  <div class="field"><label for="start">Mulai</label><input class="input" id="start" name="start" type="date" value={v("start")} /><FormError message={errors.start} /></div>
+  <div class="field"><label for="end">Selesai</label><input class="input" id="end" name="end" type="date" value={v("end")} /><FormError message={errors.end} /></div>
+  <div class="field"><label for="pvalue">Nilai (Rp)</label><input class="input" id="pvalue" name="value" type="number" min="0" step="1000" value={v("value")} /><FormError message={errors.value} /></div>
+  <fieldset class="field full" style="padding:0 var(--space-3) var(--space-2)"><legend>Client peserta</legend>
+    <div class="row">{db.clients.map((c) => <label class="row text-sm" style="gap:.35rem"><input type="checkbox" name="participants" value={c.id} checked={(values.participants ?? []).includes(c.id)} />{c.name}</label>)}</div></fieldset>
+</div>
+<div data-block="outcome" class="form-grid">
+  <div class="field"><label for="outcome">Hasil akhir</label><select class="select" id="outcome" name="outcome"><option value="">Pilih hasil</option><option value="deal" selected={v("outcome") === "deal"}>Deal</option><option value="no" selected={v("outcome") === "no"}>NO</option></select><FormError message={errors.outcome} /></div>
+  <div class="field" data-no><label for="reasonCategory">Kategori alasan NO</label><select class="select" id="reasonCategory" name="reasonCategory"><option value="">Pilih kategori</option>{noReasonCategories.map((s) => <option selected={v("reasonCategory") === s}>{s}</option>)}</select><span class="hint">Wajib jika hasil NO. Daftar kategori masih contoh.</span><FormError message={errors.reasonCategory} /></div>
+  <div class="field full" data-no><label for="reason">Penjelasan alasan NO</label><textarea class="textarea" id="reason" name="reason">{v("reason")}</textarea><FormError message={errors.reason} /></div>
+</div>

@@ -1,0 +1,25 @@
+---
+import DashboardLayout from "../../layouts/DashboardLayout.astro";
+import ListPage from "../../components/ui/ListPage.astro";
+import Alert from "../../components/ui/Alert.astro";
+import { db, employeeName } from "../../lib/data/store";
+import { canVerify } from "../../features/verification/rules";
+import { TYPE_LABEL, STATUS_LABEL } from "../../lib/formatters";
+
+const u = Astro.locals.user!;
+const rows = db.activities.filter((a) => a.status === "pending").sort((a, b) => a.date.localeCompare(b.date)).map((a) => {
+  const c = canVerify(u, a, db.employees);
+  return { ...a, owner: employeeName(a.ownerId), creator: employeeName(a.createdBy), typeLabel: TYPE_LABEL[a.type], note: c.ok ? "Siap diperiksa" : c.reason, action: c.ok ? "Periksa" : "Tidak dapat" };
+});
+const done = Astro.url.searchParams.get("done");
+const as = Astro.url.searchParams.get("as");
+---
+<DashboardLayout title="Verifikasi Aktivitas">
+  <ListPage title="Verifikasi Aktivitas" description="Aktivitas karyawan yang menunggu keputusan HRD. Hanya aktivitas yang disetujui yang masuk realisasi KPI." crumbs={[{ label: "HRD" }]} rows={rows} searchKeys={["owner", "description", "id"]}
+    filters={[{ name: "type", label: "Jenis", options: Object.entries(TYPE_LABEL).map(([value, label]) => ({ value, label })) }]}
+    columns={[{ key: "id", label: "ID", type: "mono", href: (r) => r.action === "Periksa" ? `/hrd/verifications/${r.id}` : undefined }, { key: "date", label: "Tanggal", type: "date" }, { key: "typeLabel", label: "Jenis" }, { key: "owner", label: "Pemilik" }, { key: "creator", label: "Pencatat" }, { key: "description", label: "Deskripsi" }, { key: "note", label: "Status pemeriksaan" }]}
+    emptyTitle="Antrean kosong" emptyHint="Tidak ada aktivitas karyawan yang menunggu verifikasi.">
+    {done && <Alert slot="before" tone="success" title={`${done} ${as ? STATUS_LABEL[as]?.toLowerCase() ?? as : "diproses"}`}>Keputusan tersimpan dan tercatat di riwayat verifikasi.</Alert>}
+  </ListPage>
+</DashboardLayout>
+

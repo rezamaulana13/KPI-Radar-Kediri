@@ -1,0 +1,24 @@
+---
+import DashboardLayout from "../../../layouts/DashboardLayout.astro";
+import ListPage from "../../../components/ui/ListPage.astro";
+import PeriodFilter from "../../../components/ui/PeriodFilter.astro";
+import Alert from "../../../components/ui/Alert.astro";
+import { divisionName, employeeName } from "../../../lib/data/store";
+import { achievements } from "../../../features/kpi/achievements";
+import { selectedPeriod } from "../../../lib/utils/period";
+import { SCOPE_LABEL } from "../../../lib/formatters";
+const p = selectedPeriod(Astro.url);
+const rows = achievements(p.id).map((r) => ({
+  id: r.target.id, name: r.indicator.name, scope: r.target.scope, scopeLabel: SCOPE_LABEL[r.target.scope], unit: r.indicator.unit,
+  subject: r.target.scope === "company" ? "Seluruh perusahaan" : r.target.scope === "division" ? divisionName(r.target.divisionId) : employeeName(r.target.employeeId),
+  target: r.target.value, actual: r.actual, sources: r.mapped ? r.sources.length : null, percent: r.percent,
+}));
+---
+<DashboardLayout title="Realisasi KPI">
+  <ListPage title="Realisasi KPI" description={`Realisasi ${p.name} dihitung dari aktivitas yang disetujui dan punya mapping.`} crumbs={[{ label: "HRD" }, { label: "KPI" }]} rows={rows} searchKeys={["name", "subject"]}
+    filters={[{ name: "scope", label: "Cakupan", options: Object.entries(SCOPE_LABEL).map(([value, label]) => ({ value, label })) }]}
+    columns={[{ key: "name", label: "Indikator", href: (r) => `/hrd/kpi/achievements/${r.id}` }, { key: "scopeLabel", label: "Cakupan" }, { key: "subject", label: "Subjek" }, { key: "target", label: "Target", type: "number" }, { key: "actual", label: "Realisasi", type: "number" }, { key: "sources", label: "Aktivitas sumber", type: "number" }, { key: "percent", label: "Capaian", type: "meter" }]} perPage={12}>
+    <PeriodFilter slot="actions" />
+    <Alert slot="before" tone="info" title="Klik nama indikator untuk melihat aktivitas sumber">Realisasi dihitung ulang saat halaman dibuka dari aktivitas berstatus disetujui, sehingga selalu dapat ditelusuri.</Alert>
+  </ListPage>
+</DashboardLayout>

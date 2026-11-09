@@ -1,0 +1,30 @@
+---
+import DashboardLayout from "../../layouts/DashboardLayout.astro";
+import PageHeader from "../../components/layout/PageHeader.astro";
+import Alert from "../../components/ui/Alert.astro";
+import Badge from "../../components/ui/Badge.astro";
+import { predicateRanges, PREDICATE_RATIFIED } from "../../lib/data/mock";
+import { supabaseConfigured } from "../../lib/supabase/server";
+---
+<DashboardLayout title="Pengaturan">
+  <PageHeader title="Pengaturan" description="Konfigurasi sistem. Item bertanda belum final menunggu keputusan mitra." crumbs={[{ label: "Admin" }]} />
+  <div class="grid-2">
+    <section class="card"><div class="card-head"><h2>Aplikasi</h2></div><div class="card-body"><dl class="kv">
+      <dt>Mode data</dt><dd>{supabaseConfigured ? "Supabase" : "Demo (data contoh di memori server)"}</dd>
+      <dt>Zona waktu</dt><dd>Asia/Jakarta (WIB)</dd>
+      <dt>Rilis aktif</dt><dd>MKI (modul SPK/SAW disiapkan untuk tahap TA)</dd>
+      <dt>Registrasi publik</dt><dd>Tidak tersedia; akun dibuat Admin</dd>
+    </dl></div></section>
+    <section class="card"><div class="card-head"><h2>Kebijakan verifikasi</h2></div><div class="card-body"><dl class="kv">
+      <dt>Verifikasi diri sendiri</dt><dd>Tidak diizinkan <Badge status="pending" label="Belum final" /></dd>
+      <dt>Bukti aktivitas</dt><dd>Opsional <Badge status="pending" label="Belum final" /></dd>
+      <dt>Ubah data setelah disetujui</dt><dd>Wajib diverifikasi ulang</dd>
+      <dt>Periode ditutup</dt><dd>Tidak dapat diubah pengguna biasa</dd>
+    </dl></div></section>
+  </div>
+  <section class="card mt-4"><div class="card-head"><h2>Rentang predikat nilai</h2><Badge status={PREDICATE_RATIFIED ? "approved" : "pending"} label={PREDICATE_RATIFIED ? "Disahkan" : "Belum disahkan"} /></div><div class="card-body">
+    {!PREDICATE_RATIFIED && <Alert tone="warning" title="Predikat tidak ditampilkan di rekap">Rentang di bawah hanya contoh. Predikat baru muncul setelah perusahaan mengesahkan rentangnya (PRD §8 butir 15).</Alert>}
+    <table class="table"><thead><tr><th>Predikat</th><th class="num">Dari</th><th class="num">Sampai</th></tr></thead>
+      <tbody>{predicateRanges.map((r) => <tr><td>{r.label}</td><td class="num">{r.min.toFixed(2)}</td><td class="num">{r.max.toFixed(2)}</td></tr>)}</tbody></table>
+  </div></section>
+</DashboardLayout>

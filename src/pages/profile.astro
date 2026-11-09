@@ -1,0 +1,58 @@
+---
+import DashboardLayout from "../layouts/DashboardLayout.astro";
+import PageHeader from "../components/layout/PageHeader.astro";
+import Alert from "../components/ui/Alert.astro";
+import { employee, employeeName, divisionName, positionName } from "../lib/data/store";
+import { ROLE_LABEL, dateTimeID } from "../lib/formatters";
+
+const u = Astro.locals.user!;
+const e = employee(u.id)!;
+const info = Astro.url.searchParams.get("info");
+const error = Astro.url.searchParams.get("error");
+---
+<DashboardLayout title="Profil">
+  <PageHeader title="Profil" description="Data akun dan penempatan Anda. Perubahan data dilakukan oleh Super Admin atau HRD." />
+
+  {info && <Alert tone="success" title="Informasi Akun">{info}</Alert>}
+  {error && <Alert tone="danger" title="Terjadi Kendala">{error}</Alert>}
+
+  <div class="grid-3-1">
+    <section class="card"><div class="card-body">
+      <h2 class="mb-3 text-lg">Informasi Pegawai</h2>
+      <dl class="kv">
+        <dt>Nama</dt><dd>{e.name}</dd>
+        <dt>NIP</dt><dd class="mono">{e.nip}</dd>
+        <dt>Email</dt><dd>{e.email}</dd>
+        <dt>Peran</dt><dd><span class="badge badge-neutral">{ROLE_LABEL[u.role]}</span></dd>
+        <dt>Divisi</dt><dd>{divisionName(e.divisionId)}</dd>
+        <dt>Jabatan</dt><dd>{positionName(e.positionId)}</dd>
+        <dt>Atasan langsung</dt><dd>{e.supervisorId ? employeeName(e.supervisorId) : "—"}</dd>
+        <dt>Login terakhir</dt><dd>{dateTimeID(e.lastLogin)}</dd>
+      </dl>
+    </div></section>
+
+    <section class="card"><div class="card-body">
+      <h2 class="mb-3 text-lg">Integrasi Akun</h2>
+      <p class="text-sm muted mb-3">Tautkan akun Google untuk mempermudah masuk menggunakan akun Google pilihan Anda.</p>
+      
+      <div class="stack">
+        <div style="border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: var(--space-3); background: #fafafa">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.5rem">
+            <strong>Google OAuth</strong>
+            <span class="badge badge-neutral">Tersedia</span>
+          </div>
+          <p class="text-xs muted mb-3">Memungkinkan Anda masuk dengan memilih akun Google yang sesuai.</p>
+          <a class="btn-google" href="/api/auth/link-google" style="font-size: 0.85rem; padding: 0.45rem 0.75rem">
+            <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+            </svg>
+            Hubungkan Akun Google
+          </a>
+        </div>
+      </div>
+    </div></section>
+  </div>
+</DashboardLayout>

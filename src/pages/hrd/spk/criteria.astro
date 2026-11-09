@@ -1,0 +1,13 @@
+---
+import DashboardLayout from "../../../layouts/DashboardLayout.astro";
+import ListPage from "../../../components/ui/ListPage.astro";
+import Alert from "../../../components/ui/Alert.astro";
+import { db } from "../../../lib/data/store";
+const rows = db.criteria.map((c) => ({ ...c, dir: c.direction === "benefit" ? "Benefit" : "Cost", weightPct: c.weight * 100 }));
+---
+<DashboardLayout title="Kriteria SPK">
+  <ListPage title="Kriteria SPK" description="Kriteria penilaian metode SAW yang diambil dari KPI yang sudah tervalidasi." crumbs={[{ label: "HRD" }, { label: "SPK" }]} rows={rows}
+    columns={[{ key: "code", label: "Kode", type: "mono" }, { key: "name", label: "Kriteria" }, { key: "dir", label: "Jenis" }, { key: "source", label: "Sumber nilai" }, { key: "weightPct", label: "Bobot (%)", type: "number" }]}>
+    <Alert slot="before" tone="warning" title="Konfigurasi contoh, bagian dari tahap TA">Kriteria, bobot, dan jenis benefit/cost belum disahkan mitra. SAW bersifat rekomendasi pendukung keputusan, bukan keputusan bonus, promosi, atau sanksi.</Alert>
+  </ListPage>
+</DashboardLayout>

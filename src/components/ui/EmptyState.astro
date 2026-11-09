@@ -1,0 +1,4 @@
+---
+const { title = "Belum ada data", hint = "Data akan muncul di sini setelah dicatat." } = Astro.props as { title?: string; hint?: string };
+---
+<div class="empty"><h3>{title}</h3><p>{hint}</p><slot /></div>

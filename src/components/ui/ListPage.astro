@@ -1,0 +1,23 @@
+---
+import PageHeader from "../layout/PageHeader.astro";
+import DataTable from "./DataTable.astro";
+import FilterBar from "./FilterBar.astro";
+import type { Col } from "./DataTable.astro";
+import type { FilterDef } from "./FilterBar.astro";
+import { applyTable } from "../../lib/utils/table";
+
+const p = Astro.props as {
+  title: string; description?: string; crumbs?: { label: string; href?: string }[]; columns: Col[]; rows: any[];
+  filters?: FilterDef[]; searchKeys?: string[]; perPage?: number; emptyTitle?: string; emptyHint?: string; search?: boolean;
+};
+const t = applyTable(p.rows, Astro.url, { searchKeys: p.searchKeys, filterKeys: (p.filters ?? []).map((f) => f.name), perPage: p.perPage });
+---
+<PageHeader title={p.title} description={p.description} crumbs={p.crumbs}>
+  <slot name="actions" slot="actions" />
+</PageHeader>
+<slot name="before" />
+<section class="card">
+  {(p.filters?.length || p.searchKeys?.length) && <FilterBar filters={p.filters} search={Boolean(p.searchKeys?.length) && p.search !== false} />}
+  <DataTable columns={p.columns} rows={t.rows} total={t.total} page={t.page} perPage={t.perPage} emptyTitle={p.emptyTitle} emptyHint={p.emptyHint} caption={p.title} />
+</section>
+<slot name="after" />

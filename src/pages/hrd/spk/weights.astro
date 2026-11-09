@@ -1,0 +1,30 @@
+---
+import DashboardLayout from "../../../layouts/DashboardLayout.astro";
+import PageHeader from "../../../components/layout/PageHeader.astro";
+import Alert from "../../../components/ui/Alert.astro";
+import FormError from "../../../components/ui/FormError.astro";
+import { db } from "../../../lib/data/store";
+const sp = Astro.url.searchParams;
+const err = sp.get("error"); const saved = sp.get("saved");
+---
+<DashboardLayout title="Bobot SPK">
+  <PageHeader title="Bobot Kriteria" description="Total bobot harus tepat 100%. Setiap perubahan tercatat di audit log." crumbs={[{ label: "HRD" }, { label: "SPK" }]} />
+  {saved && <Alert tone="success" title="Bobot disimpan">Perhitungan berikutnya memakai bobot baru.</Alert>}
+  {err && <Alert tone="danger" title="Bobot belum bisa disimpan">{err}</Alert>}
+  <form method="post" action="/api/spk/weights" class="card" id="wform"><div class="card-body">
+    <div class="table-wrap"><table class="table"><thead><tr><th>Kriteria</th><th>Jenis</th><th class="num" style="width:10rem">Bobot (%)</th></tr></thead>
+      <tbody>{db.criteria.map((c) => (
+        <tr><td><label for={`w-${c.id}`}>{c.code} · {c.name}</label></td><td>{c.direction === "benefit" ? "Benefit" : "Cost"}</td>
+          <td class="num"><input id={`w-${c.id}`} class="input" style="text-align:right" type="number" name={`w_${c.id}`} min="0" max="100" step="0.5" value={String(Math.round(c.weight * 1000) / 10)} required /></td></tr>))}
+      </tbody>
+      <tfoot><tr><td colspan="2">Total</td><td class="num"><span id="total" class="mono">100</span>%</td></tr></tfoot></table></div>
+    <FormError message={undefined} />
+    <p id="hint" class="form-error" role="alert" hidden></p>
+    <div class="row mt-4"><button class="btn btn-primary" type="submit" id="save">Simpan bobot</button><a class="btn btn-secondary" href="/hrd/spk/criteria">Batal</a></div>
+  </div></form>
+  <script is:inline>
+    const f = document.getElementById("wform"), t = document.getElementById("total"), h = document.getElementById("hint"), s = document.getElementById("save");
+    const calc = () => { const v = [...f.querySelectorAll('input[type=number]')].reduce((a, i) => a + (parseFloat(i.value) || 0), 0); const r = Math.round(v * 100) / 100; t.textContent = r; const ok = Math.abs(r - 100) < 0.001; h.hidden = ok; h.textContent = ok ? "" : "Total bobot harus 100%, saat ini " + r + "%."; s.disabled = !ok; };
+    f.addEventListener("input", calc); calc();
+  </script>
+</DashboardLayout>

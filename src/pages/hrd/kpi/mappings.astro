@@ -1,0 +1,14 @@
+---
+import DashboardLayout from "../../../layouts/DashboardLayout.astro";
+import ListPage from "../../../components/ui/ListPage.astro";
+import Alert from "../../../components/ui/Alert.astro";
+import { mappings, indicator } from "../../../lib/data/store";
+import { TYPE_LABEL } from "../../../lib/formatters";
+const rows = mappings.map((m) => ({ ...m, typeLabel: TYPE_LABEL[m.activityType] + (m.outcome ? ` (${m.outcome === "deal" ? "Deal" : "NO"})` : ""), indicatorName: indicator(m.indicatorId)?.name, rule: m.field === "count" ? "Hitung 1 per aktivitas" : m.field === "qty" ? "Jumlahkan eksemplar" : "Jumlahkan nilai (Rp)" }));
+---
+<DashboardLayout title="Mapping Aktivitas">
+  <ListPage title="Mapping Aktivitas ke KPI" description="Aturan yang mengubah aktivitas disetujui menjadi realisasi indikator." crumbs={[{ label: "HRD" }, { label: "KPI" }]} rows={rows}
+    columns={[{ key: "typeLabel", label: "Jenis aktivitas" }, { key: "indicatorName", label: "Indikator tujuan" }, { key: "rule", label: "Cara menghitung" }, { key: "note", label: "Catatan" }]}>
+    <Alert slot="before" tone="info" title="Aktivitas tanpa mapping tidak dihitung">Aktivitas yang belum disetujui, ditolak, atau tidak punya mapping tidak akan menambah realisasi. Hasil NO belum dipetakan ke KPI mana pun.</Alert>
+  </ListPage>
+</DashboardLayout>

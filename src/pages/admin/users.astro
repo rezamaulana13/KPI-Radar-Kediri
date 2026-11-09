@@ -1,0 +1,12 @@
+---
+import DashboardLayout from "../../layouts/DashboardLayout.astro";
+import ListPage from "../../components/ui/ListPage.astro";
+import { db, divisionName } from "../../lib/data/store";
+import { ROLE_LABEL, ROLES_OPTIONS } from "../../lib/formatters";
+const rows = db.employees.map((e) => ({ ...e, roleLabel: ROLE_LABEL[e.role], division: divisionName(e.divisionId), status: e.active ? "active" : "closed" }));
+---
+<DashboardLayout title="Pengguna">
+  <ListPage title="Pengguna" description="Akun yang dapat masuk ke aplikasi. Peran dibaca dari server, bukan dari browser." crumbs={[{ label: "Admin" }]}
+    rows={rows} searchKeys={["name", "email"]} filters={[{ name: "role", label: "Peran", options: ROLES_OPTIONS }, { name: "divisionId", label: "Divisi", options: [...new Set(db.employees.map((e) => e.divisionId))].map((v) => ({ value: v, label: divisionName(v) })) }]}
+    columns={[{ key: "name", label: "Nama", href: () => undefined }, { key: "email", label: "Email" }, { key: "roleLabel", label: "Peran" }, { key: "division", label: "Divisi" }, { key: "status", label: "Status", type: "badge" }, { key: "lastLogin", label: "Login terakhir", type: "datetime" }]} />
+</DashboardLayout>

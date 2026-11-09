@@ -1,0 +1,21 @@
+---
+import DashboardLayout from "../../layouts/DashboardLayout.astro";
+import ListPage from "../../components/ui/ListPage.astro";
+import StatCard from "../../components/dashboard/StatCard.astro";
+import { db, employeeName, visibleEmployeeIds } from "../../lib/data/store";
+import { num } from "../../lib/formatters";
+import { oplahSources } from "../../lib/data/mock";
+const u = Astro.locals.user!;
+const ids = visibleEmployeeIds(u);
+const all = db.activities.filter((a) => a.type === "oplah" && ids.includes(a.ownerId)).sort((a, b) => b.date.localeCompare(a.date));
+const rows = all.map((a) => ({ ...a, owner: employeeName(a.ownerId) }));
+const sum = (s: string) => all.filter((a) => a.status === s).reduce((t, a) => t + (a.qty ?? 0), 0);
+---
+<DashboardLayout title="Oplah">
+  <ListPage title="Oplah" description="Perolehan oplah menurut sumber: agen, loper, dan pembaca/langganan." crumbs={[{ label: "Marketing" }]} rows={rows} searchKeys={["sourceName", "owner", "description"]}
+    filters={[{ name: "source", label: "Sumber", options: oplahSources.map((s) => ({ value: s, label: s })) }, { name: "status", label: "Status", options: ["pending", "approved", "revision", "rejected"].map((s) => ({ value: s, label: { pending: "Menunggu verifikasi", approved: "Disetujui", revision: "Perlu revisi", rejected: "Ditolak" }[s]! })) }]}
+    columns={[{ key: "date", label: "Tanggal", type: "date" }, { key: "owner", label: "Pemilik" }, { key: "source", label: "Sumber" }, { key: "sourceName", label: "Nama" }, { key: "qty", label: "Eksemplar", type: "number" }, { key: "status", label: "Status", type: "badge" }]}>
+    {u.role !== "hrd" && <a slot="actions" class="btn btn-primary" href="/employee/activities/new?type=oplah">Catat oplah</a>}
+    <div slot="before" class="stat-grid"><StatCard label="Oplah disetujui" value={num(sum("approved"))} tone="ok" note="Dihitung ke KPI" /><StatCard label="Menunggu verifikasi" value={num(sum("pending"))} tone="warn" /></div>
+  </ListPage>
+</DashboardLayout>

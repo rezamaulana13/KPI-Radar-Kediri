@@ -1,0 +1,39 @@
+---
+import DashboardLayout from "../../../layouts/DashboardLayout.astro";
+import PageHeader from "../../../components/layout/PageHeader.astro";
+import Alert from "../../../components/ui/Alert.astro";
+import Badge from "../../../components/ui/Badge.astro";
+import FormError from "../../../components/ui/FormError.astro";
+import ActivityDetail from "../../../components/ui/ActivityDetail.astro";
+import { activity, historyOf, employeeName, visibleEmployeeIds } from "../../../lib/data/store";
+import { canEditAfterRevision } from "../../../features/verification/rules";
+import { takeFormState } from "../../../lib/utils/flash";
+import { dateTimeID } from "../../../lib/formatters";
+const a = activity(Astro.params.id!);
+const u = Astro.locals.user!;
+if (!a || !(a.ownerId === u.id || a.createdBy === u.id)) return new Response(null, { status: 404 });
+const hist = historyOf(a.id);
+const editable = canEditAfterRevision(u, a);
+const st = takeFormState(Astro.cookies, Astro.url);
+---
+<DashboardLayout title={`Aktivitas ${a.id}`}>
+  <PageHeader title={`Aktivitas ${a.id}`} crumbs={[{ label: "Aktivitas", href: "/employee/activities" }]} />
+  {Astro.url.searchParams.get("resubmitted") && <Alert tone="success" title="Diajukan kembali">Aktivitas kembali berstatus menunggu verifikasi.</Alert>}
+  {st.error && <Alert tone="danger" title="Belum bisa diajukan">{st.error}</Alert>}
+  {a.status === "revision" && <Alert tone="warning" title="Supervisor meminta revisi">{hist.filter((h) => h.status === "revision").at(-1)?.note}</Alert>}
+  {a.status === "rejected" && <Alert tone="danger" title="Aktivitas ditolak">{hist.at(-1)?.note} Aktivitas ini tidak dihitung ke KPI. Catat aktivitas baru jika perlu.</Alert>}
+  <div class="grid-3-1">
+    <section class="card"><div class="card-head"><h2>Data aktivitas</h2><Badge status={a.status} /></div><div class="card-body">
+      <ActivityDetail activity={a} />
+      {editable && (
+        <form method="post" action={`/api/activities/${a.id}`} class="mt-4"><fieldset><legend>Perbaiki dan ajukan kembali</legend>
+          <div class="field"><label for="description">Deskripsi</label><textarea class="textarea" id="description" name="description">{st.values.description ?? a.description}</textarea><FormError message={st.fields.description} /></div>
+          {a.type === "oplah" && <div class="field"><label for="qty">Jumlah (eksemplar)</label><input class="input" id="qty" name="qty" type="number" min="1" value={st.values.qty ?? a.qty} /></div>}
+        </fieldset><button class="btn btn-primary" type="submit">Ajukan kembali</button></form>
+      )}
+    </div></section>
+    <section class="card"><div class="card-head"><h2>Riwayat</h2></div><div class="card-body">
+      {hist.length === 0 ? <p class="muted mb-0">Belum diperiksa Supervisor.</p> : <ol class="timeline">{hist.map((h) => <li><Badge status={h.status} /> <span class="text-xs muted">{dateTimeID(h.at)} · {employeeName(h.by)}</span><p class="text-sm mb-0">{h.note}</p></li>)}</ol>}
+    </div></section>
+  </div>
+</DashboardLayout>

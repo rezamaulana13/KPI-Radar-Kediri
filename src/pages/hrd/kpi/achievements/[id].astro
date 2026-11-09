@@ -1,0 +1,26 @@
+---
+import DashboardLayout from "../../../../layouts/DashboardLayout.astro";
+import PageHeader from "../../../../components/layout/PageHeader.astro";
+import DataTable from "../../../../components/ui/DataTable.astro";
+import Alert from "../../../../components/ui/Alert.astro";
+import { achievements, contribution } from "../../../../features/kpi/achievements";
+import { db, divisionName, employeeName } from "../../../../lib/data/store";
+import { num, pct, SCOPE_LABEL, TYPE_LABEL } from "../../../../lib/formatters";
+const t = db.targets.find((x) => x.id === Astro.params.id);
+if (!t) return new Response(null, { status: 404 });
+const r = achievements(t.periodId).find((x) => x.target.id === t.id)!;
+const subject = t.scope === "company" ? "Seluruh perusahaan" : t.scope === "division" ? divisionName(t.divisionId) : employeeName(t.employeeId);
+const rows = r.sources.map((a) => ({ ...a, owner: employeeName(a.ownerId), typeLabel: TYPE_LABEL[a.type], contrib: contribution(a, r.indicator.id) }));
+---
+<DashboardLayout title={`Sumber ${r.indicator.name}`}>
+  <PageHeader title={r.indicator.name} description={`${SCOPE_LABEL[t.scope]} · ${subject}`} crumbs={[{ label: "HRD" }, { label: "Realisasi KPI", href: "/hrd/kpi/achievements" }]} />
+  <div class="stat-grid">
+    <div class="stat"><div class="stat-label">Target</div><div class="stat-value">{num(t.value)}</div><div class="stat-note">{r.indicator.unit}</div></div>
+    <div class="stat ok"><div class="stat-label">Realisasi</div><div class="stat-value">{r.actual == null ? "—" : num(r.actual)}</div><div class="stat-note">{r.sources.length} aktivitas disetujui</div></div>
+    <div class="stat"><div class="stat-label">Capaian</div><div class="stat-value">{pct(r.percent)}</div></div>
+  </div>
+  {!r.mapped && <Alert tone="warning" title="Indikator ini tidak punya mapping aktivitas">Realisasi tidak dihitung otomatis dan perlu diisi manual oleh HRD.</Alert>}
+  <section class="card"><div class="card-head"><h2>Aktivitas sumber</h2></div>
+    <DataTable caption="Aktivitas sumber" columns={[{ key: "id", label: "ID", type: "mono" }, { key: "date", label: "Tanggal", type: "date" }, { key: "typeLabel", label: "Jenis" }, { key: "owner", label: "Pemilik" }, { key: "description", label: "Deskripsi" }, { key: "contrib", label: "Kontribusi", type: "number" }]} rows={rows} emptyTitle="Belum ada aktivitas sumber" emptyHint="Belum ada aktivitas disetujui yang cocok dengan cakupan target ini." />
+  </section>
+</DashboardLayout>

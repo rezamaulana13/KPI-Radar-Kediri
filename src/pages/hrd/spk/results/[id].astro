@@ -1,0 +1,23 @@
+---
+import DashboardLayout from "../../../../layouts/DashboardLayout.astro";
+import PageHeader from "../../../../components/layout/PageHeader.astro";
+import Alert from "../../../../components/ui/Alert.astro";
+import { getSnapshot } from "../../../../features/spk/snapshots";
+import { computeSaw } from "../../../../features/spk/saw";
+import { altName } from "../../../../features/spk/build-input";
+import { period, employeeName } from "../../../../lib/data/store";
+import { num, dateTimeID } from "../../../../lib/formatters";
+const s = getSnapshot(Astro.params.id!);
+if (!s) return new Response(null, { status: 404 });
+const res = computeSaw(s.criteria, s.alternatives.map((a) => ({ id: a.employeeId, values: a.values })));
+const f = (n: number) => num(n, 3);
+---
+<DashboardLayout title={`Hasil ${s.id}`}>
+  <PageHeader title={`Hasil ${s.id}`} description={`${period(s.periodId)?.name} · disimpan ${dateTimeID(s.createdAt)} oleh ${employeeName(s.createdBy)}`} crumbs={[{ label: "HRD" }, { label: "SPK" }, { label: "Peringkat", href: "/hrd/spk/rankings" }]} />
+  <Alert tone="info" title="Hasil ini direproduksi dari snapshot">Perhitungan di bawah memakai kriteria, bobot, dan nilai input yang tersimpan pada versi ini, sehingga tidak berubah meski bobot terbaru diganti.</Alert>
+  <section class="card mb-4"><div class="card-head"><h2>Peringkat</h2></div><div class="table-wrap"><table class="table"><thead><tr><th>Peringkat</th><th>Alternatif</th><th class="num">Nilai preferensi (V)</th></tr></thead>
+    <tbody>{res.ranking.map((r) => <tr><td class="strong">{r.rank}</td><td>{altName(r.id)}</td><td class="num">{f(r.score)}</td></tr>)}</tbody></table></div></section>
+  <section class="card mb-4"><div class="card-head"><h2>Matriks keputusan dan normalisasi</h2></div><div class="table-wrap"><table class="table">
+    <thead><tr><th>Alternatif</th>{s.criteria.map((c) => <th class="num">{c.code} ({num(c.weight * 100, 1)}%{c.direction === "cost" ? ", cost" : ""})</th>)}</tr></thead>
+    <tbody>{s.alternatives.map((a, i) => <tr><td>{altName(a.employeeId)}</td>{a.values.map((v, j) => <td class="num">{num(v)} <span class="muted">→ {f(res.normalized[i][j])}</span></td>)}</tr>)}</tbody></table></div></section>
+</DashboardLayout>

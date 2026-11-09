@@ -1,0 +1,30 @@
+---
+import DashboardLayout from "../../layouts/DashboardLayout.astro";
+import PageHeader from "../../components/layout/PageHeader.astro";
+import PeriodFilter from "../../components/ui/PeriodFilter.astro";
+import DataTable from "../../components/ui/DataTable.astro";
+import Alert from "../../components/ui/Alert.astro";
+import StatCard from "../../components/dashboard/StatCard.astro";
+import { db } from "../../lib/data/store";
+import { achievements } from "../../features/kpi/achievements";
+import { selectedPeriod } from "../../lib/utils/period";
+const u = Astro.locals.user!;
+const p = selectedPeriod(Astro.url);
+const mine = achievements(p.id).filter((r) => r.target.employeeId === u.id);
+const acts = db.activities.filter((a) => a.periodId === p.id && a.ownerId === u.id);
+const c = (s: string) => acts.filter((a) => a.status === s).length;
+const measurable = mine.filter((r) => r.percent != null);
+const avg = measurable.length ? measurable.reduce((s, r) => s + Math.min(r.percent!, 100), 0) / measurable.length : null;
+---
+<DashboardLayout title="Kinerja Saya">
+  <PageHeader title="Kinerja Saya" description={`Capaian target pribadi Anda, ${p.name}.`} crumbs={[{ label: "Aktivitas" }]}><Fragment slot="actions"><PeriodFilter /></Fragment></PageHeader>
+  <div class="stat-grid">
+    <StatCard label="Capaian rata-rata" value={avg == null ? "—" : `${Math.round(avg)}%`} note="Tiap target dibatasi 100%" tone={avg != null && avg >= 100 ? "ok" : ""} />
+    <StatCard label="Disetujui" value={c("approved")} tone="ok" note="Sudah dihitung ke KPI" />
+    <StatCard label="Menunggu verifikasi" value={c("pending")} tone="warn" note="Belum dihitung" />
+    <StatCard label="Revisi / ditolak" value={c("revision") + c("rejected")} tone={c("revision") + c("rejected") ? "bad" : "ok"} note="Tidak dihitung" />
+  </div>
+  <Alert tone="info" title="Nilai akhir dan predikat">Predikat ditampilkan setelah perusahaan mengesahkan rentang nilainya. Sementara ini hanya capaian target yang tampil.</Alert>
+  <section class="card"><div class="card-head"><h2>Target dan realisasi</h2></div>
+    <DataTable caption="Target dan realisasi" columns={[{ key: "name", label: "Indikator" }, { key: "unit", label: "Satuan" }, { key: "target", label: "Target", type: "number" }, { key: "actual", label: "Realisasi", type: "number" }, { key: "percent", label: "Capaian", type: "meter" }]} rows={mine.map((r) => ({ name: r.indicator.name, unit: r.indicator.unit, target: r.target.value, actual: r.actual, percent: r.percent }))} emptyTitle="Belum ada target" emptyHint="HRD belum menetapkan target individu untuk periode ini." /></section>
+</DashboardLayout>

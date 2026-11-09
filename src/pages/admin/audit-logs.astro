@@ -1,0 +1,11 @@
+---
+import DashboardLayout from "../../layouts/DashboardLayout.astro";
+import ListPage from "../../components/ui/ListPage.astro";
+import { db, employeeName } from "../../lib/data/store";
+const rows = db.auditLogs.map((l) => ({ ...l, actor: employeeName(l.actorId) }));
+---
+<DashboardLayout title="Audit Log">
+  <ListPage title="Audit Log" description="Jejak perubahan target, mapping, verifikasi, dan data penting lain." crumbs={[{ label: "Admin" }]} rows={rows} searchKeys={["actor", "action", "detail", "entityId"]}
+    filters={[{ name: "entity", label: "Objek", options: [...new Set(db.auditLogs.map((l) => l.entity))].map((v) => ({ value: v, label: v })) }]}
+    columns={[{ key: "at", label: "Waktu", type: "datetime" }, { key: "actor", label: "Pelaku" }, { key: "action", label: "Aksi", type: "mono" }, { key: "entityId", label: "Objek", type: "mono" }, { key: "detail", label: "Keterangan" }]} />
+</DashboardLayout>

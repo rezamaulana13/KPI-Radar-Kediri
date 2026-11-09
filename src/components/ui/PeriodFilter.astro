@@ -1,0 +1,12 @@
+---
+import { db } from "../../lib/data/store";
+import { selectedPeriod } from "../../lib/utils/period";
+const cur = selectedPeriod(Astro.url);
+const keep = [...Astro.url.searchParams.entries()].filter(([k]) => k !== "period" && k !== "page");
+---
+<form method="get" class="row">
+  {keep.map(([k, v]) => <input type="hidden" name={k} value={v} />)}
+  <label class="label" for="period">Periode</label>
+  <select id="period" name="period" class="select" style="width:auto">{db.periods.map((p) => <option value={p.id} selected={p.id === cur.id}>{p.name}</option>)}</select>
+  <button class="btn btn-secondary btn-sm" type="submit">Tampilkan</button>
+</form>

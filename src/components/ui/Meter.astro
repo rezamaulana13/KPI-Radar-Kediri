@@ -1,0 +1,6 @@
+---
+const { value } = Astro.props as { value: number | null };
+const v = value == null ? 0 : Math.max(0, Math.min(100, value));
+const tone = value == null ? "" : value >= 100 ? "ok" : value < 50 ? "low" : "";
+---
+<div class={`meter ${tone}`} role="progressbar" aria-valuenow={Math.round(v)} aria-valuemin="0" aria-valuemax="100" aria-label="Pencapaian"><span style={`width:${v}%`}></span></div>

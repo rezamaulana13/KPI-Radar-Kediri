@@ -1,0 +1,16 @@
+---
+import Icon from "../ui/Icon.astro";
+import { activePeriod, notificationsFor } from "../../lib/data/store";
+import { ROLE_LABEL, initials } from "../../lib/formatters";
+const user = Astro.locals.user!;
+const p = activePeriod();
+const n = notificationsFor({ id: user.id, role: user.role }).length;
+---
+<header class="topbar">
+  <label for="nav-toggle" class="icon-btn nav-open" aria-label="Buka menu" tabindex="0"><Icon name="menu" /></label>
+  <span class="period-pill" title="Periode penilaian aktif"><Icon name="calendar" size={16} /><span class="long">Periode:</span> {p.name}</span>
+  <span class="spacer"></span>
+  <a class="icon-btn" href="/notifications" aria-label={`Notifikasi, ${n} item`}><Icon name="bell" />{n > 0 && <span class="dot">{n}</span>}</a>
+  <a class="user-chip" href="/profile"><span class="avatar" aria-hidden="true">{initials(user.name)}</span><span class="user-meta">{user.name}<small>{ROLE_LABEL[user.role]}</small></span></a>
+  <form method="post" action="/logout"><button class="icon-btn" aria-label="Keluar" title="Keluar"><Icon name="logout" /></button></form>
+</header>

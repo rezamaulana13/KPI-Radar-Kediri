@@ -1,0 +1,68 @@
+---
+import DashboardLayout from "../layouts/DashboardLayout.astro";
+import PageHeader from "../components/layout/PageHeader.astro";
+import StatCard from "../components/dashboard/StatCard.astro";
+import DataTable from "../components/ui/DataTable.astro";
+import Alert from "../components/ui/Alert.astro";
+import { db, activePeriod, divisions, positions, activitiesFor, teamOf, employeeName, divisionName, activity, historyOf } from "../lib/data/store";
+import { achievements, achievementSummary } from "../features/kpi/achievements";
+import { rupiah, num, TYPE_LABEL } from "../lib/formatters";
+import { canVerify } from "../features/verification/rules";
+
+const user = Astro.locals.user!;
+const p = activePeriod();
+const sum = achievementSummary(p.id);
+const rows = achievements(p.id);
+const titles: Record<string, string> = { admin: "Dashboard Super Admin", hrd: "Dashboard Admin (HRD)", employee: "Dashboard Saya" };
+const mine = activitiesFor({ id: user.id, role: user.role }).filter((a) => a.periodId === p.id);
+const count = (list: typeof mine, s: string) => list.filter((a) => a.status === s).length;
+const waiting = user.role === "hrd" || user.role === "admin" ? db.activities.filter((a) => a.status === "pending" && canVerify(user, a, db.employees).ok) : [];
+const myTargets = rows.filter((r) => r.target.employeeId === user.id);
+const divRows = rows.filter((r) => r.target.scope !== "individual");
+const subjectName = (r: (typeof rows)[number]) => r.target.scope === "company" ? "Perusahaan" : r.target.scope === "division" ? divisionName(r.target.divisionId) : employeeName(r.target.employeeId);
+---
+<DashboardLayout title={titles[user.role]}>
+  <PageHeader title={titles[user.role]} description={`${p.name}. Halo, ${user.name.split(" ")[0]}.`} crumbs={[]} />
+
+  {user.role === "admin" && (<>
+    {user.mode === "demo" && <Alert tone="info" title="Mode demo">Data berasal dari contoh di memori server dan akan kembali seperti semula saat server dimulai ulang.</Alert>}
+    <div class="stat-grid">
+      <StatCard label="Pengguna aktif" value={db.employees.filter((e) => e.active).length} />
+      <StatCard label="Divisi" value={divisions.length} />
+      <StatCard label="Jabatan" value={positions.length} />
+      <StatCard label="Catatan audit" value={db.auditLogs.length} note="Perubahan penting terekam" />
+    </div>
+    <section class="card"><div class="card-head"><h2>Aktivitas sistem terbaru</h2><a href="/admin/audit-logs">Lihat semua</a></div>
+      <DataTable caption="Audit terbaru" columns={[{ key: "at", label: "Waktu", type: "datetime" }, { key: "actor", label: "Pelaku" }, { key: "action", label: "Aksi" }, { key: "detail", label: "Keterangan" }]} rows={db.auditLogs.slice(0, 6).map((l) => ({ ...l, actor: employeeName(l.actorId) }))} /></section>
+  </>)}
+
+  {user.role === "hrd" && (<>
+    <div class="stat-grid">
+      <StatCard label="Aktivitas periode ini" value={sum.total} note={`${sum.approved} disetujui`} />
+      <StatCard label="Menunggu verifikasi" value={sum.pending} tone={sum.pending ? "warn" : "ok"} note="Perlu diverifikasi" />
+      <StatCard label="Perlu revisi / ditolak" value={sum.revision + sum.rejected} tone={sum.revision + sum.rejected ? "bad" : "ok"} />
+      <StatCard label="Rata-rata capaian target" value={sum.avgPercent == null ? "—" : `${num(sum.avgPercent)}%`} note={`${sum.targets} target, tiap target dibatasi 100%`} />
+    </div>
+    {sum.unmapped > 0 && <Alert tone="warning" title="Ada indikator tanpa mapping">{sum.unmapped} target tidak punya mapping aktivitas, sehingga realisasinya tidak dihitung otomatis.</Alert>}
+    <div class="grid-3-1">
+      <section class="card"><div class="card-head"><h2>Capaian target perusahaan dan divisi</h2><a href="/hrd/kpi/achievements">Rincian realisasi</a></div>
+        <DataTable caption="Capaian perusahaan dan divisi" columns={[{ key: "subject", label: "Cakupan" }, { key: "name", label: "Indikator" }, { key: "target", label: "Target", type: "number" }, { key: "actual", label: "Realisasi", type: "number" }, { key: "percent", label: "Capaian", type: "meter" }]}
+          rows={divRows.map((r) => ({ subject: subjectName(r), name: r.indicator.name, target: r.target.value, actual: r.actual, percent: r.percent }))} /></section>
+      <section class="card"><div class="card-head"><h2>Antrean verifikasi</h2><a href="/hrd/verifications">Buka antrean</a></div>
+        <DataTable caption="Antrean verifikasi" columns={[{ key: "id", label: "ID", href: (r) => `/hrd/verifications/${r.id}` }, { key: "owner", label: "Pemilik" }, { key: "typeLabel", label: "Jenis" }]} rows={waiting.slice(0, 5).map((a) => ({ ...a, owner: employeeName(a.ownerId), typeLabel: TYPE_LABEL[a.type] }))} emptyTitle="Antrean kosong" emptyHint="Tidak ada aktivitas yang menunggu verifikasi." /></section>
+    </div>
+  </>)}
+
+  {user.role === "employee" && (<>
+    <div class="stat-grid">
+      <StatCard label="Aktivitas periode ini" value={mine.length} />
+      <StatCard label="Disetujui" value={count(mine, "approved")} tone="ok" />
+      <StatCard label="Menunggu verifikasi" value={count(mine, "pending")} tone="warn" />
+      <StatCard label="Perlu revisi / ditolak" value={count(mine, "revision") + count(mine, "rejected")} tone={count(mine, "revision") + count(mine, "rejected") ? "bad" : "ok"} />
+    </div>
+    {count(mine, "revision") > 0 && <Alert tone="warning" title="Ada aktivitas yang perlu diperbaiki">Buka <a href="/employee/activities?status=revision">daftar revisi</a>, perbaiki, lalu ajukan kembali.</Alert>}
+    <section class="card"><div class="card-head"><h2>Target saya</h2><a href="/employee/performance">Rincian kinerja</a></div>
+      <DataTable caption="Target saya" columns={[{ key: "name", label: "Indikator" }, { key: "target", label: "Target", type: "number" }, { key: "actual", label: "Realisasi", type: "number" }, { key: "percent", label: "Capaian", type: "meter" }]} rows={myTargets.map((r) => ({ name: r.indicator.name, target: r.target.value, actual: r.actual, percent: r.percent }))} emptyTitle="Belum ada target" emptyHint="HRD belum menetapkan target individu untuk periode ini." /></section>
+    <div class="row mt-4"><a class="btn btn-primary" href="/employee/activities/new">Tambah aktivitas</a><a class="btn btn-secondary" href="/employee/activities">Lihat aktivitas saya</a></div>
+  </>)}
+</DashboardLayout>

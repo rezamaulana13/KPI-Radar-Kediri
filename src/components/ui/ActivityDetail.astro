@@ -1,0 +1,26 @@
+---
+import Badge from "./Badge.astro";
+import { client, offer, employeeName, divisionName, employee, period } from "../../lib/data/store";
+import { TYPE_LABEL, dateID, rupiah, num } from "../../lib/formatters";
+const { activity: a } = Astro.props as { activity: any };
+const o = employee(a.ownerId);
+const c = client(a.clientId ?? offer(a.offerId)?.clientId);
+---
+<dl class="kv">
+  <dt>ID</dt><dd class="mono">{a.id}</dd>
+  <dt>Jenis</dt><dd>{TYPE_LABEL[a.type]}</dd>
+  <dt>Tanggal</dt><dd>{dateID(a.date)} · {period(a.periodId)?.name}</dd>
+  <dt>Pemilik aktivitas</dt><dd>{employeeName(a.ownerId)} ({divisionName(o?.divisionId)})</dd>
+  <dt>Pencatat</dt><dd>{employeeName(a.createdBy)}{a.createdBy !== a.ownerId && " (menginput atas nama pemilik)"}</dd>
+  <dt>Deskripsi</dt><dd>{a.description}</dd>
+  {c && (<><dt>Client</dt><dd>{c.name} · {c.sector}</dd></>)}
+  {a.offerId && (<><dt>Penawaran</dt><dd><a href={`/marketing/offers/${a.offerId}`}>{a.offerId}</a></dd></>)}
+  {a.qty != null && (<><dt>Jumlah</dt><dd>{num(a.qty)} eksemplar</dd></>)}
+  {a.source && (<><dt>Sumber oplah</dt><dd>{a.source}: {a.sourceName}</dd></>)}
+  {a.value != null && (<><dt>Nilai</dt><dd>{rupiah(a.value)}</dd></>)}
+  {a.progressType && (<><dt>Tipe progress</dt><dd>{a.progressType}</dd></>)}
+  {a.potential && (<><dt>Potensi client</dt><dd>{a.potential}</dd></>)}
+  {a.outcome && (<><dt>Hasil akhir</dt><dd><Badge status={a.outcome} /></dd></>)}
+  {a.outcome === "no" && (<><dt>Alasan NO</dt><dd><strong>{a.reasonCategory}</strong>. {a.reason}</dd></>)}
+  <dt>Status</dt><dd><Badge status={a.status} /></dd>
+</dl>

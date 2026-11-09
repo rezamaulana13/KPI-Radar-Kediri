@@ -1,0 +1,30 @@
+---
+import "../assets/styles/global.css";
+import Sidebar from "../components/layout/Sidebar.astro";
+import Topbar from "../components/layout/Topbar.astro";
+const { title } = Astro.props as { title: string };
+---
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap" rel="stylesheet" />
+    <title>{title} · Radar Kediri</title>
+  </head>
+  <body>
+    <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-hidden="true" />
+    <div class="app">
+      <Sidebar /><Topbar />
+      <main class="main" id="konten"><slot /></main>
+    </div>
+    <label for="nav-toggle" class="scrim" aria-hidden="true"></label>
+    <script is:inline>
+      document.querySelectorAll("[data-confirm-open]").forEach((b) => b.addEventListener("click", (e) => { e.preventDefault(); document.getElementById(b.dataset.confirmOpen)?.showModal(); }));
+      document.querySelector(".nav-open")?.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); const t = document.getElementById("nav-toggle"); t.checked = !t.checked; } });
+    </script>
+  </body>
+</html>

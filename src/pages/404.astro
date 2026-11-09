@@ -1,0 +1,7 @@
+---
+import AuthLayout from "../layouts/AuthLayout.astro";
+Astro.response.status = 404;
+---
+<AuthLayout title="Halaman tidak ditemukan">
+  <div class="auth-main" style="min-height:100vh"><div class="card auth-card"><div class="empty"><h1>Halaman tidak ditemukan</h1><p>Alamat yang Anda buka tidak ada atau sudah dipindahkan.</p><a class="btn btn-primary" href="/dashboard">Ke dashboard</a></div></div></div>
+</AuthLayout>

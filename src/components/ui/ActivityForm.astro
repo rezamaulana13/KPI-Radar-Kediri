@@ -1,0 +1,45 @@
+---
+import ActivityFields from "./ActivityFields.astro";
+import Alert from "./Alert.astro";
+import FormError from "./FormError.astro";
+import { TYPE_LABEL } from "../../lib/formatters";
+import { visibleEmployeeIds, employee, employeeName } from "../../lib/data/store";
+const { errors = {}, values = {}, formError, types = Object.keys(TYPE_LABEL), lockType, offerId, action = "/api/activities", redirectTo = "/employee/activities" } = Astro.props as {
+  errors?: Record<string, string>; values?: Record<string, any>; formError?: string; types?: string[]; lockType?: string; offerId?: string; action?: string; redirectTo?: string;
+};
+const user = Astro.locals.user!;
+const owners = visibleEmployeeIds({ id: user.id, role: user.role }).map((id) => employee(id)!).filter((e) => e.divisionId === "DIV-MKT" || e.id === user.id);
+const ownerId = values.ownerId ?? user.id;
+const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Jakarta" });
+const type = lockType ?? values.type ?? "oplah";
+---
+<form method="post" action={action} id="aform" novalidate>
+  <input type="hidden" name="redirectTo" value={redirectTo} />
+  {formError && <Alert tone="danger" title="Aktivitas belum tersimpan">{formError}</Alert>}
+  <fieldset><legend>Informasi umum</legend>
+    <div class="form-grid">
+      <div class="field"><label for="type">Jenis aktivitas</label>
+        <select class="select" id="type" name="type" disabled={Boolean(lockType)}>{types.map((t) => <option value={t} selected={t === type}>{TYPE_LABEL[t]}</option>)}</select>
+        {lockType && <input type="hidden" name="type" value={lockType} />}<FormError message={errors.type} /></div>
+      <div class="field"><label for="date">Tanggal aktivitas</label><input class="input" id="date" name="date" type="date" max={today} value={values.date ?? today} aria-invalid={errors.date ? "true" : undefined} /><FormError message={errors.date} /></div>
+      <div class="field"><label for="ownerId">Pemilik aktivitas</label>
+        <select class="select" id="ownerId" name="ownerId">{owners.map((o) => <option value={o.id} selected={o.id === ownerId}>{o.name}{o.id === user.id ? " (saya)" : ""}</option>)}</select>
+        <span class="hint">Pencatat tersimpan terpisah: {user.name}.</span><FormError message={errors.ownerId} /></div>
+      <div class="field full"><label for="description">Deskripsi</label><textarea class="textarea" id="description" name="description" aria-invalid={errors.description ? "true" : undefined}>{values.description ?? ""}</textarea><span class="hint">Tuliskan apa yang dilakukan, dengan siapa, dan hasilnya, agar Supervisor dapat memeriksa.</span><FormError message={errors.description} /></div>
+    </div>
+  </fieldset>
+  <fieldset><legend>Detail menurut jenis</legend><ActivityFields errors={errors} values={values} offerId={offerId} ownerId={ownerId} /></fieldset>
+  <div class="row"><button class="btn btn-primary" type="submit">Simpan aktivitas</button><a class="btn btn-secondary" href={redirectTo}>Batal</a><span class="muted text-sm">Aktivitas baru berstatus menunggu verifikasi.</span></div>
+</form>
+<script is:inline>
+  (function () {
+    const form = document.getElementById("aform"); const sel = form.querySelector('[name=type]:not([type=hidden])') || form.querySelector('input[name=type]');
+    const sync = () => {
+      const t = (form.querySelector('select[name=type]') || form.querySelector('input[name=type]')).value;
+      form.querySelectorAll("[data-block]").forEach((b) => { const on = b.dataset.block.split(" ").includes(t); b.hidden = !on; b.querySelectorAll("input,select,textarea").forEach((i) => (i.disabled = !on)); });
+      const o = form.querySelector('[name=outcome]'); const isNo = t === "outcome" && o && o.value === "no";
+      form.querySelectorAll("[data-no]").forEach((n) => { n.hidden = !isNo; n.querySelectorAll("select,textarea").forEach((i) => { if (t === "outcome") i.disabled = !isNo; }); });
+    };
+    form.addEventListener("change", sync); sync();
+  })();
+</script>

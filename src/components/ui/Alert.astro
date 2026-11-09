@@ -1,0 +1,6 @@
+---
+const { tone = "info", title } = Astro.props as { tone?: "info" | "warning" | "danger" | "success"; title?: string };
+---
+<div class={`alert alert-${tone}`} role={tone === "danger" ? "alert" : "status"}>
+  <div>{title && <strong>{title}</strong>}<slot /></div>
+</div>

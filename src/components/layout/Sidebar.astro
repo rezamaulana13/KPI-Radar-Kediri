@@ -1,0 +1,20 @@
+---
+import Icon from "../ui/Icon.astro";
+import { NAV } from "../../lib/permissions/permissions";
+const user = Astro.locals.user!;
+const path = Astro.url.pathname;
+const current = (href: string) => path === href || (href !== "/dashboard" && path.startsWith(href + "/") && !NAV[user.role].flatMap((g) => g.items).some((i) => i.href !== href && i.href.startsWith(href + "/") && path.startsWith(i.href)));
+---
+<aside class="sidebar" id="sidebar" aria-label="Menu utama">
+  <a class="brand" href="/dashboard">
+    <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="6" fill="#fff"/><path d="M9 29V11h10a6 6 0 010 12h-4l8 6h-6l-7-6M15 23v-8h4a2 2 0 010 4" fill="none" stroke="#12345a" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/><path d="M27 11h4M27 16h4" stroke="#176b87" stroke-width="3" stroke-linecap="round"/></svg>
+    <span class="brand-name">Radar Kediri<span class="brand-sub">Aktivitas &amp; Kinerja</span></span>
+  </a>
+  <nav class="nav">
+    {NAV[user.role].map((g) => (
+      <div class="nav-group"><div class="nav-group-title">{g.title}</div>
+        {g.items.map((i) => <a href={i.href} aria-current={current(i.href) ? "page" : undefined}><Icon name={i.icon} />{i.label}</a>)}
+      </div>
+    ))}
+  </nav>
+</aside>

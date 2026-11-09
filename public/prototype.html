@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Radar Kediri – Sistem Aktivitas dan Kinerja Karyawan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--p9:#12345A;--p7:#176B87;--p1:#EAF2F8;--sf:#fff;--pg:#F5F7FA;--tx:#253244;--mu:#64748B;--bd:#DCE3EA;--lk:#176B87;--ok:#15803D;--okb:#E3F3E8;--wa:#B45309;--wab:#FEF3C7;--er:#B91C1C;--erb:#FDECEC;--or:#C2410C;--orb:#FFEDD5;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--p1:#173149;--sf:#16212E;--pg:#0E1621;--tx:#E5EAF0;--mu:#9DABBD;--bd:#2A3A4E;--lk:#7CC4DC;--ok:#5BD08A;--okb:#12301F;--wa:#F5B454;--wab:#35290F;--er:#F58A8A;--erb:#3A1717;--or:#FBA365;--orb:#38200F;color-scheme:dark}}
+:root[data-theme="dark"]{--p1:#173149;--sf:#16212E;--pg:#0E1621;--tx:#E5EAF0;--mu:#9DABBD;--bd:#2A3A4E;--lk:#7CC4DC;--ok:#5BD08A;--okb:#12301F;--wa:#F5B454;--wab:#35290F;--er:#F58A8A;--erb:#3A1717;--or:#FBA365;--orb:#38200F;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--pg);color:var(--tx);font:15px/1.55 "IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-variant-numeric:tabular-nums}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--sf);z-index:30}
+h1,h2,h3{margin:0;line-height:1.25}h1{font-size:22px}h2{font-size:17px}h3{font-size:15px}
+a,.lnk{color:var(--lk);cursor:pointer;background:none;border:0;padding:0;font:inherit;text-decoration:underline}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--p7);outline-offset:2px}
+.app{display:grid;grid-template-columns:248px 1fr;min-height:100vh}
+.side{background:#12345A;color:#DCE8F3;position:sticky;top:env(safe-area-inset-top,0px);height:100vh;overflow:auto;padding:18px 12px;display:flex;flex-direction:column;gap:4px}
+.brand{display:flex;gap:10px;align-items:center;padding:4px 8px 16px;font-weight:700;color:#fff;font-size:16px}
+.brand svg{flex:none}
+.grp{font-size:12.5px;color:#9FB7CE;padding:14px 10px 4px}
+.nav{display:block;width:100%;text-align:left;background:none;border:0;color:inherit;padding:9px 10px;border-radius:6px;cursor:pointer}
+.nav:hover{background:rgba(255,255,255,.08)}
+.nav[aria-current=page]{background:#fff;color:#12345A;font-weight:600}
+.main{min-width:0}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--sf);border-bottom:1px solid var(--bd);display:flex;gap:12px;align-items:center;padding:10px 24px}
+.top .sp{flex:1}
+.burger{display:none}
+.who{text-align:right;line-height:1.3;font-size:13px}.who b{display:block;font-size:14px}
+.page{padding:22px 24px 48px;max-width:1180px}
+.crumb{font-size:13px;color:var(--mu);margin-bottom:6px}
+.ph{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;margin-bottom:18px}
+.ph p{margin:4px 0 0;color:var(--mu);max-width:70ch}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:16px;margin-bottom:16px}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin-bottom:16px}
+.stat{background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:14px 16px;border-left:4px solid var(--p7)}
+.stat span{color:var(--mu);font-size:13px}.stat b{display:block;font-size:28px;line-height:1.2;color:var(--tx)}
+.stat.w{border-left-color:var(--wa)}.stat.o{border-left-color:var(--ok)}
+.tw{overflow-x:auto;border:1px solid var(--bd);border-radius:8px;background:var(--sf);margin-bottom:16px}
+table{border-collapse:collapse;width:100%;min-width:640px}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--bd);vertical-align:top;font-size:14px}
+th{background:var(--p1);font-weight:600;white-space:nowrap}tr:last-child td{border-bottom:0}
+td.n,th.n{text-align:right}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--p7);background:var(--p7);color:#fff;padding:8px 14px;border-radius:6px;cursor:pointer;font-weight:500}
+.btn.s{background:var(--sf);color:var(--lk)}.btn.d{background:var(--er);border-color:var(--er);color:#fff}.btn.g{background:none;border-color:transparent;color:var(--lk)}
+.btn.sm{padding:4px 10px;font-size:13px}.btn[disabled]{opacity:.5;cursor:not-allowed}
+.b{display:inline-flex;gap:6px;align-items:center;padding:2px 9px;border-radius:99px;font-size:12.5px;font-weight:600;white-space:nowrap}
+.b i{width:7px;height:7px;border-radius:50%;background:currentColor}
+.b.ok{background:var(--okb);color:var(--ok)}.b.wa{background:var(--wab);color:var(--wa)}.b.er{background:var(--erb);color:var(--er)}.b.or{background:var(--orb);color:var(--or)}.b.mu{background:var(--p1);color:var(--mu)}
+.fb{display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:14px}
+label{display:block;font-size:13px;font-weight:500;margin-bottom:4px}
+input,select,textarea{width:100%;background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:8px 10px}
+.fb>div{min-width:160px}
+.fg{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}.fg .full{grid-column:1/-1}
+.hint{font-size:12.5px;color:var(--mu);margin-top:3px}
+.al{border-radius:6px;padding:10px 12px;margin-bottom:14px;border:1px solid;font-size:14px}
+.al.er{background:var(--erb);color:var(--er);border-color:var(--er)}.al.in{background:var(--p1);color:var(--tx);border-color:var(--bd)}.al.wa{background:var(--wab);color:var(--wa);border-color:var(--wa)}
+.bar{height:8px;background:var(--p1);border-radius:99px;overflow:hidden;min-width:90px}.bar i{display:block;height:100%;background:var(--p7)}.bar.full i{background:var(--ok)}
+.tl{list-style:none;margin:0;padding:0 0 0 14px;border-left:2px solid var(--bd)}.tl li{margin:0 0 12px;padding-left:12px;position:relative}
+.tl li::before{content:"";position:absolute;left:-20px;top:7px;width:10px;height:10px;border-radius:50%;background:var(--p7)}
+.mo{position:fixed;inset:0;background:rgba(10,20,35,.55);z-index:50;display:flex;align-items:flex-start;justify-content:center;padding:5vh 12px;overflow:auto}
+.mb{background:var(--sf);border-radius:10px;max-width:640px;width:100%;padding:20px;border:1px solid var(--bd)}
+.mb header{display:flex;justify-content:space-between;gap:10px;margin-bottom:12px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:#12345A;color:#fff;padding:10px 16px;border-radius:8px;z-index:60;max-width:90vw}
+.empty{text-align:center;padding:34px 12px;color:var(--mu)}
+.login{min-height:100vh;display:grid;place-items:center;padding:20px}
+.lc{width:100%;max-width:420px}.lc .brand{color:var(--p9);padding-left:0}
+.roles{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+.kv{display:grid;grid-template-columns:150px 1fr;gap:6px 12px;margin:0 0 12px;font-size:14px}.kv dt{color:var(--mu)}.kv dd{margin:0}
+code{background:var(--p1);padding:1px 6px;border-radius:4px;font-size:13px}
+@media (max-width:860px){
+.app{grid-template-columns:1fr}.side{position:fixed;z-index:40;left:0;top:0;width:260px;transform:translateX(-100%);transition:transform .2s;padding-top:calc(18px + env(safe-area-inset-top,0px))}
+.side.open{transform:none}.burger{display:inline-flex}.top,.page{padding-left:14px;padding-right:14px}.who{display:none}.kv{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const TODAY='2026-11-08';
+const fmt=d=>new Date(d+'T00:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});
+const rp=n=>'Rp '+Number(n).toLocaleString('id-ID');
+const PER=[{k:'2026-11',n:'November 2026',st:'Aktif'},{k:'2026-10',n:'Oktober 2026',st:'Ditutup'}];
+const closed=d=>PER.some(p=>p.st==='Ditutup'&&d.startsWith(p.k));
+const EMP={e1:{n:'Rina Kusuma',r:'admin',d:'Umum',p:'Admin sistem'},e2:{n:'Dewi Anggraini',r:'hrd',d:'HRD',p:'Staf HRD'},e3:{n:'Bambang Hartono',r:'supervisor',d:'Marketing',p:'Supervisor Marketing'},e4:{n:'Andi Pratama',r:'employee',d:'Marketing',p:'Eksekutif Marketing',s:'e3'},e5:{n:'Sari Wulandari',r:'employee',d:'Marketing',p:'Eksekutif Marketing',s:'e3'}};
+const ME={admin:'e1',hrd:'e2',supervisor:'e3',employee:'e4'};
+const RL={admin:'Admin',hrd:'HRD',supervisor:'Supervisor',employee:'Employee'};
+const TY={oplah:'Oplah',profiling:'Riset profiling',program:'Program/barter',penawaran:'Penawaran',progress:'Progress',hasil:'Deal/NO'};
+const CL=['PT Surya Makmur','RS Harapan Sehat','Dealer Motor Nusantara','Bakso Pak Slamet','Hotel Tirta Indah'];
+const NOC=['Anggaran belum tersedia','Memilih media lain','Belum ada kebutuhan','Harga belum sesuai','Lainnya'];
+const BD={pending:['Menunggu','wa'],approved:['Disetujui','ok'],rejected:['Ditolak','er'],revision:['Revisi','or'],deal:['Deal','ok'],no:['NO','er']};
+const badge=k=>`<span class="b ${BD[k][1]}"><i></i>${BD[k][0]}</span>`;
+const IND=[{id:'i1',n:'Perolehan oplah',cat:'Individu',u:'eksemplar',m:'Jumlah (sum)',t:1200,ty:'oplah'},{id:'i2',n:'Riset profiling',cat:'Individu',u:'client',m:'Hitung aktivitas',t:10,ty:'profiling'},{id:'i3',n:'Penawaran terkirim',cat:'Individu',u:'proposal',m:'Hitung aktivitas',t:12,ty:'penawaran'},{id:'i4',n:'Deal tercapai',cat:'Individu',u:'kontrak',m:'Hitung hasil Deal',t:4,ty:'hasil'},{id:'i5',n:'Program/barter',cat:'Individu',u:'program',m:'Hitung aktivitas',t:3,ty:'program'}];
+const DIVT={id:'d1',n:'Perolehan oplah divisi Marketing',cat:'Divisi',u:'eksemplar',t:4000};
+let A=[
+{id:1,date:'2026-11-03',type:'oplah',owner:'e4',by:'e4',desc:'Langganan baru dari agen wilayah Kota Kediri',src:'Agen',nm:'Agen Kota',q:120,status:'approved',h:[['pending','e4','Dibuat','2026-11-03'],['approved','e3','Sesuai bukti rekap agen','2026-11-04']]},
+{id:2,date:'2026-11-04',type:'profiling',owner:'e4',by:'e4',desc:'Riset profil pembaca dan potensi iklan hotel',client:'Hotel Tirta Indah',pot:'Tinggi',status:'pending',h:[['pending','e4','Dibuat','2026-11-04']]},
+{id:3,date:'2026-11-05',type:'penawaran',owner:'e5',by:'e5',desc:'Penawaran paket iklan setengah halaman',client:'RS Harapan Sehat',offer:'o1',status:'approved',h:[['pending','e5','Dibuat','2026-11-05'],['approved','e3','Proposal terlampir','2026-11-06']]},
+{id:4,date:'2026-11-06',type:'oplah',owner:'e5',by:'e3',desc:'Pelanggan baru dari loper sektor timur, dicatat Supervisor',src:'Loper',nm:'Loper Timur',q:80,status:'pending',h:[['pending','e3','Dibuat oleh Supervisor','2026-11-06']]},
+{id:5,date:'2026-11-07',type:'progress',owner:'e4',by:'e4',desc:'Kunjungan kedua dan presentasi paket iklan',offer:'o2',status:'revision',h:[['pending','e4','Dibuat','2026-11-07'],['revision','e3','Lengkapi bukti kunjungan','2026-11-08']]},
+{id:6,date:'2026-11-02',type:'program',owner:'e5',by:'e5',desc:'Barter iklan dengan voucher menginap',client:'Hotel Tirta Indah',status:'approved',h:[['pending','e5','Dibuat','2026-11-02'],['approved','e3','','2026-11-03']]},
+{id:7,date:'2026-11-07',type:'hasil',owner:'e4',by:'e4',desc:'Penawaran iklan baris disetujui klien',offer:'o3',res:'deal',status:'approved',h:[['pending','e4','Dibuat','2026-11-07'],['approved','e3','','2026-11-08']]},
+{id:8,date:'2026-10-20',type:'oplah',owner:'e4',by:'e4',desc:'Langganan baru dari agen wilayah Pare',src:'Agen',nm:'Agen Pare',q:300,status:'approved',h:[['pending','e4','Dibuat','2026-10-20'],['approved','e3','','2026-10-21']]},
+{id:9,date:'2026-11-08',type:'penawaran',owner:'e3',by:'e3',desc:'Penawaran paket iklan advertorial',client:'Dealer Motor Nusantara',offer:'o4',status:'pending',h:[['pending','e3','Dibuat','2026-11-08']]}];
+let O=[
+{id:'o1',client:'RS Harapan Sehat',prog:'Iklan setengah halaman',val:12500000,owner:'e5',date:'2026-11-05',pr:[['2026-11-05','Kirim proposal','Proposal dikirim via email'],['2026-11-07','Kunjungan','Bertemu bagian humas']],out:null},
+{id:'o2',client:'PT Surya Makmur',prog:'Paket iklan bulanan',val:8000000,owner:'e4',date:'2026-11-01',pr:[['2026-11-01','Telepon','Perkenalan paket']],out:null},
+{id:'o3',client:'Bakso Pak Slamet',prog:'Iklan baris 1 bulan',val:3000000,owner:'e4',date:'2026-10-28',pr:[['2026-10-30','Kunjungan','Negosiasi harga']],out:{r:'deal',cat:'',txt:''}},
+{id:'o4',client:'Dealer Motor Nusantara',prog:'Advertorial',val:20000000,owner:'e3',date:'2026-11-08',pr:[],out:null}];
+let AUD=[['2026-11-08 09:12','Bambang Hartono','Menyetujui aktivitas #7'],['2026-11-08 09:10','Bambang Hartono','Meminta revisi aktivitas #5'],['2026-10-31 16:00','Dewi Anggraini','Menutup periode Oktober 2026']];
+const S={role:null,page:'dashboard',period:'2026-11',f:{st:'',ty:'',emp:''},modal:null,toast:'',nav:false,err:''};
+const me=()=>ME[S.role];
+const NAV={admin:[['dashboard','Dashboard'],['employees','Karyawan'],['divisions','Divisi dan jabatan'],['audit','Audit log']],
+hrd:[['dashboard','Dashboard'],['periods','Periode penilaian'],['indicators','Kategori dan indikator'],['targets','Target KPI'],['achievements','Realisasi KPI'],['reports','Laporan'],['spk','SPK SAW (TA)']],
+supervisor:[['dashboard','Dashboard tim'],['activities','Aktivitas tim'],['verifications','Verifikasi'],['team','Kinerja tim']],
+employee:[['dashboard','Dashboard saya'],['activities','Aktivitas saya'],['new','Tambah aktivitas'],['perf','Kinerja saya']]};
+const MK=[['oplah','Oplah'],['clients','List client'],['programs','Program/barter'],['profiling','Profiling'],['offers','Penawaran']];
+const allowed=()=>[...NAV[S.role],...(S.role==='supervisor'||S.role==='employee'?MK:[])].map(x=>x[0]);
+const nm=id=>EMP[id].n;
+const team=()=>S.role==='supervisor'?Object.keys(EMP).filter(k=>EMP[k].s===me()||k===me()):S.role==='employee'?[me()]:Object.keys(EMP).filter(k=>EMP[k].d==='Marketing');
+const vis=a=>S.role==='hrd'||S.role==='admin'||team().includes(a.owner)||a.by===me();
+const canVerify=a=>S.role==='supervisor'&&a.status==='pending'&&EMP[a.owner].s===me()&&a.owner!==me()&&a.by!==me();
+const logA=t=>AUD.unshift([TODAY+' '+new Date().toTimeString().slice(0,5),nm(me()),t]);
+function kpiOf(e,per){const o={};IND.forEach(i=>{const src=A.filter(a=>a.owner===e&&a.status==='approved'&&a.date.startsWith(per)&&a.type===i.ty&&(i.ty!=='hasil'||a.res==='deal'));o[i.id]={v:i.ty==='oplah'?src.reduce((s,a)=>s+a.q,0):src.length,src}});return o}
+const pct=(v,t)=>Math.round(v/t*100);
+const prog=(v,t)=>`<div class="bar${v>=t?' full':''}"><i style="width:${Math.min(100,pct(v,t))}%"></i></div>`;
+const tbl=(h,r,em)=>r.length?`<div class="tw"><table><thead><tr>${h.map(x=>`<th${x[0]==='#'?' class="n"':''}>${esc(x.replace('#',''))}</th>`).join('')}</tr></thead><tbody>${r.join('')}</tbody></table></div>`:`<div class="card empty">${em||'Belum ada data.'}</div>`;
+const ph=(t,d,act)=>`<div class="ph"><div><h1>${t}</h1>${d?`<p>${d}</p>`:''}</div>${act||''}</div>`;
+const sel=(n,opts,v,all)=>`<select name="${n}" data-f="${n}">${all!=null?`<option value="">${all}</option>`:''}${opts.map(o=>`<option value="${o[0]}"${o[0]===v?' selected':''}>${esc(o[1])}</option>`).join('')}</select>`;
+const perSel=()=>sel('period',PER.map(p=>[p.k,p.n+(p.st==='Ditutup'?' (ditutup)':'')]),S.period);
+const actRow=a=>`<tr><td>${fmt(a.date)}</td><td>${TY[a.type]}</td><td>${nm(a.owner)}</td><td>${nm(a.by)}${a.by!==a.owner?'<div class="hint">dicatat orang lain</div>':''}</td><td>${esc(a.desc)}</td><td>${badge(a.status)}</td><td><button class="btn sm s" data-a="open" data-id="${a.id}">Detail</button></td></tr>`;
+const AH=['Tanggal','Jenis','Pemilik','Pencatat','Deskripsi','Status',''];
+const P={
+dashboard(){const m=S.period,as=A.filter(a=>vis(a)&&a.date.startsWith(m)),pen=as.filter(a=>a.status==='pending').length,ap=as.filter(a=>a.status==='approved').length;
+ if(S.role==='admin')return['Dashboard','Ringkasan administrasi sistem.',`<div class="grid"><div class="stat"><span>Karyawan terdaftar</span><b>${Object.keys(EMP).length}</b></div><div class="stat"><span>Divisi</span><b>${new Set(Object.values(EMP).map(e=>e.d)).size}</b></div><div class="stat"><span>Catatan audit</span><b>${AUD.length}</b></div></div><div class="al in">Admin mengelola akun dan master data. Aktivitas dan penilaian kinerja dikelola oleh peran lain.</div>`];
+ const ts=team(),avg=ts.length?Math.round(ts.reduce((s,e)=>{const k=kpiOf(e,m);return s+IND.reduce((x,i)=>x+Math.min(100,pct(k[i.id].v,i.t)),0)/IND.length},0)/ts.length):0;
+ const pend=as.filter(a=>a.status==='pending').slice(0,5);
+ return['Dashboard'+(S.role==='employee'?' saya':S.role==='supervisor'?' tim':''),`Periode ${PER.find(p=>p.k===m).n}.`,`<div class="grid"><div class="stat w"><span>Menunggu verifikasi</span><b>${pen}</b></div><div class="stat o"><span>Aktivitas disetujui</span><b>${ap}</b></div><div class="stat"><span>Rata-rata capaian KPI</span><b>${avg}%</b></div><div class="stat"><span>Total aktivitas</span><b>${as.length}</b></div></div>
+ <h2 style="margin-bottom:10px">Perlu perhatian</h2>${tbl(AH,pend.map(actRow),'Tidak ada aktivitas yang menunggu.')}
+ <div class="card"><b>Pintasan</b><div class="fb" style="margin:10px 0 0">${S.role==='employee'?'<button class="btn" data-a="nav" data-p="new">Tambah aktivitas</button>':''}${S.role==='supervisor'?'<button class="btn" data-a="nav" data-p="verifications">Buka verifikasi</button>':''}${S.role==='hrd'?'<button class="btn" data-a="nav" data-p="achievements">Lihat realisasi KPI</button>':''}<button class="btn s" data-a="nav" data-p="${S.role==='hrd'?'reports':'offers'}">${S.role==='hrd'?'Laporan':'Penawaran'}</button></div></div>`]},
+activities(){const f=S.f;const r=A.filter(a=>vis(a)&&(!f.st||a.status===f.st)&&(!f.ty||a.type===f.ty)).map(actRow);
+ return[S.role==='employee'?'Aktivitas saya':'Aktivitas tim','Setiap aktivitas mencatat pemilik dan pencatat secara terpisah.',`<div class="fb"><div><label>Status</label>${sel('st',Object.keys(BD).slice(0,4).map(k=>[k,BD[k][0]]),f.st,'Semua status')}</div><div><label>Jenis aktivitas</label>${sel('ty',Object.entries(TY),f.ty,'Semua jenis')}</div><button class="btn" data-a="nav" data-p="new">Tambah aktivitas</button></div>${tbl(AH,r,'Tidak ada aktivitas yang cocok dengan filter.')}`]},
+new(){const own=S.role==='supervisor'?team():[me()];const ofs=O.map(o=>[o.id,o.client+' – '+o.prog]);
+ return['Tambah aktivitas','Aktivitas baru berstatus menunggu sampai Supervisor memverifikasi.',`${S.err?`<div class="al er" role="alert">${S.err}</div>`:''}<form id="af" class="card"><div class="fg">
+ <div><label>Pemilik aktivitas</label><select name="owner"${own.length===1?' disabled':''}>${own.map(e=>`<option value="${e}">${nm(e)}</option>`).join('')}</select>${own.length===1?'<div class="hint">Karyawan hanya mencatat aktivitas sendiri.</div>':''}</div>
+ <div><label>Tanggal aktivitas</label><input type="date" name="date" value="${TODAY}" required></div>
+ <div><label>Jenis aktivitas</label>${sel('type',Object.entries(TY),'oplah')}</div>
+ <div data-t="oplah"><label>Sumber oplah</label>${sel('src',['Agen','Loper','Pembaca'].map(x=>[x,x]),'Agen')}</div>
+ <div data-t="oplah"><label>Nama agen/loper/pembaca</label><input name="nm"></div>
+ <div data-t="oplah"><label>Jumlah (eksemplar)</label><input type="number" name="q" min="1"></div>
+ <div data-t="profiling program penawaran"><label>Client</label>${sel('client',CL.map(c=>[c,c]),CL[0])}</div>
+ <div data-t="profiling"><label>Potensi</label>${sel('pot',['Tinggi','Sedang','Rendah'].map(x=>[x,x]),'Sedang')}</div>
+ <div data-t="progress hasil"><label>Penawaran</label>${sel('offer',ofs,'o1')}</div>
+ <div data-t="hasil"><label>Hasil akhir</label>${sel('res',[['deal','Deal'],['no','NO']],'deal')}</div>
+ <div data-t="no"><label>Kategori alasan NO</label>${sel('cat',NOC.map(x=>[x,x]),'',  'Pilih kategori')}<div class="hint">Kategori masih sementara sampai dikonfirmasi mitra.</div></div>
+ <div data-t="no" class="full"><label>Penjelasan alasan NO</label><textarea name="why" rows="2"></textarea></div>
+ <div data-t="penawaran"><label>Nilai penawaran (Rp)</label><input type="number" name="val" min="0"></div>
+ <div class="full"><label>Deskripsi</label><textarea name="desc" rows="3" placeholder="Jelaskan cukup rinci agar bisa diverifikasi"></textarea></div>
+ </div><div class="fb" style="margin:16px 0 0"><button class="btn" type="submit">Simpan aktivitas</button><button class="btn s" type="button" data-a="nav" data-p="activities">Batal</button></div></form>`]},
+verifications(){const r=A.filter(a=>vis(a)&&['pending'].includes(a.status)).map(a=>`<tr><td>${fmt(a.date)}</td><td>${TY[a.type]}</td><td>${nm(a.owner)}</td><td>${nm(a.by)}</td><td>${esc(a.desc)}</td><td>${canVerify(a)?'<button class="btn sm" data-a="open" data-id="'+a.id+'">Periksa</button>':'<span class="hint">Tidak dapat memverifikasi aktivitas sendiri</span>'}</td></tr>`);
+ return['Verifikasi','Hanya aktivitas yang disetujui masuk perhitungan realisasi KPI.',tbl(['Tanggal','Jenis','Pemilik','Pencatat','Deskripsi','Aksi'],r,'Tidak ada aktivitas yang menunggu verifikasi.')]},
+offers(){const r=O.filter(o=>team().includes(o.owner)||S.role==='hrd').map(o=>`<tr><td>${esc(o.client)}</td><td>${esc(o.prog)}</td><td class="n">${rp(o.val)}</td><td>${nm(o.owner)}</td><td class="n">${o.pr.length}</td><td>${o.out?badge(o.out.r):'<span class="b mu"><i></i>Berjalan</span>'}</td><td><button class="btn sm s" data-a="offer" data-id="${o.id}">Detail</button></td></tr>`);
+ return['Penawaran','Satu penawaran dapat memiliki banyak progress dan satu hasil akhir.',tbl(['Client','Program','#Nilai','Pemilik','#Progress','Hasil',''],r)]},
+oplah(){return mk('oplah','Oplah','Pencatatan perolehan oplah dari agen, loper, dan pembaca.',['Tanggal','Sumber','Nama','#Eksemplar','Pemilik','Status'],a=>`<tr><td>${fmt(a.date)}</td><td>${a.src}</td><td>${esc(a.nm||'-')}</td><td class="n">${a.q}</td><td>${nm(a.owner)}</td><td>${badge(a.status)}</td></tr>`)},
+programs(){return mk('program','Program/barter','Program kerja sama dan barter dengan client.',['Tanggal','Client','Deskripsi','Pemilik','Status'],a=>`<tr><td>${fmt(a.date)}</td><td>${esc(a.client)}</td><td>${esc(a.desc)}</td><td>${nm(a.owner)}</td><td>${badge(a.status)}</td></tr>`)},
+profiling(){return mk('profiling','Riset profiling','Hasil riset profil client dan potensi kerja sama.',['Tanggal','Client','Potensi','Deskripsi','Pemilik','Status'],a=>`<tr><td>${fmt(a.date)}</td><td>${esc(a.client)}</td><td>${a.pot}</td><td>${esc(a.desc)}</td><td>${nm(a.owner)}</td><td>${badge(a.status)}</td></tr>`)},
+clients(){const r=CL.map(c=>{const os=O.filter(o=>o.client===c);return`<tr><td>${esc(c)}</td><td class="n">${os.length}</td><td class="n">${A.filter(a=>a.client===c&&a.type==='profiling').length}</td><td>${os.some(o=>o.out&&o.out.r==='deal')?badge('deal'):'<span class="hint">Belum ada Deal</span>'}</td></tr>`});
+ return['List client','Data contoh. Format List Client resmi perlu dikonfirmasi mitra.',tbl(['Client','#Penawaran','#Profiling','Hasil'],r)]},
+indicators(){const r=[...IND,{...DIVT,m:'Jumlah (sum) divisi'}].map(i=>`<tr><td>${i.n}</td><td>${i.cat}</td><td>${i.u}</td><td>${i.m}</td><td>Benefit</td><td>${i.ty?TY[i.ty]:'Gabungan aktivitas divisi'}</td><td><span class="b ok"><i></i>Aktif</span></td></tr>`);
+ return['Kategori dan indikator KPI','Kategori mencakup perusahaan, divisi, dan individu. Daftar indikator masih contoh sampai dikonfirmasi mitra.',`<div class="grid"><div class="stat"><span>Perusahaan</span><b>0</b></div><div class="stat"><span>Divisi</span><b>1</b></div><div class="stat"><span>Individu</span><b>${IND.length}</b></div></div>${tbl(['Indikator','Kategori','Satuan','Pengukuran','Arah','Dipetakan dari','Status'],r)}`]},
+targets(){const m=S.period;const r=[...IND.map(i=>[i.n,'Individu',i.u,i.t]),[DIVT.n,'Divisi Marketing',DIVT.u,DIVT.t]].map(x=>`<tr><td>${x[0]}</td><td>${x[1]}</td><td>${PER.find(p=>p.k===m).n}</td><td class="n">${x[3].toLocaleString('id-ID')} ${x[2]}</td></tr>`);
+ return['Target KPI','Target terikat ke indikator, periode, dan cakupan yang jelas.',`<div class="fb"><div><label>Periode</label>${perSel()}</div></div>${tbl(['Indikator','Cakupan','Periode','#Target'],r)}`]},
+achievements(){return kpiPage('Realisasi KPI','Realisasi hanya dihitung dari aktivitas disetujui yang memiliki pemetaan indikator. Pilih angka untuk melihat sumbernya.',team())},
+team(){return kpiPage('Kinerja tim','Realisasi anggota tim pada periode terpilih.',team())},
+perf(){return kpiPage('Kinerja saya','Realisasi dari aktivitas Anda yang sudah disetujui.',[me()])},
+reports(){const r=team().map(e=>{const as=A.filter(a=>a.owner===e&&a.date.startsWith(S.period));const c=k=>as.filter(a=>a.status===k).length;return`<tr><td>${nm(e)}</td><td>${EMP[e].d}</td><td class="n">${as.length}</td><td class="n">${c('approved')}</td><td class="n">${c('pending')}</td><td class="n">${c('revision')}</td><td class="n">${c('rejected')}</td></tr>`});
+ return['Laporan','Rekap aktivitas per karyawan pada periode terpilih.',`<div class="fb"><div><label>Periode</label>${perSel()}</div><div><label>Divisi</label><select disabled><option>Marketing</option></select></div></div>${tbl(['Karyawan','Divisi','#Total','#Disetujui','#Menunggu','#Revisi','#Ditolak'],r)}`]},
+periods(){const r=PER.map(p=>`<tr><td>${p.n}</td><td>${p.k}-01 s/d ${p.k}-${p.k==='2026-11'?30:31}</td><td>${p.st==='Aktif'?'<span class="b ok"><i></i>Aktif</span>':'<span class="b mu"><i></i>Ditutup</span>'}</td><td>${p.st==='Aktif'?'<button class="btn sm s" data-a="close" data-k="'+p.k+'">Tutup periode</button>':'<span class="hint">Tidak dapat diubah pengguna biasa</span>'}</td></tr>`);
+ return['Periode penilaian','HRD memilih periode. Periode yang ditutup tidak menerima aktivitas baru.',tbl(['Periode','Rentang','Status','Aksi'],r)]},
+employees(){const r=Object.entries(EMP).map(([k,e])=>`<tr><td>${e.n}</td><td>${RL[e.r]}</td><td>${e.d}</td><td>${e.p}</td><td>${e.s?nm(e.s):'-'}</td></tr>`);
+ return['Karyawan','Data contoh. Akun dibuat Admin; tidak ada registrasi publik.',tbl(['Nama','Peran','Divisi','Jabatan','Supervisor'],r)]},
+divisions(){const ds=[...new Set(Object.values(EMP).map(e=>e.d))];return['Divisi dan jabatan','Daftar divisi resmi perlu dikonfirmasi mitra.',tbl(['Divisi','#Karyawan','Jabatan'],ds.map(d=>`<tr><td>${d}</td><td class="n">${Object.values(EMP).filter(e=>e.d===d).length}</td><td>${[...new Set(Object.values(EMP).filter(e=>e.d===d).map(e=>e.p))].join(', ')}</td></tr>`))]},
+audit(){return['Audit log','Perubahan penting dicatat: siapa, apa, dan kapan.',tbl(['Waktu','Pengguna','Tindakan'],AUD.map(x=>`<tr><td>${x[0]}</td><td>${x[1]}</td><td>${esc(x[2])}</td></tr>`))]},
+spk(){return['SPK SAW (tahap TA)','Modul ini belum aktif pada rilis MKI. Hasil SAW berupa rekomendasi, bukan keputusan otomatis.',`<div class="grid"><div class="card"><h3>Benefit</h3><code>r = x / max(x)</code></div><div class="card"><h3>Cost</h3><code>r = min(x) / x</code></div><div class="card"><h3>Preferensi</h3><code>V = Σ (w × r)</code></div></div><div class="card"><h3 style="margin-bottom:8px">Alur perhitungan</h3><ol style="margin:0;padding-left:20px"><li>Pilih periode dan karyawan</li><li>Ambil kriteria, bobot, dan jenis benefit/cost (total bobot 100%)</li><li>Bentuk matriks keputusan lalu normalisasi</li><li>Hitung nilai preferensi dan ranking</li><li>Simpan snapshot hasil dan versi konfigurasi</li></ol></div><div class="al wa">Bobot, rentang predikat, dan kriteria menunggu persetujuan perusahaan.</div>`]},
+denied(){return['Akses ditolak','Peran Anda tidak memiliki izin untuk halaman ini.','<button class="btn" data-a="nav" data-p="dashboard">Kembali ke dashboard</button>']}};
+function mk(ty,t,d,h,row){const r=A.filter(a=>a.type===ty&&vis(a)).map(row);return[t,d,`<div class="fb"><button class="btn" data-a="nav" data-p="new">Tambah ${t.toLowerCase()}</button></div>${tbl(h,r,'Belum ada data.')}`]}
+function kpiPage(t,d,emps){const m=S.period,cl=closed(m+'-01');
+ const blocks=emps.map(e=>{const k=kpiOf(e,m);return`<h2 style="margin:6px 0 8px">${nm(e)}</h2>`+tbl(['Indikator','#Target','#Realisasi','Capaian'],IND.map(i=>`<tr><td>${i.n}</td><td class="n">${i.t.toLocaleString('id-ID')}</td><td class="n"><button class="lnk" data-a="src" data-e="${e}" data-i="${i.id}">${k[i.id].v.toLocaleString('id-ID')}</button> ${i.u}</td><td>${prog(k[i.id].v,i.t)}<span class="hint">${pct(k[i.id].v,i.t)}%</span></td></tr>`))});
+ const tot=emps.reduce((s,e)=>s+kpiOf(e,m).i1.v,0);
+ return[t,d,`<div class="fb"><div><label>Periode</label>${perSel()}</div></div>${cl?'<div class="al in">Periode ini sudah ditutup. Data hanya dapat dibaca.</div>':''}${blocks.join('')}${emps.length>1?`<div class="card"><b>${DIVT.n}</b><div class="fb" style="margin:8px 0 0"><span>${tot.toLocaleString('id-ID')} dari ${DIVT.t.toLocaleString('id-ID')} ${DIVT.u}</span>${prog(tot,DIVT.t)}</div></div>`:''}<div class="al in">Predikat nilai (Sangat Baik, Baik, Cukup, Kurang) ditampilkan setelah rentangnya disahkan perusahaan.</div>`]}
+function detail(id){const a=A.find(x=>x.id===id);if(!a)return'';
+ const ex=[['Pemilik',nm(a.owner)],['Pencatat',nm(a.by)],['Tanggal',fmt(a.date)],['Jenis',TY[a.type]],a.src&&['Sumber',a.src+(a.nm?' – '+a.nm:'')],a.q&&['Jumlah',a.q+' eksemplar'],a.client&&['Client',a.client],a.pot&&['Potensi',a.pot],a.offer&&['Penawaran',O.find(o=>o.id===a.offer).client],a.res&&['Hasil',a.res==='deal'?'Deal':'NO'],a.cat&&['Alasan NO',a.cat+' – '+a.why],['Deskripsi',a.desc],['Status',badge(a.status)]].filter(Boolean);
+ const own=a.owner===me()||a.by===me();
+ return`<header><h2>Aktivitas #${a.id}</h2><button class="btn g sm" data-a="x">Tutup</button></header><dl class="kv">${ex.map(x=>`<dt>${x[0]}</dt><dd>${x[0]==='Status'?x[1]:esc(x[1])}</dd>`).join('')}</dl><h3 style="margin-bottom:8px">Riwayat verifikasi</h3><ul class="tl">${a.h.map(h=>`<li>${badge(h[0])} ${nm(h[1])}, ${fmt(h[3])}${h[2]?`<div class="hint">${esc(h[2])}</div>`:''}</li>`).join('')}</ul>
+ ${canVerify(a)?`<div class="card" style="margin:14px 0 0"><label>Catatan pemeriksaan</label><textarea id="vn" rows="2"></textarea><div class="fb" style="margin:10px 0 0"><button class="btn" data-a="ver" data-id="${a.id}" data-s="approved">Setujui</button><button class="btn s" data-a="ver" data-id="${a.id}" data-s="revision">Minta revisi</button><button class="btn d" data-a="ver" data-id="${a.id}" data-s="rejected">Tolak</button></div></div>`:a.status==='pending'&&S.role==='supervisor'?'<div class="al in" style="margin-top:14px">Anda tidak dapat memverifikasi aktivitas yang Anda buat atau miliki sendiri.</div>':''}
+ ${a.status==='revision'&&own?`<div class="fb" style="margin:14px 0 0"><button class="btn" data-a="resub" data-id="${a.id}">Ajukan ulang</button></div>`:''}`}
+function offerView(id){const o=O.find(x=>x.id===id);return`<header><h2>${esc(o.client)}</h2><button class="btn g sm" data-a="x">Tutup</button></header><dl class="kv"><dt>Program</dt><dd>${esc(o.prog)}</dd><dt>Nilai</dt><dd>${rp(o.val)}</dd><dt>Pemilik</dt><dd>${nm(o.owner)}</dd><dt>Hasil akhir</dt><dd>${o.out?badge(o.out.r)+(o.out.r==='no'?'<div class="hint">'+esc(o.out.cat+' – '+o.out.txt)+'</div>':''):'Belum ada hasil'}</dd></dl><h3 style="margin-bottom:8px">Progress</h3>${o.pr.length?`<ul class="tl">${[...o.pr].reverse().map(p=>`<li><b>${p[1]}</b>, ${fmt(p[0])}<div class="hint">${esc(p[2])}</div></li>`).join('')}</ul>`:'<div class="empty">Belum ada progress.</div>'}`}
+function srcView(e,iid){const i=IND.find(x=>x.id===iid),k=kpiOf(e,S.period)[iid];return`<header><h2>Sumber realisasi</h2><button class="btn g sm" data-a="x">Tutup</button></header><p>${nm(e)} · ${i.n}</p>${tbl(['Tanggal','Deskripsi','#Nilai'],k.src.map(a=>`<tr><td>${fmt(a.date)}</td><td>${esc(a.desc)}</td><td class="n">${a.q||1}</td></tr>`),'Belum ada aktivitas disetujui yang terpetakan ke indikator ini.')}`}
+function login(){return`<div class="login"><div class="card lc"><div class="brand"><svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#12345A"/><path d="M8 22V10h8a4 4 0 0 1 0 8h-8M15 18l6 4" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Radar Kediri</div>
+<h1 style="margin-bottom:4px">Masuk ke sistem</h1><p class="hint" style="margin:0 0 14px">Sistem informasi aktivitas dan kinerja karyawan. Akun dibuat oleh Admin; tidak ada pendaftaran publik.</p>
+<label>Email</label><input value="nama@radarkediri.example" aria-label="Email"><label style="margin-top:10px">Kata sandi</label><input type="password" value="contohsandi" aria-label="Kata sandi">
+<p style="margin:16px 0 4px;font-weight:500">Pilih peran untuk mencoba prototipe</p><div class="roles">${Object.keys(RL).map(r=>`<button class="btn s" data-a="login" data-r="${r}">${RL[r]}</button>`).join('')}</div>
+<p class="hint" style="margin-top:14px">Prototipe memakai data contoh. Autentikasi dan data sebenarnya memakai Supabase pada versi Astro SSR.</p></div></div>`}
+function shell(){const [t,d,body]=(allowed().includes(S.page)?P[S.page]:P.denied)();const cur=allowed().includes(S.page)?S.page:'';
+ const item=x=>`<button class="nav" data-a="nav" data-p="${x[0]}"${x[0]===cur?' aria-current="page"':''}>${x[1]}</button>`;
+ return`<div class="app"><aside class="side${S.nav?' open':''}"><div class="brand"><svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#fff"/><path d="M8 22V10h8a4 4 0 0 1 0 8h-8M15 18l6 4" stroke="#12345A" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Radar Kediri</div>
+ ${NAV[S.role].map(item).join('')}${S.role==='supervisor'||S.role==='employee'?`<div class="grp">Marketing</div>${MK.map(item).join('')}`:''}</aside>
+ <div class="main"><header class="top"><button class="btn s sm burger" data-a="burger" aria-label="Buka menu">Menu</button><div class="sp"></div>
+ <div style="width:190px">${perSel()}</div><div class="who"><b>${nm(me())}</b>${RL[S.role]}</div><button class="btn s sm" data-a="logout">Keluar</button></header>
+ <main class="page"><div class="crumb">Radar Kediri / ${esc(t)}</div>${ph(t,d)}${body}</main></div></div>${S.modal?`<div class="mo" data-a="bg"><div class="mb" role="dialog" aria-modal="true">${S.modal}</div></div>`:''}${S.toast?`<div class="toast" role="status">${esc(S.toast)}</div>`:''}`}
+function render(){$('#root').innerHTML=S.role?shell():login();if(S.role&&S.page==='new')syncForm()}
+function syncForm(){const f=$('#af');if(!f)return;const ty=f.type.value,rs=f.res&&f.res.value;f.querySelectorAll('[data-t]').forEach(x=>{const k=x.dataset.t.split(' ');x.style.display=k.includes(ty)||(k.includes('no')&&ty==='hasil'&&rs==='no')?'':'none'})}
+function toast(t){S.toast=t;render();setTimeout(()=>{S.toast='';render()},2600)}
+function go(p){S.page=p;S.nav=false;S.modal=null;S.err='';render();window.scrollTo(0,0)}
+function submit(f){const g=n=>f[n]?f[n].value.trim():'';const own=f.owner.value,ty=g('type'),dt=g('date');let e='';
+ if(!dt)e='Tanggal wajib diisi.';else if(closed(dt))e='Periode untuk tanggal ini sudah ditutup. Pilih tanggal pada periode aktif.';
+ else if(g('desc').length<10)e='Deskripsi minimal 10 karakter agar dapat diverifikasi.';
+ else if(ty==='oplah'&&!(+g('q')>0))e='Jumlah oplah harus lebih dari 0.';
+ else if(ty==='hasil'&&g('res')==='no'&&(!g('cat')||!g('why')))e='Hasil NO wajib disertai kategori dan penjelasan alasan.';
+ if(e){S.err=e;render();return}
+ const id=Math.max(...A.map(a=>a.id))+1,a={id,date:dt,type:ty,owner:own,by:me(),desc:g('desc'),status:'pending',h:[['pending',me(),'Dibuat',TODAY]]};
+ if(ty==='oplah'){a.src=g('src');a.nm=g('nm');a.q=+g('q')}
+ if(['profiling','program','penawaran'].includes(ty))a.client=g('client');
+ if(ty==='profiling')a.pot=g('pot');
+ if(ty==='penawaran'){const oid='o'+(O.length+1);O.push({id:oid,client:a.client,prog:a.desc.slice(0,40),val:+g('val')||0,owner:own,date:dt,pr:[],out:null});a.offer=oid}
+ if(ty==='progress'||ty==='hasil'){a.offer=g('offer');const o=O.find(x=>x.id===a.offer);if(ty==='progress')o.pr.push([dt,'Progress',a.desc]);else{a.res=g('res');if(a.res==='no'){a.cat=g('cat');a.why=g('why')}o.out={r:a.res,cat:a.cat||'',txt:a.why||''}}}
+ A.push(a);logA('Membuat aktivitas #'+id);S.err='';S.page='activities';toast('Aktivitas tersimpan dan menunggu verifikasi.')}
+document.addEventListener('click',ev=>{const t=ev.target.closest('[data-a]');if(!t)return;const a=t.dataset.a,d=t.dataset;
+ if(a==='bg'){if(ev.target===t){S.modal=null;render()}return}
+ if(a==='login'){S.role=d.r;S.page='dashboard';render()}
+ else if(a==='logout'){S.role=null;S.modal=null;render()}
+ else if(a==='nav')go(d.p);
+ else if(a==='burger'){S.nav=!S.nav;render()}
+ else if(a==='x'){S.modal=null;render()}
+ else if(a==='open'){S.modal=detail(+d.id);render()}
+ else if(a==='offer'){S.modal=offerView(d.id);render()}
+ else if(a==='src'){S.modal=srcView(d.e,d.i);render()}
+ else if(a==='ver'){const x=A.find(z=>z.id===+d.id);if(!canVerify(x))return;const n=($('#vn')||{}).value||'';if(d.s!=='approved'&&!n.trim()){const b=$('#vn');b.focus();b.placeholder='Catatan wajib diisi untuk menolak atau meminta revisi';return}
+  x.status=d.s;x.h.push([d.s,me(),n,TODAY]);logA(BD[d.s][0]+' aktivitas #'+x.id);S.modal=null;toast('Status aktivitas diperbarui.')}
+ else if(a==='resub'){const x=A.find(z=>z.id===+d.id);x.status='pending';x.h.push(['pending',me(),'Diajukan ulang',TODAY]);logA('Mengajukan ulang aktivitas #'+x.id);S.modal=null;toast('Aktivitas diajukan ulang.')}
+ else if(a==='close'){if(confirm('Tutup periode ini? Pengguna biasa tidak dapat mengubahnya lagi.')){PER.find(p=>p.k===d.k).st='Ditutup';logA('Menutup periode '+d.k);toast('Periode ditutup.')}}});
+document.addEventListener('change',ev=>{const t=ev.target;if(t.closest('#af')){syncForm();return}
+ if(t.dataset.f==='period'){S.period=t.value;render()}else if(t.dataset.f==='st'||t.dataset.f==='ty'){S.f[t.dataset.f]=t.value;render()}});
+document.addEventListener('submit',ev=>{ev.preventDefault();if(ev.target.id==='af')submit(ev.target)});
+document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&S.modal){S.modal=null;render()}});
+render();
+</script>
+</body>
+</html>

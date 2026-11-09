@@ -1,0 +1,14 @@
+---
+import DashboardLayout from "../../../layouts/DashboardLayout.astro";
+import ListPage from "../../../components/ui/ListPage.astro";
+import Alert from "../../../components/ui/Alert.astro";
+import { categories, indicators } from "../../../lib/data/store";
+const rows = indicators.map((i) => ({ ...i, category: categories.find((c) => c.id === i.categoryId)?.name, measureLabel: i.measure === "sum" ? "Jumlah nilai" : "Hitung kejadian", dirLabel: i.direction === "benefit" ? "Benefit (makin besar makin baik)" : "Cost", status: i.active ? "active" : "closed" }));
+---
+<DashboardLayout title="Indikator KPI">
+  <ListPage title="Indikator KPI" description="Definisi, satuan, jenis pengukuran, dan arah setiap indikator." crumbs={[{ label: "HRD" }, { label: "KPI" }]} rows={rows} searchKeys={["name", "code"]}
+    filters={[{ name: "categoryId", label: "Kategori", options: categories.map((c) => ({ value: c.id, label: c.name })) }]}
+    columns={[{ key: "code", label: "Kode", type: "mono" }, { key: "name", label: "Indikator" }, { key: "category", label: "Kategori" }, { key: "unit", label: "Satuan" }, { key: "measureLabel", label: "Pengukuran" }, { key: "dirLabel", label: "Arah" }, { key: "status", label: "Status", type: "badge" }]}>
+    <Alert slot="before" tone="warning" title="Indikator contoh">Daftar KPI resmi, rumus, dan satuan wajib dikonfirmasi mitra (PRD §14). Jumlah NO belum dijadikan KPI karena belum diputuskan.</Alert>
+  </ListPage>
+</DashboardLayout>

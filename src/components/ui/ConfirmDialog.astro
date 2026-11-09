@@ -1,0 +1,14 @@
+---
+// Dialog konfirmasi bawaan <dialog>. Pemicu: tombol dengan data-confirm-open="<id>".
+const { id, title, confirmLabel = "Ya, lanjutkan", danger = false } = Astro.props as { id: string; title: string; confirmLabel?: string; danger?: boolean };
+---
+<dialog id={id} class="card" style="padding:0;max-width:26rem;width:calc(100% - 2rem);border:1px solid var(--color-border)">
+  <form method="dialog" class="card-body">
+    <h2 class="mb-4">{title}</h2>
+    <div class="mb-4"><slot /></div>
+    <div class="row" style="justify-content:flex-end">
+      <button class="btn btn-secondary" value="cancel">Batal</button>
+      <button class={`btn ${danger ? "btn-danger" : "btn-primary"}`} value="ok">{confirmLabel}</button>
+    </div>
+  </form>
+</dialog>

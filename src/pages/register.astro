@@ -1,0 +1,205 @@
+---
+import AuthLayout from "../layouts/AuthLayout.astro";
+import Alert from "../components/ui/Alert.astro";
+import { supabaseConfigured } from "../lib/supabase/server";
+
+if (Astro.locals.user) return Astro.redirect("/dashboard");
+const error = Astro.url.searchParams.get("error");
+const nameVal = Astro.url.searchParams.get("name") ?? "";
+const emailVal = Astro.url.searchParams.get("email") ?? "";
+---
+<AuthLayout title="Pendaftaran Akun">
+  <div class="auth">
+    <section class="auth-side">
+      <div class="masthead">
+        <span>Radar Kediri</span>
+        <span>Sistem internal</span>
+        <span>Edisi MKI</span>
+      </div>
+      <div>
+        <h1>Daftar Akun Baru</h1>
+        <p>
+          Pendaftaran mandiri otomatis terdaftar sebagai <strong>Pengguna (Karyawan)</strong> untuk mencatat aktivitas kerja harian dan memantau capaian target KPI.
+        </p>
+        <div style="background: rgba(255,255,255,0.08); border-left: 3px solid #64b5f6; padding: 0.75rem 1rem; border-radius: 4px; margin-top: 1.25rem;">
+          <p class="text-xs" style="color: #e3f2fd; margin: 0; line-height: 1.5;">
+            <strong>Informasi Peran:</strong><br />
+            Akun <strong>Super Admin</strong> dan <strong>Admin (HRD)</strong> memiliki akses administratif khusus dan hanya dapat ditentukan oleh Administrator sistem.
+          </p>
+        </div>
+      </div>
+      <p class="text-sm" style="margin:0">
+        Sudah punya akun? <a href="/login" style="color:#fff;font-weight:600;text-decoration:underline">Masuk di sini</a>
+      </p>
+    </section>
+
+    <section class="auth-main">
+      <div class="auth-card card">
+        <div class="card-body">
+          <div style="margin-bottom: 1.5rem">
+            <h2 style="margin: 0 0 0.25rem">Pendaftaran Akun</h2>
+            <p class="muted text-sm" style="margin: 0">Lengkapi formulir di bawah ini untuk membuat akun baru.</p>
+          </div>
+
+          {error && <Alert tone="danger" title="Pendaftaran gagal">{error}</Alert>}
+
+          {/* Tombol Google di bagian atas sebagai opsi cepat */}
+          <a class="btn-google mb-3" href="/api/auth/google">
+            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+            </svg>
+            Daftar dengan Google
+          </a>
+
+          <div class="auth-divider"><span>atau isi formulir</span></div>
+
+          <form method="post" action="/api/auth/register" id="reg-form">
+            <div class="field">
+              <label for="name">Nama Lengkap</label>
+              <input
+                class="input"
+                id="name"
+                name="name"
+                type="text"
+                autocomplete="name"
+                required
+                minlength="2"
+                value={nameVal}
+                placeholder="cth. Dewi Lestari"
+                autofocus
+              />
+            </div>
+
+            <div class="field">
+              <label for="email">Alamat Email</label>
+              <input
+                class="input"
+                id="email"
+                name="email"
+                type="email"
+                autocomplete="email"
+                required
+                value={emailVal}
+                placeholder="nama@radarkediri.com"
+              />
+            </div>
+
+            <div class="field">
+              <div style="display:flex; justify-content:space-between; align-items:center">
+                <label for="password" style="margin:0">Kata Sandi</label>
+                <button type="button" class="btn-toggle-pw" data-target="password" style="background:none;border:none;color:var(--color-primary-700);cursor:pointer;font-size:var(--text-xs);padding:0">Lihat</button>
+              </div>
+              <input
+                class="input"
+                id="password"
+                name="password"
+                type="password"
+                autocomplete="new-password"
+                required
+                minlength="6"
+                placeholder="Minimal 6 karakter"
+              />
+              <span class="hint">Minimal 6 karakter alfanumerik.</span>
+            </div>
+
+            <div class="field">
+              <div style="display:flex; justify-content:space-between; align-items:center">
+                <label for="confirmPassword" style="margin:0">Konfirmasi Kata Sandi</label>
+                <button type="button" class="btn-toggle-pw" data-target="confirmPassword" style="background:none;border:none;color:var(--color-primary-700);cursor:pointer;font-size:var(--text-xs);padding:0">Lihat</button>
+              </div>
+              <input
+                class="input"
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                autocomplete="new-password"
+                required
+                minlength="6"
+                placeholder="Ketik ulang kata sandi"
+              />
+              <span id="pw-match-error" style="display:none; color:var(--color-danger); font-size:var(--text-xs); margin-top:0.25rem">
+                Kata sandi tidak sama.
+              </span>
+            </div>
+
+            <div class="field" style="margin-top: 0.5rem">
+              <label style="display:flex; align-items:flex-start; gap:0.5rem; font-weight:normal; cursor:pointer">
+                <input type="checkbox" required style="margin-top: 0.2rem" />
+                <span class="text-xs muted">Saya memahami bahwa akun ini akan didaftarkan sebagai Pengguna (Karyawan) Radar Kediri.</span>
+              </label>
+            </div>
+
+            <button
+              class="btn btn-primary"
+              id="submit-btn"
+              style="width:100%;justify-content:center;margin-top:0.5rem"
+              type="submit"
+            >
+              Daftar Sekarang
+            </button>
+          </form>
+
+          <div class="auth-links">
+            Sudah memiliki akun? <a href="/login">Masuk ke aplikasi</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script is:inline>
+    // Toggle intip kata sandi
+    document.querySelectorAll(".btn-toggle-pw").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const targetId = btn.getAttribute("data-target");
+        const input = document.getElementById(targetId);
+        if (input) {
+          if (input.type === "password") {
+            input.type = "text";
+            btn.textContent = "Sembunyikan";
+          } else {
+            input.type = "password";
+            btn.textContent = "Lihat";
+          }
+        }
+      });
+    });
+
+    // Validasi kecocokan kata sandi sebelum submit
+    const form = document.getElementById("reg-form");
+    const pw = document.getElementById("password");
+    const cpw = document.getElementById("confirmPassword");
+    const errText = document.getElementById("pw-match-error");
+
+    function checkMatch() {
+      if (cpw.value && pw.value !== cpw.value) {
+        errText.style.display = "block";
+        cpw.setAttribute("aria-invalid", "true");
+        return false;
+      } else {
+        errText.style.display = "none";
+        cpw.removeAttribute("aria-invalid");
+        return true;
+      }
+    }
+
+    if (pw && cpw) {
+      cpw.addEventListener("input", checkMatch);
+      pw.addEventListener("input", () => {
+        if (cpw.value) checkMatch();
+      });
+    }
+
+    if (form) {
+      form.addEventListener("submit", (e) => {
+        if (!checkMatch()) {
+          e.preventDefault();
+          cpw.focus();
+        }
+      });
+    }
+  </script>
+</AuthLayout>

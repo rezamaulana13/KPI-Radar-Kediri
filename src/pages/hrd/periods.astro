@@ -1,0 +1,13 @@
+---
+import DashboardLayout from "../../layouts/DashboardLayout.astro";
+import ListPage from "../../components/ui/ListPage.astro";
+import Alert from "../../components/ui/Alert.astro";
+import { db } from "../../lib/data/store";
+const rows = db.periods.map((p) => ({ ...p, total: db.activities.filter((a) => a.periodId === p.id).length, approved: db.activities.filter((a) => a.periodId === p.id && a.status === "approved").length, targets: db.targets.filter((t) => t.periodId === p.id).length }));
+---
+<DashboardLayout title="Periode Penilaian">
+  <ListPage title="Periode Penilaian" description="Periode dipilih HRD. Periode yang sudah ditutup tidak dapat diubah pengguna biasa." crumbs={[{ label: "HRD" }]} rows={rows}
+    columns={[{ key: "name", label: "Periode" }, { key: "start", label: "Mulai", type: "date" }, { key: "end", label: "Selesai", type: "date" }, { key: "status", label: "Status", type: "badge" }, { key: "targets", label: "Target", type: "number" }, { key: "total", label: "Aktivitas", type: "number" }, { key: "approved", label: "Disetujui", type: "number" }]}>
+    <Alert slot="after" tone="info" title="Aturan penutupan periode belum final">Sistem sudah menolak pencatatan dan verifikasi pada periode berstatus Ditutup. Aturan koreksi setelah penutupan perlu dikonfirmasi mitra.</Alert>
+  </ListPage>
+</DashboardLayout>

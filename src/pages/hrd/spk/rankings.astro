@@ -1,0 +1,19 @@
+---
+import DashboardLayout from "../../../layouts/DashboardLayout.astro";
+import ListPage from "../../../components/ui/ListPage.astro";
+import { listSnapshots } from "../../../features/spk/snapshots";
+import { computeSaw } from "../../../features/spk/saw";
+import { altName } from "../../../features/spk/build-input";
+import { period, employeeName } from "../../../lib/data/store";
+const rows = listSnapshots().map((s) => {
+  const r = computeSaw(s.criteria, s.alternatives.map((a) => ({ id: a.employeeId, values: a.values })));
+  return { id: s.id, periode: period(s.periodId)?.name, version: `v${s.version}`, createdAt: s.createdAt, by: employeeName(s.createdBy), top: `${altName(r.ranking[0].id)} (${r.ranking[0].score.toFixed(3)})`, n: s.alternatives.length };
+});
+---
+<DashboardLayout title="Peringkat SPK">
+  <ListPage title="Peringkat" description="Versi hasil SAW yang tersimpan. Buka satu versi untuk melihat rincian perhitungannya." crumbs={[{ label: "HRD" }, { label: "SPK" }]} rows={rows}
+    columns={[{ key: "id", label: "Versi hasil", type: "mono", href: (r) => `/hrd/spk/results/${r.id}` }, { key: "periode", label: "Periode" }, { key: "createdAt", label: "Disimpan", type: "datetime" }, { key: "by", label: "Oleh" }, { key: "n", label: "Alternatif", type: "number" }, { key: "top", label: "Peringkat 1" }]}
+    emptyTitle="Belum ada hasil tersimpan" emptyHint="Buka Perhitungan SAW lalu simpan sebagai versi hasil.">
+    <a slot="actions" class="btn btn-primary" href="/hrd/spk/calculations">Hitung baru</a>
+  </ListPage>
+</DashboardLayout>

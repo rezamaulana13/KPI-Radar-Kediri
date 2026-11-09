@@ -1,0 +1,17 @@
+---
+export interface FilterDef { name: string; label: string; options: { value: string; label: string }[] }
+const { filters = [], search = true, searchLabel = "Cari" } = Astro.props as { filters?: FilterDef[]; search?: boolean; searchLabel?: string };
+const sp = Astro.url.searchParams;
+const active = filters.some((f) => sp.get(f.name)) || sp.get("q");
+---
+<form class="filter-bar" method="get" role="search">
+  {search && (<div class="field grow"><label for="q">{searchLabel}</label><input id="q" class="input" type="search" name="q" value={sp.get("q") ?? ""} placeholder="Ketik kata kunci" /></div>)}
+  {filters.map((f) => (
+    <div class="field"><label for={`f-${f.name}`}>{f.label}</label>
+      <select id={`f-${f.name}`} class="select" name={f.name}>
+        <option value="">Semua</option>
+        {f.options.map((o) => <option value={o.value} selected={sp.get(f.name) === o.value}>{o.label}</option>)}
+      </select></div>
+  ))}
+  <div class="row"><button class="btn btn-primary" type="submit">Terapkan</button>{active && <a class="btn btn-secondary" href={Astro.url.pathname}>Atur ulang</a>}</div>
+</form>

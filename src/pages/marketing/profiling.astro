@@ -1,0 +1,15 @@
+---
+import DashboardLayout from "../../layouts/DashboardLayout.astro";
+import ListPage from "../../components/ui/ListPage.astro";
+import { db, employeeName, client, visibleEmployeeIds } from "../../lib/data/store";
+const u = Astro.locals.user!;
+const ids = visibleEmployeeIds(u);
+const rows = db.activities.filter((a) => a.type === "profiling" && ids.includes(a.ownerId)).sort((a, b) => b.date.localeCompare(a.date)).map((a) => ({ ...a, owner: employeeName(a.ownerId), clientName: client(a.clientId)?.name }));
+---
+<DashboardLayout title="Riset Profiling">
+  <ListPage title="Riset Profiling" description="Hasil riset kebutuhan dan potensi client." crumbs={[{ label: "Marketing" }]} rows={rows} searchKeys={["clientName", "description", "owner"]}
+    filters={[{ name: "potential", label: "Potensi", options: ["Tinggi", "Sedang", "Rendah"].map((s) => ({ value: s, label: s })) }]}
+    columns={[{ key: "date", label: "Tanggal", type: "date" }, { key: "clientName", label: "Client" }, { key: "owner", label: "Pemilik" }, { key: "potential", label: "Potensi" }, { key: "description", label: "Hasil riset" }, { key: "status", label: "Status", type: "badge" }]}>
+    {u.role !== "hrd" && <a slot="actions" class="btn btn-primary" href="/employee/activities/new?type=profiling">Catat riset</a>}
+  </ListPage>
+</DashboardLayout>

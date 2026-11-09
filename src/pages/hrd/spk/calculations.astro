@@ -1,0 +1,41 @@
+---
+import DashboardLayout from "../../../layouts/DashboardLayout.astro";
+import PageHeader from "../../../components/layout/PageHeader.astro";
+import PeriodFilter from "../../../components/ui/PeriodFilter.astro";
+import Alert from "../../../components/ui/Alert.astro";
+import { db } from "../../../lib/data/store";
+import { selectedPeriod } from "../../../lib/utils/period";
+import { sawAlternatives, altName } from "../../../features/spk/build-input";
+import { computeSaw, validateWeights } from "../../../features/spk/saw";
+import { num } from "../../../lib/formatters";
+const p = selectedPeriod(Astro.url);
+const criteria = db.criteria;
+const alts = sawAlternatives(p.id, criteria);
+const w = validateWeights(criteria.map((c) => c.weight));
+const res = computeSaw(criteria, alts);
+const saved = Astro.url.searchParams.get("saved");
+const f = (n: number) => num(n, 3);
+---
+<DashboardLayout title="Perhitungan SAW">
+  <PageHeader title="Perhitungan SAW" description={`Rincian perhitungan ${p.name}: matriks keputusan, normalisasi, nilai preferensi, dan peringkat.`} crumbs={[{ label: "HRD" }, { label: "SPK" }]}>
+    <Fragment slot="actions"><PeriodFilter /></Fragment>
+  </PageHeader>
+  {saved && <Alert tone="success" title="Hasil disimpan">Versi hasil tersimpan dan dapat dibuka dari halaman <a href="/hrd/spk/rankings">Peringkat</a>.</Alert>}
+  <Alert tone="warning" title="Rekomendasi pendukung keputusan">Bobot dan kriteria masih contoh. Hasil ini bukan keputusan bonus, promosi, atau sanksi. Nilai nol ditangani dengan aturan asumsi yang perlu divalidasi.</Alert>
+  {!w.ok && <Alert tone="danger" title="Bobot tidak valid">{w.message} <a href="/hrd/spk/weights">Perbaiki bobot</a>.</Alert>}
+
+  <section class="card mb-4"><div class="card-head"><h2>1. Matriks keputusan (X)</h2></div><div class="table-wrap"><table class="table">
+    <thead><tr><th>Alternatif</th>{criteria.map((c) => <th class="num" title={c.name}>{c.code} {c.direction === "cost" ? "(cost)" : ""}</th>)}</tr></thead>
+    <tbody>{alts.map((a, i) => <tr><td>{altName(a.id)}</td>{res.matrix[i].map((v) => <td class="num">{num(v)}</td>)}</tr>)}</tbody>
+    <tfoot><tr><td>Bobot</td>{criteria.map((c) => <td class="num">{num(c.weight * 100, 1)}%</td>)}</tr></tfoot></table></div></section>
+
+  <section class="card mb-4"><div class="card-head"><h2>2. Normalisasi (R)</h2><span class="muted text-sm">Benefit: x ÷ max · Cost: min ÷ x</span></div><div class="table-wrap"><table class="table">
+    <thead><tr><th>Alternatif</th>{criteria.map((c) => <th class="num">{c.code}</th>)}</tr></thead>
+    <tbody>{alts.map((a, i) => <tr><td>{altName(a.id)}</td>{res.normalized[i].map((v) => <td class="num">{f(v)}</td>)}</tr>)}</tbody></table></div></section>
+
+  <section class="card mb-4"><div class="card-head"><h2>3. Nilai preferensi dan peringkat</h2><span class="muted text-sm">V = Σ (bobot × R)</span></div><div class="table-wrap"><table class="table">
+    <thead><tr><th>Peringkat</th><th>Alternatif</th><th class="num">Nilai preferensi (V)</th><th>Predikat</th></tr></thead>
+    <tbody>{res.ranking.map((r) => <tr><td class="strong">{r.rank}</td><td>{altName(r.id)}</td><td class="num">{f(r.score)}</td><td class="muted">Menunggu pengesahan rentang</td></tr>)}</tbody></table></div></section>
+
+  <form method="post" action="/api/spk/calculations" class="row"><input type="hidden" name="period" value={p.id} /><button class="btn btn-primary" disabled={!w.ok || p.status === "draft"}>Simpan sebagai versi hasil</button><span class="muted text-sm">Menyimpan kriteria, bobot, dan nilai input agar hasil dapat direproduksi.</span></form>
+</DashboardLayout>

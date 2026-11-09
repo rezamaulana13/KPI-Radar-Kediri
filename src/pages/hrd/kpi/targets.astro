@@ -1,0 +1,20 @@
+---
+import DashboardLayout from "../../../layouts/DashboardLayout.astro";
+import ListPage from "../../../components/ui/ListPage.astro";
+import PeriodFilter from "../../../components/ui/PeriodFilter.astro";
+import { db, indicator, divisionName, employeeName } from "../../../lib/data/store";
+import { selectedPeriod } from "../../../lib/utils/period";
+import { SCOPE_LABEL, num } from "../../../lib/formatters";
+const p = selectedPeriod(Astro.url);
+const rows = db.targets.filter((t) => t.periodId === p.id).map((t) => ({
+  ...t, scopeLabel: SCOPE_LABEL[t.scope], indicatorName: indicator(t.indicatorId)?.name, unit: indicator(t.indicatorId)?.unit,
+  subject: t.scope === "company" ? "Seluruh perusahaan" : t.scope === "division" ? divisionName(t.divisionId) : employeeName(t.employeeId),
+}));
+---
+<DashboardLayout title="Target KPI">
+  <ListPage title="Target KPI" description={`Target ${p.name} menurut indikator dan cakupan. Satu indikator hanya punya satu target per cakupan dan periode.`} crumbs={[{ label: "HRD" }, { label: "KPI" }]} rows={rows} searchKeys={["indicatorName", "subject"]}
+    filters={[{ name: "scope", label: "Cakupan", options: Object.entries(SCOPE_LABEL).map(([value, label]) => ({ value, label })) }]}
+    columns={[{ key: "indicatorName", label: "Indikator" }, { key: "scopeLabel", label: "Cakupan" }, { key: "subject", label: "Subjek" }, { key: "value", label: "Target", type: "number" }, { key: "unit", label: "Satuan" }]}>
+    <PeriodFilter slot="actions" />
+  </ListPage>
+</DashboardLayout>

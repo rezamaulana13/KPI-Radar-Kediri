@@ -1,0 +1,15 @@
+---
+import DashboardLayout from "../../layouts/DashboardLayout.astro";
+import ListPage from "../../components/ui/ListPage.astro";
+import { db, employeeName, visibleEmployeeIds } from "../../lib/data/store";
+const u = Astro.locals.user!;
+const ids = visibleEmployeeIds(u);
+const rows = db.clients.filter((c) => ids.includes(c.ownerId)).map((c) => ({ ...c, owner: employeeName(c.ownerId), offers: db.offers.filter((o) => o.clientId === c.id).length }));
+---
+<DashboardLayout title="List Client">
+  <ListPage title="List Client" description="Daftar client dan calon client Marketing." crumbs={[{ label: "Marketing" }]} rows={rows} searchKeys={["name", "sector", "contact", "city"]}
+    filters={[{ name: "sector", label: "Sektor", options: [...new Set(db.clients.map((c) => c.sector))].map((s) => ({ value: s, label: s })) }]}
+    columns={[{ key: "name", label: "Client" }, { key: "sector", label: "Sektor" }, { key: "contact", label: "Kontak" }, { key: "phone", label: "Telepon", type: "mono" }, { key: "city", label: "Kota" }, { key: "owner", label: "Pemegang" }, { key: "offers", label: "Penawaran", type: "number" }]}>
+    {u.role !== "hrd" && <a slot="actions" class="btn btn-primary" href="/employee/activities/new?type=client">Tambah client</a>}
+  </ListPage>
+</DashboardLayout>

@@ -1,0 +1,55 @@
+---
+import DashboardLayout from "../../../layouts/DashboardLayout.astro";
+import PageHeader from "../../../components/layout/PageHeader.astro";
+import Alert from "../../../components/ui/Alert.astro";
+import Badge from "../../../components/ui/Badge.astro";
+import FormError from "../../../components/ui/FormError.astro";
+import ConfirmDialog from "../../../components/ui/ConfirmDialog.astro";
+import ActivityDetail from "../../../components/ui/ActivityDetail.astro";
+import { activity, db, historyOf, employeeName } from "../../../lib/data/store";
+import { canVerify } from "../../../features/verification/rules";
+import { takeFormState } from "../../../lib/utils/flash";
+import { dateTimeID } from "../../../lib/formatters";
+
+const a = activity(Astro.params.id!);
+if (!a) return new Response(null, { status: 404 });
+const u = Astro.locals.user!;
+const check = canVerify(u, a, db.employees);
+const st = takeFormState(Astro.cookies, Astro.url);
+const hist = historyOf(a.id);
+---
+<DashboardLayout title={`Verifikasi ${a.id}`}>
+  <PageHeader title={`Verifikasi ${a.id}`} description="Periksa data aktivitas, lalu setujui, minta revisi, atau tolak." crumbs={[{ label: "HRD" }, { label: "Verifikasi", href: "/hrd/verifications" }]} />
+  {st.error && <Alert tone="danger" title="Keputusan belum tersimpan">{st.error}</Alert>}
+  {!check.ok && <Alert tone="warning" title="Anda tidak dapat memverifikasi aktivitas ini">{check.reason}</Alert>}
+  <div class="grid-3-1">
+    <section class="card"><div class="card-head"><h2>Data aktivitas</h2><Badge status={a.status} /></div><div class="card-body"><ActivityDetail activity={a} /></div></section>
+    <div class="stack">
+      {check.ok && (
+        <section class="card"><div class="card-head"><h2>Keputusan</h2></div><div class="card-body">
+          <form method="post" action={`/api/verifications/${a.id}`} id="vform">
+            <div class="field"><label for="note">Catatan pemeriksaan</label><textarea class="textarea" id="note" name="note" aria-invalid={st.fields.note ? "true" : undefined}>{st.values.note ?? ""}</textarea><span class="hint">Wajib saat menolak atau meminta revisi.</span><FormError message={st.fields.note} /></div>
+            <div class="stack">
+              <button class="btn btn-primary" style="width:100%;justify-content:center" name="status" value="approved" type="button" data-confirm-open="dlg-approve">Setujui</button>
+              <button class="btn btn-warn" style="width:100%;justify-content:center" name="status" value="revision" type="submit">Minta revisi</button>
+              <button class="btn btn-danger" style="width:100%;justify-content:center" name="status" value="rejected" type="button" data-confirm-open="dlg-reject">Tolak</button>
+            </div>
+          </form>
+        </div></section>
+      )}
+      <section class="card"><div class="card-head"><h2>Riwayat verifikasi</h2></div><div class="card-body">
+        {hist.length === 0 ? <p class="muted mb-0">Belum ada riwayat.</p> : <ol class="timeline">{hist.map((h) => <li><Badge status={h.status} /> <span class="text-xs muted">{dateTimeID(h.at)} · {employeeName(h.by)}</span><p class="text-sm mb-0">{h.note}</p></li>)}</ol>}
+      </div></section>
+    </div>
+  </div>
+  <ConfirmDialog id="dlg-approve" title="Setujui aktivitas ini?" confirmLabel="Ya, setujui"><p class="mb-0">Aktivitas akan dihitung ke realisasi KPI sesuai mapping.</p></ConfirmDialog>
+  <ConfirmDialog id="dlg-reject" title="Tolak aktivitas ini?" confirmLabel="Ya, tolak" danger><p class="mb-0">Aktivitas ditolak tidak dihitung ke KPI. Pastikan catatan alasan sudah diisi.</p></ConfirmDialog>
+  <script is:inline>
+    const form = document.getElementById("vform");
+    ["approve", "reject"].forEach((k) => {
+      const d = document.getElementById("dlg-" + k); if (!d || !form) return;
+      d.addEventListener("close", () => { if (d.returnValue === "ok") { const h = document.createElement("input"); h.type = "hidden"; h.name = "status"; h.value = k === "approve" ? "approved" : "rejected"; form.appendChild(h); form.submit(); } });
+    });
+  </script>
+</DashboardLayout>
+

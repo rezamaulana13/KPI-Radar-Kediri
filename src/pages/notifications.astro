@@ -1,0 +1,15 @@
+---
+import DashboardLayout from "../layouts/DashboardLayout.astro";
+import PageHeader from "../components/layout/PageHeader.astro";
+import Alert from "../components/ui/Alert.astro";
+import EmptyState from "../components/ui/EmptyState.astro";
+import { notificationsFor } from "../lib/data/store";
+const u = Astro.locals.user!;
+const list = notificationsFor({ id: u.id, role: u.role });
+---
+<DashboardLayout title="Notifikasi">
+  <PageHeader title="Notifikasi" description="Hal yang perlu Anda tindak lanjuti." />
+  {list.length === 0 ? <div class="card"><EmptyState title="Tidak ada notifikasi" hint="Semua sudah beres." /></div> : (
+    <div class="stack">{list.map((n) => <a href={n.href} style="text-decoration:none;display:block"><Alert tone={n.tone} title={n.title}>{n.body}</Alert></a>)}</div>
+  )}
+</DashboardLayout>

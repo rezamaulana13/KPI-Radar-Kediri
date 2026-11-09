@@ -1,0 +1,4 @@
+---
+const { label, value, note, tone = "" } = Astro.props as { label: string; value: string | number; note?: string; tone?: "ok" | "warn" | "bad" | "" };
+---
+<div class={`stat ${tone}`}><div class="stat-label">{label}</div><div class="stat-value">{value}</div>{note && <div class="stat-note">{note}</div>}</div>

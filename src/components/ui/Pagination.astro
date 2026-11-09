@@ -1,0 +1,23 @@
+---
+const { page, pages, total, perPage } = Astro.props as { page: number; pages: number; total: number; perPage: number };
+const url = Astro.url;
+const href = (p: number) => { const u = new URL(url); u.searchParams.set("page", String(p)); return u.pathname + u.search; };
+const from = total === 0 ? 0 : (page - 1) * perPage + 1;
+const to = Math.min(total, page * perPage);
+const nums = Array.from({ length: pages }, (_, i) => i + 1).filter((p) => p === 1 || p === pages || Math.abs(p - page) <= 1);
+---
+{total > 0 && (
+  <div class="pagination">
+    <span class="muted">Menampilkan {from}–{to} dari {total} data</span>
+    {pages > 1 && (
+      <nav aria-label="Halaman data">
+        <a class="page-link" href={href(page - 1)} aria-disabled={page <= 1}>Sebelumnya</a>
+        {nums.map((p, i) => (<>
+          {i > 0 && nums[i - 1] !== p - 1 && <span class="muted">…</span>}
+          <a class="page-link" href={href(p)} aria-current={p === page ? "page" : undefined}>{p}</a>
+        </>))}
+        <a class="page-link" href={href(page + 1)} aria-disabled={page >= pages}>Berikutnya</a>
+      </nav>
+    )}
+  </div>
+)}

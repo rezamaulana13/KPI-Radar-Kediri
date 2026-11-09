@@ -1,0 +1,12 @@
+---
+import DashboardLayout from "../../../layouts/DashboardLayout.astro";
+import PageHeader from "../../../components/layout/PageHeader.astro";
+import ActivityForm from "../../../components/ui/ActivityForm.astro";
+import { takeFormState } from "../../../lib/utils/flash";
+const st = takeFormState(Astro.cookies, Astro.url);
+const values = { ...st.values, type: st.values.type ?? Astro.url.searchParams.get("type") ?? "oplah" };
+---
+<DashboardLayout title="Tambah Aktivitas">
+  <PageHeader title="Tambah Aktivitas" description="Catat aktivitas Marketing. Setelah disimpan, Supervisor akan memeriksanya sebelum dihitung ke KPI." crumbs={[{ label: "Aktivitas", href: "/employee/activities" }]} />
+  <ActivityForm errors={st.fields} values={values} formError={st.error} />
+</DashboardLayout>

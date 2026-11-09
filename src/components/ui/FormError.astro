@@ -1,0 +1,4 @@
+---
+const { message } = Astro.props as { message?: string };
+---
+{message && <p class="form-error" role="alert">{message}</p>}

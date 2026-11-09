@@ -1,0 +1,10 @@
+---
+import DashboardLayout from "../../layouts/DashboardLayout.astro";
+import ListPage from "../../components/ui/ListPage.astro";
+import { db, positions } from "../../lib/data/store";
+const rows = positions.map((p) => ({ ...p, members: db.employees.filter((e) => e.positionId === p.id).length }));
+---
+<DashboardLayout title="Jabatan">
+  <ListPage title="Jabatan" description="Daftar jabatan dan tingkatannya." crumbs={[{ label: "Admin" }]} rows={rows} searchKeys={["name"]}
+    columns={[{ key: "name", label: "Jabatan" }, { key: "level", label: "Tingkat" }, { key: "members", label: "Jumlah karyawan", type: "number" }]} />
+</DashboardLayout>

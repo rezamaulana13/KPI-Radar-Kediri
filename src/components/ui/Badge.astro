@@ -1,0 +1,6 @@
+---
+import { STATUS_LABEL } from "../../lib/formatters";
+const { status, label } = Astro.props as { status: string; label?: string };
+const tone: Record<string, string> = { pending: "pending", approved: "approved", rejected: "rejected", revision: "revision", deal: "deal", no: "no", active: "approved", closed: "neutral", draft: "pending", berjalan: "approved", selesai: "neutral", rencana: "pending", open: "pending", ya: "approved", tidak: "neutral" };
+---
+<span class={`badge badge-${tone[status] ?? "neutral"}`}>{label ?? STATUS_LABEL[status] ?? status}</span>

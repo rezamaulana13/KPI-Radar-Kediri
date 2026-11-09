@@ -1,0 +1,77 @@
+---
+import DashboardLayout from "../../../layouts/DashboardLayout.astro";
+import PageHeader from "../../../components/layout/PageHeader.astro";
+import Alert from "../../../components/ui/Alert.astro";
+import Badge from "../../../components/ui/Badge.astro";
+import FormError from "../../../components/ui/FormError.astro";
+import { offer, client, employeeName, offerOutcome, progressOf, visibleEmployeeIds } from "../../../lib/data/store";
+import { noReasonCategories, progressTypes } from "../../../lib/data/mock";
+import { takeFormState } from "../../../lib/utils/flash";
+import { dateID, rupiah } from "../../../lib/formatters";
+const u = Astro.locals.user!;
+const o = offer(Astro.params.id);
+if (!o || !visibleEmployeeIds(u).includes(o.ownerId)) return new Response(null, { status: 404 });
+const c = client(o.clientId)!;
+const out = offerOutcome(o.id);
+const prog = progressOf(o.id);
+const canWrite = (u.role === "employee" || u.role === "supervisor") && (o.ownerId === u.id || u.role === "supervisor");
+const st = takeFormState(Astro.cookies, Astro.url);
+const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Jakarta" });
+const back = `/marketing/offers/${o.id}`;
+const created = Astro.url.searchParams.get("created");
+---
+<DashboardLayout title={`Penawaran ${o.id}`}>
+  <PageHeader title={`Penawaran ${o.id}`} description={`${c.name} · ${o.programName}`} crumbs={[{ label: "Marketing" }, { label: "Penawaran", href: "/marketing/offers" }]} />
+  {created && <Alert tone="success" title={`${created} tersimpan`}>Menunggu verifikasi Supervisor sebelum dihitung ke KPI.</Alert>}
+  {st.error && <Alert tone="danger" title="Belum tersimpan">{st.error}</Alert>}
+  <div class="grid-3-1">
+    <div class="stack">
+      <section class="card"><div class="card-head"><h2>Ringkasan</h2><Badge status={out.status} /></div><div class="card-body"><dl class="kv">
+        <dt>Client</dt><dd>{c.name} · {c.sector} · {c.city}</dd><dt>Kontak</dt><dd>{c.contact} ({c.phone})</dd>
+        <dt>Pemilik</dt><dd>{employeeName(o.ownerId)}</dd><dt>Tanggal penawaran</dt><dd>{dateID(o.date)}</dd><dt>Nilai</dt><dd>{rupiah(o.value)}</dd>
+        {o.note && (<><dt>Catatan</dt><dd>{o.note}</dd></>)}
+        {out.activity && (<><dt>Hasil akhir</dt><dd><Badge status={out.status} /> · {dateID(out.activity.date)} · verifikasi: <Badge status={out.activity.status} /></dd></>)}
+        {out.activity?.outcome === "no" && (<><dt>Alasan NO</dt><dd><strong>{out.activity.reasonCategory}</strong>. {out.activity.reason}</dd></>)}
+      </dl></div></section>
+
+      <section class="card"><div class="card-head"><h2>Progress</h2><span class="muted text-sm">{prog.length} pencatatan</span></div><div class="card-body">
+        {prog.length === 0 ? <p class="muted mb-0">Belum ada progress dicatat.</p> : (
+          <ol class="timeline">{prog.map((p) => <li><strong>{p.progressType}</strong> <span class="text-xs muted">{dateID(p.date)} · {employeeName(p.ownerId)}</span> <Badge status={p.status} /><p class="text-sm mb-0">{p.description}</p></li>)}</ol>)}
+      </div></section>
+    </div>
+
+    <div class="stack">
+      {canWrite && (
+        <section class="card"><div class="card-head"><h2>Catat progress</h2></div><div class="card-body">
+          <form method="post" action="/api/activities" novalidate>
+            <input type="hidden" name="type" value="progress" /><input type="hidden" name="offerId" value={o.id} /><input type="hidden" name="ownerId" value={o.ownerId} /><input type="hidden" name="redirectTo" value={back} />
+            <div class="field"><label for="p-date">Tanggal</label><input class="input" id="p-date" name="date" type="date" max={today} value={today} /></div>
+            <div class="field"><label for="p-type">Tipe progress</label><select class="select" id="p-type" name="progressType"><option value="">Pilih tipe</option>{progressTypes.map((t) => <option>{t}</option>)}</select></div>
+            <div class="field"><label for="p-desc">Catatan</label><textarea class="textarea" id="p-desc" name="description"></textarea></div>
+            <button class="btn btn-primary" type="submit">Simpan progress</button>
+          </form>
+        </div></section>
+      )}
+      {canWrite && out.status === "open" && (
+        <section class="card"><div class="card-head"><h2>Tetapkan hasil akhir</h2></div><div class="card-body">
+          <form method="post" action="/api/activities" id="oform" novalidate>
+            <input type="hidden" name="type" value="outcome" /><input type="hidden" name="offerId" value={o.id} /><input type="hidden" name="ownerId" value={o.ownerId} /><input type="hidden" name="redirectTo" value={back} />
+            <div class="field"><label for="o-date">Tanggal</label><input class="input" id="o-date" name="date" type="date" max={today} value={today} /></div>
+            <div class="field"><label for="o-out">Hasil akhir</label><select class="select" id="o-out" name="outcome"><option value="">Pilih hasil</option><option value="deal">Deal</option><option value="no">NO</option></select><FormError message={st.fields.outcome} /></div>
+            <div data-no hidden>
+              <div class="field"><label for="o-cat">Kategori alasan NO</label><select class="select" id="o-cat" name="reasonCategory" disabled><option value="">Pilih kategori</option>{noReasonCategories.map((t) => <option>{t}</option>)}</select><FormError message={st.fields.reasonCategory} /></div>
+              <div class="field"><label for="o-reason">Penjelasan alasan NO</label><textarea class="textarea" id="o-reason" name="reason" disabled></textarea><span class="hint">Wajib diisi jika hasilnya NO.</span><FormError message={st.fields.reason} /></div>
+            </div>
+            <div class="field"><label for="o-desc">Catatan</label><textarea class="textarea" id="o-desc" name="description"></textarea><FormError message={st.fields.description} /></div>
+            <button class="btn btn-primary" type="submit">Simpan hasil</button>
+          </form>
+        </div></section>
+      )}
+      {out.status !== "open" && <Alert tone="info" title="Penawaran punya hasil akhir aktif">Satu penawaran hanya boleh memiliki satu hasil akhir aktif.</Alert>}
+    </div>
+  </div>
+  <script is:inline>
+    const f = document.getElementById("oform");
+    if (f) { const sync = () => { const no = f.querySelector("[name=outcome]").value === "no"; f.querySelectorAll("[data-no]").forEach((n) => { n.hidden = !no; n.querySelectorAll("select,textarea").forEach((i) => (i.disabled = !no)); }); }; f.addEventListener("change", sync); sync(); }
+  </script>
+</DashboardLayout>

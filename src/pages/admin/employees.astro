@@ -1,0 +1,11 @@
+---
+import DashboardLayout from "../../layouts/DashboardLayout.astro";
+import ListPage from "../../components/ui/ListPage.astro";
+import { db, divisionName, positionName, employeeName, divisions } from "../../lib/data/store";
+const rows = db.employees.map((e) => ({ ...e, division: divisionName(e.divisionId), position: positionName(e.positionId), supervisor: e.supervisorId ? employeeName(e.supervisorId) : "—", status: e.active ? "active" : "closed" }));
+---
+<DashboardLayout title="Karyawan">
+  <ListPage title="Karyawan" description="Data kepegawaian, divisi, jabatan, dan relasi Supervisor." crumbs={[{ label: "Admin" }]}
+    rows={rows} searchKeys={["name", "nip"]} filters={[{ name: "divisionId", label: "Divisi", options: divisions.map((d) => ({ value: d.id, label: d.name })) }]}
+    columns={[{ key: "nip", label: "NIP", type: "mono" }, { key: "name", label: "Nama" }, { key: "division", label: "Divisi" }, { key: "position", label: "Jabatan" }, { key: "supervisor", label: "Supervisor" }, { key: "status", label: "Status", type: "badge" }]} />
+</DashboardLayout>
