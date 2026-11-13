@@ -1,0 +1,584 @@
+---
+import PublicLayout from "../layouts/PublicLayout.astro";
+import Icon from "../components/ui/Icon.astro";
+
+const user = Astro.locals.user;
+---
+
+<PublicLayout
+  title="Alur Kerja & Panduan SOP"
+  activeNav="alur-kerja"
+  description="Standar Operasional Prosedur (SOP) pelaporan aktivitas, verifikasi bukti HRD, dan evaluasi capaian kinerja bulanan di Radar Kediri."
+>
+  <!-- Hero Section -->
+  <section class="sop-hero">
+    <div class="sop-hero-container">
+      <span class="badge" style="background:rgba(255,255,255,0.15);color:#e0f2fe;margin-bottom:1rem;display:inline-flex;">
+        STANDAR OPERASIONAL PROSEDUR (SOP)
+      </span>
+      <h1>Panduan Alur Kerja Sistem Terpadu</h1>
+      <p>
+        Tata cara resmi pencatatan progres operasional, validasi berkas lapangan oleh Bagian Personalia (HRD), hingga terbitnya rekapitulasi rapor evaluasi capaian kinerja bulanan.
+      </p>
+    </div>
+  </section>
+
+  <div class="sop-container">
+    <!-- Flowchart Visual -->
+    <div class="workflow-roadmap">
+      <div class="roadmap-item">
+        <div class="roadmap-badge">Tahap 1</div>
+        <h4>Registrasi Akun</h4>
+        <p>Pendaftaran akun karyawan mandiri via email / Google OAuth.</p>
+      </div>
+      <div class="roadmap-arrow">&rarr;</div>
+      <div class="roadmap-item">
+        <div class="roadmap-badge">Tahap 2</div>
+        <h4>Catat Lapangan</h4>
+        <p>Input data oplah, klien iklan, event, serta upload bukti otentik.</p>
+      </div>
+      <div class="roadmap-arrow">&rarr;</div>
+      <div class="roadmap-item">
+        <div class="roadmap-badge">Tahap 3</div>
+        <h4>Verifikasi HRD</h4>
+        <p>Pemeriksaan berkas: status disetujui, revisi, atau ditolak.</p>
+      </div>
+      <div class="roadmap-arrow">&rarr;</div>
+      <div class="roadmap-item">
+        <div class="roadmap-badge">Tahap 4</div>
+        <h4>Evaluasi &amp; Rapor Kinerja</h4>
+        <p>Rekapitulasi capaian target &amp; penerbitan rapor kinerja berkala.</p>
+      </div>
+    </div>
+
+    <!-- TAHAP DETAIL 1 -->
+    <div class="sop-step-box" id="tahap-akun">
+      <div class="sop-step-header">
+        <div class="step-circle">1</div>
+        <div>
+          <span class="badge badge-employee">Akses Publik &amp; Karyawan Baru</span>
+          <h3>Tahap 1: Pendaftaran Akun &amp; Pengaturan Hak Akses</h3>
+        </div>
+      </div>
+      <div class="sop-step-body">
+        <div class="step-two-columns">
+          <div>
+            <h4>Prosedur Registrasi:</h4>
+            <ol class="sop-numbered-list">
+              <li>
+                Buka halaman <a href="/register">Pendaftaran Akun Baru</a>.
+              </li>
+              <li>
+                Isikan <strong>Nama Lengkap</strong>, <strong>Alamat Email Resmi/Aktif</strong>, dan <strong>Kata Sandi</strong> minimal 8 karakter (atau gunakan tombol <em>Daftar dengan Google</em>).
+              </li>
+              <li>
+                Klik tombol <strong>Daftar Sekarang</strong>. Sistem otomatis mengaitkan akun dengan Nomor Induk Pegawai (NIP) sementara dan menempatkan pada divisi Marketing.
+              </li>
+            </ol>
+          </div>
+          <div class="sop-alert-note">
+            <strong>Penting tentang Hak Akses (Role):</strong>
+            <p>
+              Untuk menjaga integritas dan keamanan sistem, seluruh akun yang mendaftar secara mandiri otomatis diset sebagai <strong>Pengguna (Karyawan)</strong>.
+            </p>
+            <p>
+              Jika akun Anda bertugas sebagai <strong>Admin HRD</strong> atau <strong>Super Admin IT</strong>, penetapan wewenang dilakukan secara langsung oleh Administrator di basis data. Anda tidak perlu memilih role saat registrasi.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAHAP DETAIL 2 -->
+    <div class="sop-step-box" id="tahap-input">
+      <div class="sop-step-header">
+        <div class="step-circle">2</div>
+        <div>
+          <span class="badge badge-employee">Tugas Karyawan</span>
+          <h3>Tahap 2: Penginputan Laporan Lapangan &amp; Berkas Bukti</h3>
+        </div>
+      </div>
+      <div class="sop-step-body">
+        <p>
+          Setelah berhasil masuk (login), staf mencatat setiap hasil pekerjaan melalui menu <strong>Aktivitas Baru</strong>.
+        </p>
+
+        <div class="table-wrap" style="margin: 1.5rem 0;">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Tipe Aktivitas</th>
+                <th>Field Utama yang Wajib Diisi</th>
+                <th>Lampiran Bukti yang Disyaratkan</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Oplah Koran</strong></td>
+                <td>Rayon distribusi, jumlah eksemplar terjual, retur</td>
+                <td>Foto nota tanda terima agen / loper / kios resmi</td>
+              </tr>
+              <tr>
+                <td><strong>Pendaftaran Klien Iklan</strong></td>
+                <td>Nama instansi / perusahaan, nama PIC, nomor telepon, alamat</td>
+                <td>Kartu nama PIC / foto tampak depan kantor instansi</td>
+              </tr>
+              <tr>
+                <td><strong>Penawaran &amp; Deal Iklan</strong></td>
+                <td>Kategori iklan (Display/Advertorial), nilai nominal rupiah deal</td>
+                <td>Formulir pesanan iklan (PO) / kwitansi pembayaran / bukti transfer</td>
+              </tr>
+              <tr>
+                <td><strong>Program &amp; Event Promo</strong></td>
+                <td>Nama event, peran keterlibatan, nilai barter / sponsorship</td>
+                <td>Dokumentasi foto kegiatan di lokasi / berkas MoU sponsorship</td>
+              </tr>
+              <tr>
+                <td><strong>Kunjungan &amp; Progres Prospek</strong></td>
+                <td>Hasil negosiasi, catatan rencana tindak lanjut berikutnya</td>
+                <td>Foto saat berdiskusi dengan klien / lembar kunjungan</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="info-inline">
+          <Icon name="bell" size={18} />
+          <span>
+            Setiap laporan yang baru disimpan akan memiliki status awal <strong>Pending</strong> (menunggu pemeriksaan verifikator HRD).
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAHAP DETAIL 3 -->
+    <div class="sop-step-box" id="tahap-verifikasi">
+      <div class="sop-step-header">
+        <div class="step-circle">3</div>
+        <div>
+          <span class="badge badge-hrd">Tugas Admin HRD</span>
+          <h3>Tahap 3: Verifikasi Berkas &amp; Validasi oleh HRD</h3>
+        </div>
+      </div>
+      <div class="sop-step-body">
+        <p>
+          Bagian HRD &amp; Personalia bertanggung jawab memeriksa antrean laporan aktivitas secara berkala maksimal 2x24 jam kerja setelah laporan diajukan.
+        </p>
+
+        <div class="status-grid">
+          <div class="status-box">
+            <span class="badge badge-approved" style="font-size:0.75rem;">Status: Approved</span>
+            <h4>Disetujui Sah</h4>
+            <p>
+              Data dan lampiran bukti terbukti sah dan relevan. Angka capaian (misal: jumlah eksemplar oplah atau omzet deal iklan) langsung terakumulasi ke dalam pencapaian KPI karyawan.
+            </p>
+          </div>
+
+          <div class="status-box">
+            <span class="badge badge-revision" style="font-size:0.75rem;">Status: Revision</span>
+            <h4>Permintaan Perbaikan</h4>
+            <p>
+              Laporan memiliki kekurangan minor (contoh: bukti transfer buram, rincian nota belum terbaca). Karyawan mendapatkan notifikasi dan dapat memperbarui data pada halaman aktivitas.
+            </p>
+          </div>
+
+          <div class="status-box">
+            <span class="badge badge-rejected" style="font-size:0.75rem;">Status: Rejected</span>
+            <h4>Ditolak Permanen</h4>
+            <p>
+              Laporan terbukti fiktif, merupakan duplikasi kegiatan yang sama, atau tidak sesuai kode etik kerja perusahaan. Aktivitas bernilai 0 dan tidak diikutsertakan dalam akumulasi capaian target.
+            </p>
+          </div>
+        </div>
+
+        <div class="sop-rule-box">
+          <Icon name="shield" size={20} />
+          <div>
+            <strong>Aturan Integritas (Anti Self-Verification):</strong>
+            <p style="margin:0;font-size:var(--text-xs);line-height:1.5;">
+              Sistem telah diprogram dengan proteksi basis data <code>guard_self_verification</code>. Verifikator dilarang memverifikasi aktivitas yang ia buat sendiri demi menjamin independensi audit.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAHAP DETAIL 4 -->
+    <div class="sop-step-box" id="tahap-evaluasi">
+      <div class="sop-step-header">
+        <div class="step-circle">4</div>
+        <div>
+          <span class="badge badge-hrd">Otomasi Rekapitulasi &amp; Penilaian</span>
+          <h3>Tahap 4: Rekapitulasi Capaian &amp; Evaluasi Kinerja Bulanan</h3>
+        </div>
+      </div>
+      <div class="sop-step-body">
+        <p>
+          Pada penutupan periode bulanan, Admin HRD memproses agregasi data aktivitas yang telah diverifikasi dan disetujui untuk menghasilkan rapor evaluasi kinerja yang objektif, transparan, dan akuntabel.
+        </p>
+
+        <div class="formula-container">
+          <div class="formula-card">
+            <h4>Langkah A: Agregasi Realisasi Data Lapangan</h4>
+            <p style="font-size:var(--text-xs);color:var(--color-muted);">
+              Sistem menghimpun seluruh akumulasi volume kegiatan tervalidasi:
+            </p>
+            <div class="math-box">
+              <div>
+                <strong>Capaian Kinerja Utama Pemasaran:</strong>
+                <span class="math-desc" style="display:block;margin-top:0.35rem;line-height:1.6;">
+                  • Akumulasi oplah koran terdistribusi &amp; rasio retur sirkulasi<br/>
+                  • Total perolehan omzet kontrak deal iklan &amp; advertorial<br/>
+                  • Jumlah pertumbuhan mitra klien baru terdaftar<br/>
+                  • Intensitas kunjungan negosiasi &amp; tindak lanjut di lapangan
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="formula-card">
+            <h4>Langkah B: Pembobotan Terstandarisasi &amp; Rapor Kinerja</h4>
+            <p style="font-size:var(--text-xs);color:var(--color-muted);">
+              Penetapan skor performa berdasarkan bobot resmi yang adil:
+            </p>
+            <div class="math-box">
+              <div>
+                <strong>Evaluasi Objektif &amp; Terukur:</strong>
+                <span class="math-desc" style="display:block;margin-top:0.35rem;line-height:1.6;">
+                  Setiap indikator dihitung proporsional sesuai standar penilaian manajemen Radar Kediri. Hasil akhir memetakan capaian individu secara transparan tanpa subjektivitas.
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="outcome-box">
+          <h4>Pemanfaatan Hasil Evaluasi Kinerja bagi Manajemen &amp; Karyawan:</h4>
+          <div class="outcome-grid">
+            <div class="outcome-item">
+              <Icon name="trophy" size={20} />
+              <span>Dasar Penentuan Karyawan Terbaik (Employee of the Month / Quarter)</span>
+            </div>
+            <div class="outcome-item">
+              <Icon name="chart" size={20} />
+              <span>Alokasi Bonus Insentif Penjualan &amp; Bagi Hasil Iklan</span>
+            </div>
+            <div class="outcome-item">
+              <Icon name="users" size={20} />
+              <span>Bahan Pertimbangan Promosi Jabatan &amp; Rapor Karir</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</PublicLayout>
+
+<style>
+  .sop-hero {
+    background: linear-gradient(135deg, var(--color-primary-900) 0%, #163e68 100%);
+    color: #ffffff;
+    padding: 4.5rem 1.5rem 3.5rem;
+    text-align: center;
+  }
+
+  .sop-hero-container {
+    max-width: 52rem;
+    margin: 0 auto;
+  }
+
+  .sop-hero h1 {
+    font-size: 2.5rem;
+    color: #ffffff;
+    margin: 0 0 1rem;
+    letter-spacing: -0.01em;
+  }
+
+  .sop-hero p {
+    font-size: 1.1rem;
+    color: #cbd5e1;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  .sop-container {
+    max-width: 80rem;
+    margin: 0 auto;
+    padding: 3.5rem 1.5rem 5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 3.5rem;
+  }
+
+  /* Roadmap */
+  .workflow-roadmap {
+    background: #ffffff;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 2.25rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+  }
+
+  .roadmap-item {
+    flex: 1;
+    text-align: center;
+  }
+
+  .roadmap-badge {
+    display: inline-block;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    background: var(--color-primary-100);
+    color: var(--color-primary-900);
+    font-size: var(--text-xs);
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  .roadmap-item h4 {
+    font-size: 1.05rem;
+    margin: 0 0 0.35rem;
+    color: var(--color-primary-900);
+  }
+
+  .roadmap-item p {
+    font-size: var(--text-xs);
+    color: var(--color-muted);
+    margin: 0;
+    line-height: 1.45;
+  }
+
+  .roadmap-arrow {
+    font-size: 1.5rem;
+    color: #cbd5e1;
+    font-weight: 700;
+  }
+
+  @media (max-width: 860px) {
+    .workflow-roadmap {
+      flex-direction: column;
+      text-align: center;
+      gap: 1.5rem;
+    }
+    .roadmap-arrow {
+      transform: rotate(90deg);
+    }
+  }
+
+  /* SOP Step Box */
+  .sop-step-box {
+    background: #ffffff;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 3rem;
+  }
+
+  .sop-step-header {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 1.5rem;
+  }
+
+  .step-circle {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--color-primary-900);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .sop-step-header h3 {
+    font-size: 1.5rem;
+    margin: 0.25rem 0 0;
+    color: var(--color-primary-900);
+  }
+
+  .sop-step-body {
+    font-size: var(--text-base);
+    color: #334155;
+  }
+
+  .step-two-columns {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 2.5rem;
+  }
+
+  .sop-numbered-list {
+    padding-left: 1.25rem;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    font-size: var(--text-sm);
+    line-height: 1.6;
+  }
+
+  .sop-alert-note {
+    background: #f8fafc;
+    border-left: 4px solid var(--color-primary-700);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    padding: 1.25rem 1.5rem;
+    font-size: var(--text-xs);
+    color: #475569;
+    line-height: 1.6;
+  }
+
+  .sop-alert-note strong {
+    color: var(--color-primary-900);
+    font-size: var(--text-sm);
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+
+  .info-inline {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: var(--radius-sm);
+    padding: 0.85rem 1.25rem;
+    font-size: var(--text-xs);
+    color: #1e40af;
+  }
+
+  /* Status Grid */
+  .status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
+    margin: 1.5rem 0 2rem;
+  }
+
+  .status-box {
+    background: #f8fafc;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+  }
+
+  .status-box h4 {
+    font-size: 1.1rem;
+    margin: 0.75rem 0 0.5rem;
+    color: var(--color-primary-900);
+  }
+
+  .status-box p {
+    font-size: var(--text-xs);
+    color: #475569;
+    line-height: 1.55;
+    margin: 0;
+  }
+
+  .sop-rule-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: var(--radius-md);
+    padding: 1.25rem 1.5rem;
+    color: #991b1b;
+  }
+
+  /* Formula Container */
+  .formula-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin: 1.5rem 0 2rem;
+  }
+
+  .formula-card {
+    background: #f8fafc;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 1.75rem;
+  }
+
+  .formula-card h4 {
+    font-size: 1.1rem;
+    margin: 0 0 0.5rem;
+    color: var(--color-primary-900);
+  }
+
+  .math-box {
+    background: #ffffff;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: 1.25rem;
+    margin-top: 1rem;
+  }
+
+  .math-box code {
+    display: block;
+    font-family: monospace;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-primary-900);
+    background: #eff6ff;
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+    margin: 0.35rem 0;
+  }
+
+  .math-desc {
+    display: block;
+    font-size: var(--text-xs);
+    color: var(--color-muted);
+    line-height: 1.45;
+  }
+
+  .outcome-box {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: var(--radius-md);
+    padding: 1.75rem;
+  }
+
+  .outcome-box h4 {
+    font-size: 1.1rem;
+    color: #1e3a8a;
+    margin: 0 0 1rem;
+  }
+
+  .outcome-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+
+  .outcome-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: var(--text-xs);
+    color: #1e40af;
+    font-weight: 600;
+  }
+
+  @media (max-width: 768px) {
+    .sop-step-box {
+      padding: 1.75rem 1.25rem;
+    }
+    .step-two-columns, .formula-container {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+

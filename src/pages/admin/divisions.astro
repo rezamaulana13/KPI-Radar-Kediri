@@ -6,8 +6,8 @@ import { db, divisions } from "../../lib/data/store";
 const rows = divisions.map((d) => ({ ...d, members: db.employees.filter((e) => e.divisionId === d.id).length, status: d.active ? "active" : "closed" }));
 ---
 <DashboardLayout title="Divisi">
-  <ListPage title="Divisi" description="Struktur divisi Radar Kediri." crumbs={[{ label: "Admin" }]} rows={rows} searchKeys={["name", "code"]}
+  <ListPage title="Divisi Operasional" description="Struktur divisi fokus sistem informasi aktivitas & evaluasi kinerja Radar Kediri." crumbs={[{ label: "Admin" }]} rows={rows} searchKeys={["name", "code"]}
     columns={[{ key: "code", label: "Kode", type: "mono" }, { key: "name", label: "Nama divisi" }, { key: "members", label: "Anggota", type: "number" }, { key: "status", label: "Status", type: "badge" }]}>
-    <Alert slot="before" tone="warning" title="Daftar divisi belum final">Nama dan struktur divisi di sini adalah contoh. Minta daftar resmi dari mitra sebelum dipakai.</Alert>
+    <Alert slot="before" tone="success" title="Fokus Divisi Pemasaran & Sirkulasi">Sistem ini dirancang khusus untuk memonitor dan mengevaluasi kinerja operasional Divisi Pemasaran & Sirkulasi PT Kediri Intermedia Pers.</Alert>
   </ListPage>
 </DashboardLayout>

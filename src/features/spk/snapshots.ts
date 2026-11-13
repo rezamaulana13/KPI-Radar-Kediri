@@ -13,7 +13,7 @@ export function createSnapshot(periodId: string, actorId: string): SawSnapshot {
   return snap;
 }
 export function listSnapshots(): SawSnapshot[] {
-  if (db.snapshots.length === 0) { createSnapshot("PRD-2026-Q3", "E06"); db.snapshots[0].createdAt = "2026-10-02T09:00:00+07:00"; }
+  if (db.snapshots.length === 0) { createSnapshot("PRD-2026-10", "E06"); db.snapshots[0].createdAt = "2026-11-01T09:00:00+07:00"; }
   return [...db.snapshots].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 export const getSnapshot = (id: string) => listSnapshots().find((s) => s.id === id);

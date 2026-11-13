@@ -1,15 +1,169 @@
 ---
 import DashboardLayout from "../layouts/DashboardLayout.astro";
+import PublicLayout from "../layouts/PublicLayout.astro";
 import PageHeader from "../components/layout/PageHeader.astro";
 import Alert from "../components/ui/Alert.astro";
 import EmptyState from "../components/ui/EmptyState.astro";
+import Icon from "../components/ui/Icon.astro";
 import { notificationsFor } from "../lib/data/store";
+import { dateTimeID } from "../lib/formatters";
+
 const u = Astro.locals.user!;
 const list = notificationsFor({ id: u.id, role: u.role });
+const marked = Astro.url.searchParams.get("marked");
+
+// Ambil daftar ID notifikasi yang sudah dibaca (fail-safe)
+const readIdsCookie = Astro.cookies.get(`rk_read_ids_${u.id}`)?.value;
+let readIds: string[] = [];
+try {
+  readIds = readIdsCookie ? JSON.parse(readIdsCookie) : [];
+} catch {
+  readIds = [];
+}
+
+const lastReadCookie = Astro.cookies.get(`rk_notif_read_${u.id}`)?.value || Astro.cookies.get("rk_notif_read")?.value;
+const lastReadTimestamp = lastReadCookie ? Number(lastReadCookie) : 0;
+
+const isRead = (n: { id: string; at: string }) => {
+  if (readIds.includes(n.id)) return true;
+  if (lastReadTimestamp > 0 && new Date(n.at).getTime() <= lastReadTimestamp) return true;
+  return false;
+};
+
+const hasUnread = list.some((n) => !isRead(n));
+const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
 ---
-<DashboardLayout title="Notifikasi">
-  <PageHeader title="Notifikasi" description="Hal yang perlu Anda tindak lanjuti." />
-  {list.length === 0 ? <div class="card"><EmptyState title="Tidak ada notifikasi" hint="Semua sudah beres." /></div> : (
-    <div class="stack">{list.map((n) => <a href={n.href} style="text-decoration:none;display:block"><Alert tone={n.tone} title={n.title}>{n.body}</Alert></a>)}</div>
-  )}
-</DashboardLayout>
+
+<Layout title="Pusat Notifikasi">
+  <div class={u.role === "employee" ? "pub-page-container" : ""}>
+    <PageHeader
+      title="Pusat Notifikasi"
+      description="Pemberitahuan aktivitas lapangan, antrean verifikasi berkas, dan catatan revisi yang memerlukan tindak lanjut Anda."
+      crumbs={u.role === "employee" ? [] : [{ label: "Pusat Notifikasi" }]}
+    >
+      <Fragment slot="actions">
+        {list.length > 0 && (
+          <form method="post" action="/api/notifications/mark-read" style="margin:0;" id="form-mark-read">
+            <button type="submit" class="btn btn-secondary" id="btn-mark-read">
+              <Icon name="check" size={16} />
+              <span>Tandai Semua Sudah Dibaca</span>
+            </button>
+          </form>
+        )}
+      </Fragment>
+    </PageHeader>
+
+    {marked && (
+      <div style="margin-bottom:1rem;">
+        <Alert tone="success" title="Notifikasi Diperbarui">
+          Semua pemberitahuan telah ditandai sebagai sudah dibaca. Indikator tanda merah telah dinonaktifkan.
+        </Alert>
+      </div>
+    )}
+
+    {list.length === 0 ? (
+      <div class="card">
+        <EmptyState
+          title="Tidak ada notifikasi baru"
+          hint="Semua pekerjaan dan verifikasi berkas saat ini telah selesai ditindaklanjuti."
+        />
+      </div>
+    ) : (
+      <div class="stack" style="gap:0.75rem;">
+        {list.map((n) => {
+          const unread = !isRead(n);
+          return (
+            <a href={n.href} style="text-decoration:none;display:block;">
+              <div class={`notif-card notif-${n.tone} ${unread ? "is-unread" : ""}`}>
+                <div class="notif-header">
+                  <div style="display:flex;align-items:center;gap:0.5rem;">
+                    {unread && <span class="unread-dot" title="Belum dibaca"></span>}
+                    <strong class="notif-title">{n.title}</strong>
+                  </div>
+                  <span class="text-xs muted">{dateTimeID(n.at)}</span>
+                </div>
+                <p class="notif-body">{n.body}</p>
+              </div>
+            </a>
+          );
+        })}
+      </div>
+    )}
+  </div>
+</Layout>
+
+<script is:inline>
+  const form = document.getElementById("form-mark-read");
+  if (form) {
+    form.addEventListener("submit", () => {
+      // Optimistic update: langsung bersihkan titik merah dan status unread seketika
+      document.querySelectorAll(".unread-dot").forEach((el) => el.remove());
+      document.querySelectorAll(".is-unread").forEach((el) => el.classList.remove("is-unread"));
+      document.querySelectorAll(".pub-badge-counter, .topbar .dot").forEach((b) => b.remove());
+      const btn = document.getElementById("btn-mark-read");
+      if (btn) {
+        btn.setAttribute("disabled", "true");
+        btn.innerHTML = '<span>Menyimpan...</span>';
+      }
+    });
+  }
+</script>
+
+<style>
+  .notif-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: var(--radius-sm, 6px);
+    padding: 1rem 1.25rem;
+    transition: all 0.15s ease;
+    border-left: 4px solid #cbd5e1;
+  }
+  .notif-card:hover {
+    border-color: #94a3b8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+  }
+  .notif-warning {
+    border-left-color: #f59e0b;
+    background: #fffdfa;
+  }
+  .notif-danger {
+    border-left-color: #ef4444;
+    background: #fffafa;
+  }
+  .notif-success {
+    border-left-color: #10b981;
+    background: #f0fdf4;
+  }
+  .notif-info {
+    border-left-color: #3b82f6;
+    background: #f8fafc;
+  }
+  .is-unread {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    font-weight: 500;
+  }
+  .unread-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 9999px;
+    background: #dc2626;
+    display: inline-block;
+  }
+  .notif-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.35rem;
+  }
+  .notif-title {
+    font-size: 0.95rem;
+    color: #0f172a;
+  }
+  .notif-body {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #475569;
+    line-height: 1.45;
+  }
+</style>

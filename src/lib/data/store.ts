@@ -6,6 +6,7 @@
 import * as M from "./mock";
 import type * as T from "./types";
 import { canVerify, type Actor } from "../../features/verification/rules";
+import { TYPE_LABEL } from "../formatters";
 
 const clone = <X,>(v: X): X => structuredClone(v);
 interface State {
@@ -78,7 +79,7 @@ export function createActivity(actor: Viewer, input: Record<string, any>): Resul
 
   const a: T.Activity = {
     id: nextId("ACT"), type: input.type, ownerId: owner.id, createdBy: actor.id, date: input.date, periodId: p.id,
-    description: input.description, status: "pending",
+    description: input.description, status: "pending", createdAt: new Date().toISOString(),
   };
   const detail = `${a.id} (${a.type}) dibuat oleh ${employeeName(actor.id)} untuk ${owner.name}.`;
   switch (input.type) {
@@ -141,22 +142,101 @@ export function resubmitActivity(actor: Actor, id: string, patch: { description:
 
 export function notificationsFor(v: Viewer) {
   const out: { id: string; tone: "info" | "warning" | "danger" | "success"; title: string; body: string; href: string; at: string }[] = [];
+  
+  // 1. Notifikasi untuk Super Admin & HRD:
   if (v.role === "hrd" || v.role === "admin") {
+    // a. Aktivitas baru/pending yang diinput staf (menunggu verifikasi)
     db.activities.filter((a) => a.status === "pending" && a.ownerId !== v.id).forEach((a) =>
-      out.push({ id: a.id, tone: "warning", title: `${a.id} menunggu verifikasi`, body: `${employeeName(a.ownerId)}: ${a.description}`, href: `/hrd/verifications/${a.id}`, at: a.date }));
-  }
-  if (v.role === "employee") {
-    db.activities.filter((a) => (a.ownerId === v.id || a.createdBy === v.id) && (a.status === "revision" || a.status === "rejected")).forEach((a) => {
+      out.push({
+        id: a.id,
+        tone: "warning",
+        title: `Aktivitas Baru: ${a.id} menunggu verifikasi`,
+        body: `${employeeName(a.ownerId)} mengunggah kegiatan ${TYPE_LABEL[a.type] ?? a.type}: "${a.description}"`,
+        href: `/hrd/verifications/${a.id}`,
+        at: a.createdAt ?? `${a.date}T07:00:00.000Z`
+      })
+    );
+
+    // b. Aktivitas yang diperbaiki/diajukan ulang oleh karyawan setelah diminta revisi
+    db.activities.filter((a) => a.status === "pending" && historyOf(a.id).some((h) => h.status === "revision")).forEach((a) => {
       const last = historyOf(a.id).at(-1);
-      out.push({ id: a.id, tone: a.status === "revision" ? "warning" : "danger", title: `${a.id} ${a.status === "revision" ? "perlu revisi" : "ditolak"}`, body: last?.note ?? "", href: `/employee/activities/${a.id}`, at: last?.at ?? a.date });
+      out.push({
+        id: `re-${a.id}`,
+        tone: "info",
+        title: `Revisi Diajukan Ulang: ${a.id}`,
+        body: `${employeeName(a.ownerId)} telah memperbaiki berkas/data: "${a.description}"`,
+        href: `/hrd/verifications/${a.id}`,
+        at: last?.at ?? a.createdAt ?? `${a.date}T07:00:00.000Z`
+      });
     });
   }
-  if (v.role === "hrd") {
-    const p = activePeriod();
-    out.push({ id: "n-per", tone: "info", title: `Periode aktif: ${p.name}`, body: `Berakhir ${p.end}. Pastikan target dan mapping KPI sudah final.`, href: "/hrd/periods", at: p.start });
-    const pend = db.activities.filter((a) => a.status === "pending").length;
-    if (pend) out.push({ id: "n-pend", tone: "warning", title: `${pend} aktivitas belum diverifikasi`, body: "Aktivitas pending belum masuk realisasi KPI.", href: "/hrd/verifications", at: p.start });
+
+  // 2. Notifikasi khusus Super Admin: Perubahan master data, registrasi pengguna, & status akun
+  if (v.role === "admin") {
+    // Log audit status user terbaru (misal akun dinonaktifkan/diaktifkan)
+    db.auditLogs.filter((l) => l.action.startsWith("UPDATE_")).slice(0, 3).forEach((l) => {
+      out.push({
+        id: `audit-${l.id}`,
+        tone: "info",
+        title: `Audit Pengguna: ${l.action}`,
+        body: l.detail,
+        href: "/admin/users",
+        at: l.at
+      });
+    });
   }
-  if (v.role === "admin") out.push({ id: "n-adm", tone: "info", title: "Mode demo aktif", body: "Data berasal dari contoh di memori server. Hubungkan Supabase untuk data nyata.", href: "/admin/settings", at: "2026-11-08" });
+
+  // 3. Notifikasi untuk Karyawan: Status verifikasi dari HRD (Disetujui / Minta Revisi / Ditolak) & Update Target
+  if (v.role === "employee") {
+    // a. Target operasional baru yang ditetapkan HRD untuk karyawan ini
+    db.targets.filter((t) => t.scope === "individual" && t.employeeId === v.id).forEach((t) => {
+      const ind = indicator(t.indicatorId);
+      out.push({
+        id: `target-${t.id}`,
+        tone: "info",
+        title: `Target Kerja Baru Ditetapkan`,
+        body: `HRD telah menetapkan target personal: ${ind?.name ?? t.indicatorId} sebanyak ${t.value} ${ind?.unit ?? ""}.`,
+        href: "/kinerja",
+        at: (t as any).createdAt ?? `${db.periods.find((p) => p.id === t.periodId)?.start ?? "2026-11-01"}T07:00:00.000Z`,
+      });
+    });
+
+    // b. Jika verifikator meminta revisi atau menolak
+    db.activities.filter((a) => (a.ownerId === v.id || a.createdBy === v.id) && (a.status === "revision" || a.status === "rejected")).forEach((a) => {
+      const last = historyOf(a.id).at(-1);
+      out.push({
+        id: a.id,
+        tone: a.status === "revision" ? "warning" : "danger",
+        title: `${a.id} ${a.status === "revision" ? "Perlu Revisi!" : "Ditolak HRD"}`,
+        body: `Catatan HRD: "${last?.note ?? "Periksa kembali kelengkapan bukti."}"`,
+        href: `/employee/activities/${a.id}`,
+        at: last?.at ?? a.createdAt ?? `${a.date}T07:00:00.000Z`
+      });
+    });
+
+    // c. Jika verifikator telah menyetujui aktivitas terbaru (kabar gembira)
+    db.activities.filter((a) => (a.ownerId === v.id || a.createdBy === v.id) && a.status === "approved").slice(0, 10).forEach((a) => {
+      const last = historyOf(a.id).at(-1);
+      const activityTypeName = {
+        oplah: "Distribusi Oplah Koran",
+        progress: "Kunjungan & Prospek Klien",
+        offer: "Pengajuan Proposal Penawaran Iklan",
+        client: "Pendaftaran Klien Baru",
+        program: "Kerjasama Event / Barter",
+        profiling: "Riset Profiling Klien",
+        outcome: "Hasil Kesepakatan",
+      }[a.type] ?? (TYPE_LABEL[a.type] ?? a.type);
+
+      out.push({
+        id: `appr-${a.id}`,
+        tone: "success",
+        title: `Aktivitas ${a.id} Disetujui!`,
+        body: `Laporan kegiatan "${activityTypeName}" Anda telah divalidasi dan dihitung ke target kinerja.`,
+        href: `/employee/activities/${a.id}`,
+        at: last?.at ?? a.createdAt ?? `${a.date}T07:00:00.000Z`
+      });
+    });
+  }
+
   return out.sort((a, b) => b.at.localeCompare(a.at));
 }

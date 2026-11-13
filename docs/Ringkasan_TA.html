@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Ringkasan Topik Tugas Akhir 2026 - Reza Maulana Nehru</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 18mm 18mm 18mm 18mm;
+    }
+
+    body {
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 10.5pt;
+      line-height: 1.45;
+      color: #111;
+      background: #fff;
+      margin: 0;
+      padding: 0;
+    }
+
+    .header-doc {
+      text-align: center;
+      border-bottom: 2px solid #000;
+      padding-bottom: 6px;
+      margin-bottom: 16px;
+    }
+
+    .header-doc h2 {
+      margin: 0 0 4px 0;
+      font-size: 13.5pt;
+      text-transform: uppercase;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+    }
+
+    .header-doc p {
+      margin: 0;
+      font-size: 9.5pt;
+      font-style: italic;
+    }
+
+    .identity-table {
+      width: 100%;
+      margin-bottom: 16px;
+      border-collapse: collapse;
+    }
+
+    .identity-table td {
+      padding: 2.5px 0;
+      font-size: 10.5pt;
+      vertical-align: top;
+    }
+
+    .identity-table td.label {
+      width: 180px;
+      font-weight: bold;
+    }
+
+    .identity-table td.sep {
+      width: 15px;
+    }
+
+    .section-title {
+      font-size: 11pt;
+      font-weight: bold;
+      margin-top: 14px;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      border-bottom: 1px solid #999;
+      padding-bottom: 2px;
+    }
+
+    p,
+    li {
+      text-align: justify;
+      margin-top: 3px;
+      margin-bottom: 5px;
+    }
+
+    ul,
+    ol {
+      margin-top: 3px;
+      margin-bottom: 6px;
+      padding-left: 20px;
+    }
+
+    .formula-box {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-left: 3px solid #0284c7;
+      padding: 6px 10px;
+      margin: 6px 0;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 9pt;
+      line-height: 1.35;
+    }
+
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 8px 0 12px 0;
+      font-size: 8.5pt;
+      line-height: 1.3;
+    }
+
+    table.data-table th,
+    table.data-table td {
+      border: 1px solid #333;
+      padding: 5px 6px;
+      vertical-align: top;
+    }
+
+    table.data-table th {
+      background-color: #f1f5f9;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .page-break {
+      page-break-before: always;
+    }
+
+    .diagram-box {
+      background: #f8fafc;
+      border: 1px dashed #64748b;
+      padding: 8px 12px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 8pt;
+      line-height: 1.3;
+      margin: 6px 0;
+      white-space: pre;
+    }
+
+    .process-comparison {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin: 8px 0 12px 0;
+    }
+
+    .process-box {
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      padding: 7px 10px;
+      background: #ffffff;
+    }
+
+    .process-box.as-is {
+      border-left: 4px solid #ef4444;
+      background: #fdfaf8;
+    }
+
+    .process-box.to-be {
+      border-left: 4px solid #0284c7;
+      background: #f0f9ff;
+    }
+
+    .process-header {
+      font-weight: bold;
+      font-size: 9pt;
+      margin-bottom: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .as-is .process-header {
+      color: #991b1b;
+    }
+
+    .to-be .process-header {
+      color: #0369a1;
+    }
+
+    .step-flow {
+      display: table;
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 4px;
+    }
+
+    .step-node {
+      display: table-cell;
+      border: 1px solid #cbd5e1;
+      border-radius: 3px;
+      padding: 5px 6px;
+      font-size: 7.8pt;
+      vertical-align: top;
+      background: #ffffff;
+      width: 20%;
+      line-height: 1.25;
+    }
+
+    .step-node strong {
+      display: block;
+      font-size: 8.2pt;
+      margin-bottom: 2px;
+    }
+
+    .as-is .step-node {
+      border-color: #fca5a5;
+    }
+
+    .as-is .step-node strong {
+      color: #b91c1c;
+    }
+
+    .to-be .step-node {
+      border-color: #bae6fd;
+    }
+
+    .to-be .step-node strong {
+      color: #0284c7;
+    }
+
+    .signatures {
+      width: 100%;
+      margin-top: 30px;
+      border-collapse: collapse;
+    }
+
+    .signatures td {
+      width: 50%;
+      text-align: center;
+      vertical-align: top;
+      font-size: 10pt;
+    }
+
+    .sign-space {
+      height: 60px;
+    }
+
+    .ref-list {
+      font-size: 8.5pt;
+      line-height: 1.35;
+      padding-left: 22px;
+      margin-top: 6px;
+    }
+
+    .ref-list li {
+      margin-bottom: 5px;
+      text-align: justify;
+    }
+
+    a.doi-link {
+      color: #0366d6;
+      text-decoration: none;
+      word-break: break-all;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="header-doc">
+    <h2>RINGKASAN USULAN TOPIK TUGAS AKHIR TAHUN 2026</h2>
+    <p>Program Studi Sarjana Terapan Teknologi Rekayasa Perangkat Lunak (TRPL)</p>
+  </div>
+
+  <table class="identity-table">
+    <tr>
+      <td class="label">Nama Lengkap</td>
+      <td class="sep">:</td>
+      <td><strong>Reza Maulana Nehru</strong></td>
+    </tr>
+    <tr>
+      <td class="label">NIM</td>
+      <td class="sep">:</td>
+      <td><strong>362358302158</strong></td>
+    </tr>
+    <tr>
+      <td class="label">Kelas</td>
+      <td class="sep">:</td>
+      <td><strong>7B TRPL</strong></td>
+    </tr>
+    <tr>
+      <td class="label">Jenis Tugas Akhir</td>
+      <td class="sep">:</td>
+      <td><strong>Individu</strong></td>
+    </tr>
+    <tr>
+      <td class="label">Perusahaan Mitra MKI/TA</td>
+      <td class="sep">:</td>
+      <td>PT Kediri Intermedia Pers (Jawa Pos Radar Kediri)</td>
+    </tr>
+    <tr>
+      <td class="label">Dosen Pembimbing 1</td>
+      <td class="sep">:</td>
+      <td>—</td>
+    </tr>
+  </table>
+
+  <div class="section-title">A. JENIS TUGAS AKHIR</div>
+  <p><strong>Jenis Tugas Akhir: INDIVIDU</strong> (Pengembangan sistem penuh mencakup perancangan arsitektur perangkat
+    lunak, integrasi basis data real-time, implementasi algoritma Simple Additive Weighting, serta pengujian fungsional
+    dan performa).</p>
+
+  <div class="section-title">B. USULAN JUDUL TUGAS AKHIR</div>
+  <p
+    style="font-size: 11pt; font-weight: bold; background: #f1f5f9; padding: 8px 12px; border-left: 4px solid #004b87; margin: 6px 0;">
+    "Pengembangan Sistem Pendukung Keputusan Evaluasi Kinerja Karyawan Divisi Pemasaran Berbasis Web Menggunakan Metode
+    Simple Additive Weighting (Studi Kasus: PT Kediri Intermedia Pers — Jawa Pos Radar Kediri)"
+  </p>
+  <p><strong>Ruang Lingkup Bidang TRPL:</strong></p>
+  <ul>
+    <li><strong>Full-Stack Web Engineering</strong>: Arsitektur modern Server-Side Rendering (SSR) Astro v7, TypeScript
+      strictly-typed, dan Supabase BaaS (PostgreSQL) dengan Row Level Security (RLS).</li>
+    <li><strong>Decision Support System (DSS)</strong>: Penerapan metode matematis <em>Simple Additive Weighting</em>
+      (SAW) dengan 6 kriteria multi-dimensi (Benefit dan Cost) untuk perangkingan objektif kinerja staf lapangan.</li>
+    <li><strong>Data-Driven Operations &amp; Interactive Visualization</strong>: Fitur simulasi bobot kebijakan
+      (*Interactive Weight Simulator*), grafik radar komparasi kandidat (*Head-to-Head Radar Chart*), dan generator
+      laporan resmi Excel (.xlsx).</li>
+  </ul>
+
+  <div class="section-title">C. LATAR BELAKANG MASALAH</div>
+  <p>
+    <strong>1. Perkembangan Sistem Manajemen Kinerja dan Transformasi Digital:</strong><br>
+    Manajemen kinerja merupakan pilar fundamental dalam pengelolaan sumber daya manusia modern karena memfasilitasi
+    organisasi dalam mengukur pencapaian target strategis dan mengevaluasi kontribusi nyata setiap karyawan terhadap
+    kelangsungan perusahaan. Penelitian mutakhir mengonfirmasi bahwa pengukuran kinerja saat ini semakin terintegrasi
+    erat dengan praktik Human Resource Management (HRM) dan arsitektur sistem informasi enterprise [1]. Era transformasi
+    digital mendorong organisasi untuk merevitalisasi sistem pengukuran kinerja agar lebih fleksibel, adaptif,
+    terotomatisasi, dan mampu mereduksi hambatan birokrasi manual [9]. Oleh karena itu, efektivitas sistem manajemen
+    kinerja harus dievaluasi secara berkala berdasarkan konteks proses bisnis spesifik dan kebutuhan nyata organisasi
+    penggunanya [10].
+  </p>
+  <p>
+    <strong>2. Penerapan Key Performance Indicator (KPI) dalam Pengukuran Kinerja:</strong><br>
+    <em>Key Performance Indicator</em> (KPI) merupakan instrumen teruji untuk mengukur derajat ketercapaian sasaran
+    operasional yang ditetapkan organisasi. Wibisono dan Asrol merancang dasbor KPI interaktif untuk memonitor dan
+    mengakselerasi produktivitas kerja karyawan berbasis indikator proses dan kerangka Balanced Scorecard [6]. Selaras
+    dengan hal tersebut, Kurnia et al. menegaskan pentingnya implementasi KPI dalam mengevaluasi efektivitas manajemen
+    SDM melalui serangkaian indikator terukur yang disesuaikan secara presisi dengan karakteristik industri [27].
+  </p>
+  <p>
+    <strong>3. Permasalahan Riil pada PT Kediri Intermedia Pers (Jawa Pos Radar Kediri):</strong><br>
+    PT Kediri Intermedia Pers (Jawa Pos Radar Kediri) menaungi 7 wilayah edar strategis (Kota Kediri, Kab. Kediri,
+    Nganjuk, Tulungagung, Kota Blitar, Kab. Blitar, dan Trenggalek). Divisi Pemasaran &amp; Sirkulasi bertindak sebagai
+    garda terdepan pendapatan perusahaan dengan mengelola sirkulasi koran cetak, edisi khusus suplemen, serta periklanan
+    display dan advertorial. Berdasarkan pelaksanaan magang industri, diidentifikasi permasalahan riil:
+  </p>
+  <ul>
+    <li><strong>Pencatatan Lapangan Masih Terfragmentasi:</strong> Pelaporan oplah agen, pendaftaran klien baru,
+      audiensi prospek, dan pengajuan penawaran iklan masih dilakukan melalui pesan instan WhatsApp dan spreadsheet
+      mandiri yang rentan tercecer [21].</li>
+    <li><strong>Kompleksitas Evaluasi Multi-Kriteria &amp; Bias Subjektif:</strong> Staf lapangan memiliki profil kerja
+      beragam—sebagian unggul pada intensitas kunjungan dan profiling pasar namun bernilai closing sedang, sedangkan
+      staf lain minim kunjungan namun berhasil mengunci penawaran besar. Penilaian karyawan terbaik bulanan dan alokasi
+      insentif masih mengandalkan intuisi pimpinan yang rawan bias subjektif (*halo effect*) dan kecemburuan sosial.
+    </li>
+    <li><strong>Ketiadaan Simulasi Kebijakan (*What-If Policy*):</strong> Manajemen belum memiliki instrumen cerdas
+      untuk menyimulasikan pergeseran bobot kriteria ketika prioritas bisnis berganti (misal fokus pada ekspansi
+      sirkulasi koran vs event kemitraan dinas/OPD).</li>
+  </ul>
+
+  <p>
+    <strong>4. Analisis &amp; Diagram Aktivitas: Kondisi AS-IS (Saat MKI) vs. Kondisi TO-BE / IS (Saat TA):</strong><br>
+    Berdasarkan observasi langsung selama Magang Kerja Industri (MKI) di Jawa Pos Radar Kediri, digambarkan komparasi
+    alur proses kerja menggunakan notasi baku <strong>UML Activity Diagram</strong> antara proses bisnis konvensional
+    (AS-IS) dengan rancangan sistem terpadu Tugas Akhir (TO-BE / IS):
+  </p>
+
+  <div style="display: flex; gap: 14px; justify-content: space-between; margin: 10px 0 14px 0;">
+    <!-- DIAGRAM 1: AS-IS (MKI) -->
+    <div
+      style="flex: 1; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 10px; background: #fdfaf8; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+      <div
+        style="font-weight: bold; font-size: 9pt; margin-bottom: 8px; color: #991b1b; border-bottom: 2px solid #fca5a5; padding-bottom: 4px; text-align: center;">
+        Gambar 1. UML Activity Diagram AS-IS (Kondisi Saat MKI)
+      </div>
+
+      <svg viewBox="0 0 320 530" width="100%" height="auto" style="max-width: 310px; display: block; margin: 0 auto;"
+        xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrow-asis" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6"
+            orient="auto-start-reverse">
+            <path d="M 0 1 L 8 5 L 0 9 z" fill="#000" />
+          </marker>
+        </defs>
+
+        <!-- Start Node -->
+        <circle cx="150" cy="18" r="9" fill="#000" />
+        <line x1="150" y1="27" x2="150" y2="44" stroke="#000" stroke-width="1.4" marker-end="url(#arrow-asis)" />
+
+        <!-- Action 1 -->
+        <rect x="15" y="44" width="270" height="30" rx="15" fill="#81d4fa" stroke="#000" stroke-width="1.3" />
+        <text x="150" y="63" font-family="'Times New Roman', serif" font-size="9" text-anchor="middle"
+          font-weight="bold">Melaksanakan Tugas Lapangan (Oplah/Iklan)</text>
+        <line x1="150" y1="74" x2="150" y2="92" stroke="#000" stroke-width="1.4" marker-end="url(#arrow-asis)" />
+
+        <!-- Action 2 -->
+        <rect x="15" y="92" width="270" height="30" rx="15" fill="#81d4fa" stroke="#000" stroke-width="1.3" />
+        <text x="150" y="111" font-family="'Times New Roman', serif" font-size="9" text-anchor="middle"
+          font-weight="bold">Catat Data di Buku Saku / Chat WhatsApp</text>
+        <line x1="150" y1="122" x2="150" y2="140" stroke="#000" stroke-width="1.4" marker-end="url(#arrow-asis)" />
+
+        <!-- Action 3 -->
+        <rect x="15" y="140" width="270" height="30" rx="15" fill="#81d4fa" stroke="#000" stroke-width="1.3" />
+        <text x="150" y="159" font-family="'Times New Roman', serif" font-size="9" text-anchor="middle"
+          font-weight="bold">Kumpulkan Berkas Fisik (Nota/Koran/Foto)</text>
+        <line x1="150" y1="170" x2="150" y2="190" stroke="#000" stroke-width="1.4" marker-end="url(#arrow-asis)" />
+
+        <!-- Decision Diamond -->
+        <polygon points="150,190 164,203 150,216 136,203" fill="#81d4fa" stroke="#000" stroke-width="1.3" />
+
+        <!-- Branch Right: Tercecer -->
+        <text x="168" y="198" font-family="'Times New Roman', serif" font-size="7.5"
+          fill="#c2410c">[tercecer/hilang]</text>
+        <line x1="164" y1="203" x2="225" y2="203" stroke="#000" stroke-width="1.3" marker-end="url(#arrow-asis)" />
+        <rect x="225" y="188" width="90" height="28" rx="8" fill="#fed7aa" stroke="#ea580c" stroke-width="1.2" />
+        <text x="270" y="205" font-family="'Times New Roman', serif" font-size="7.5" text-anchor="middle"
+          font-weight="bold">Pencarian Ulang</text>
+        <path d="M 270 188 L 270 155 L 287 155" fill="none" stroke="#ea580c" stroke-width="1.2"
+          marker-end="url(#arrow-asis)" />
+
+        <!-- Branch Down: Ada -->
+        <text x="154" y="228" font-family="'Times New Roman', serif" font-size="7.5" fill="#15803d">[bukti ada]</text>
+        <line x1="150" y1="216" x2="150" y2="240" stroke="#000" stroke-width="1.4" marker-end="url(#arrow-asis)" />
+
+        <!-- Action 4 -->
+        <rect x="15" y="240" width="270" height="30" rx="15" fill="#81d4fa" stroke="#000" stroke-width="1.3" />
+        <text x="150" y="259" font-family="'Times New Roman', serif" font-size="9" text-anchor="middle"
+          font-weight="bold">Serahkan Berkas Fisik ke Meja HRD</text>
+        <line x1="150" y1="270" x2="150" y2="290" stroke="#000" stroke-width="1.4" marker-end="url(#arrow-asis)" />
+
+        <!-- Action 5 -->
+        <rect x="15" y="290" width="270" height="30" rx="15" fill="#81d4fa" stroke="#000" stroke-width="1.3" />
+        <text x="150" y="309" font-family="'Times New Roman', serif" font-size="9" text-anchor="middle"
+          font-weight="bold">HRD Cek Nota Fisik Manual (Tanpa Log)</text>
+        <line x1="150" y1="320" x2="150" y2="340" stroke="#000" stroke-width="1.4" marker-end="url(#arrow-asis)" />
+
+        <!-- Action 6 -->
+        <rect x="15" y="340" width="270" height="30" rx="15" fill="#81d4fa" stroke="#000" stroke-width="1.3" />
+        <text x="150" y="359" font-family="'Times New Roman', serif" font-size="9" text-anchor="middle"
+          font-weight="bold">Rekap Manual ke Spreadsheet (3–5 Hari)</text>
+        <line x1="150" y1="370" x2="150" y2="390" stroke="#000" stroke-width="1.4" marker-end="url(#arrow-asis)" />
+
+        <!-- Action 7 -->
+        <rect x="15" y="390" width="270" height="30" rx="15" fill="#81d4fa" stroke="#000" stroke-width="1.3" />
+        <text x="150" y="409" font-family="'Times New Roman', serif" font-size="9" text-anchor="middle"
+          font-weight="bold">Pimpinan Tentukan Bonus via Intuisi</text>
+        <line x1="150" y1="420" x2="150" y2="445" stroke="#000" stroke-width="1.4" marker-end="url(#arrow-asis)" />
+
+        <!-- Final Node -->
+        <circle cx="150" cy="458" r="13" fill="none" stroke="#000" stroke-width="1.4" />
+        <circle cx="150" cy="458" r="8" fill="#000" />
+      </svg>
+
+      <p style="font-size: 7.8pt; color: #475569; margin-top: 6px; line-height: 1.3; text-align: justify;">
+        <strong>Kelemahan AS-IS:</strong> Pencatatan data terpecah-pecah di WhatsApp/buku saku, bukti fisik rentan
+        terselip, verifikasi manual tanpa status pelacakan, serta rekap spreadsheet bulanan memicu keterlambatan
+        evaluasi dan bias subjektivitas (*halo effect*).
+      </p>
+    </div>
+
+    <!-- DIAGRAM 2: TO-BE / IS (TA) -->
+    <div
+      style="flex: 1; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 10px; background: #f0f9ff; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+      <div
+        style="font-weight: bold; font-size: 9pt; margin-bottom: 8px; color: #0369a1; border-bottom: 2px solid #38bdf8; padding-bottom: 4px; text-align: center;">
+        Gambar 2. UML Activity Diagram TO-BE / IS (Sistem Usulan TA)
+      </div>
+
+      <svg viewBox="0 0 340 530" width="100%" height="auto" style="max-width: 330px; display: block; margin: 0 auto;"
+        xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrow-tobe" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6"
+            orient="auto-start-reverse">
+            <path d="M 0 1 L 8 5 L 0 9 z" fill="#000" />
+          </marker>
+        </defs>
+
+        <!-- Start Node -->
+        <circle cx="170" cy="15" r="8" fill="#000" />
+        <line x1="170" y1="23" x2="170" y2="38" stroke="#000" stroke-width="1.3" marker-end="url(#arrow-tobe)" />
+
+        <!-- Action 1 -->
+        <rect x="25" y="38" width="290" height="26" rx="13" fill="#81d4fa" stroke="#000" stroke-width="1.2" />
+        <text x="170" y="55" font-family="'Times New Roman', serif" font-size="8.5" text-anchor="middle"
+          font-weight="bold">Login ke Portal Web Karyawan (Mobile / PC)</text>
+        <line x1="170" y1="64" x2="170" y2="78" stroke="#000" stroke-width="1.3" marker-end="url(#arrow-tobe)" />
+
+        <!-- Action 2 -->
+        <rect x="25" y="78" width="290" height="26" rx="13" fill="#81d4fa" stroke="#000" stroke-width="1.2" />
+        <text x="170" y="95" font-family="'Times New Roman', serif" font-size="8.5" text-anchor="middle"
+          font-weight="bold">Input Form 7 Modul &amp; Upload Bukti Digital</text>
+        <line x1="170" y1="104" x2="170" y2="118" stroke="#000" stroke-width="1.3" marker-end="url(#arrow-tobe)" />
+
+        <!-- Action 3 -->
+        <rect x="25" y="118" width="290" height="26" rx="13" fill="#81d4fa" stroke="#000" stroke-width="1.2" />
+        <text x="170" y="135" font-family="'Times New Roman', serif" font-size="8.5" text-anchor="middle"
+          font-weight="bold">Sistem Simpan Laporan (Status: Pending)</text>
+        <line x1="170" y1="144" x2="170" y2="158" stroke="#000" stroke-width="1.3" marker-end="url(#arrow-tobe)" />
+
+        <!-- Action 4 -->
+        <rect x="25" y="158" width="290" height="26" rx="13" fill="#81d4fa" stroke="#000" stroke-width="1.2" />
+        <text x="170" y="175" font-family="'Times New Roman', serif" font-size="8.5" text-anchor="middle"
+          font-weight="bold">HRD Review Berkas di Antrean Digital</text>
+        <line x1="170" y1="184" x2="170" y2="198" stroke="#000" stroke-width="1.3" marker-end="url(#arrow-tobe)" />
+
+        <!-- Decision Diamond HRD -->
+        <polygon points="170,198 183,210 170,222 157,210" fill="#81d4fa" stroke="#000" stroke-width="1.2" />
+
+        <!-- Branch Left: Revisi -->
+        <text x="110" y="206" font-family="'Times New Roman', serif" font-size="7.5" fill="#ca8a04">[Perlu
+          Revisi]</text>
+        <line x1="157" y1="210" x2="80" y2="210" stroke="#000" stroke-width="1.2" marker-end="url(#arrow-tobe)" />
+        <rect x="5" y="198" width="75" height="24" rx="6" fill="#fef08a" stroke="#ca8a04" stroke-width="1.1" />
+        <text x="42" y="214" font-family="'Times New Roman', serif" font-size="7" text-anchor="middle"
+          font-weight="bold">Revisi &amp; Resubmit</text>
+        <path d="M 42 198 L 42 131 L 23 131" fill="none" stroke="#ca8a04" stroke-width="1.2"
+          marker-end="url(#arrow-tobe)" />
+
+        <!-- Branch Right: Ditolak -->
+        <text x="190" y="206" font-family="'Times New Roman', serif" font-size="7.5" fill="#dc2626">[Ditolak]</text>
+        <line x1="183" y1="210" x2="260" y2="210" stroke="#000" stroke-width="1.2" marker-end="url(#arrow-tobe)" />
+        <rect x="260" y="198" width="75" height="24" rx="6" fill="#fecaca" stroke="#dc2626" stroke-width="1.1" />
+        <text x="297" y="214" font-family="'Times New Roman', serif" font-size="7" text-anchor="middle"
+          font-weight="bold">Arsip (Non-KPI)</text>
+        <path d="M 297 222 L 297 480 L 182 480" fill="none" stroke="#dc2626" stroke-width="1" stroke-dasharray="2,2" />
+
+        <!-- Branch Down: Disetujui -->
+        <text x="174" y="233" font-family="'Times New Roman', serif" font-size="7.5" fill="#15803d">[Disetujui]</text>
+        <line x1="170" y1="222" x2="170" y2="242" stroke="#000" stroke-width="1.3" marker-end="url(#arrow-tobe)" />
+
+        <!-- Action 5 -->
+        <rect x="25" y="242" width="290" height="26" rx="13" fill="#81d4fa" stroke="#000" stroke-width="1.2" />
+        <text x="170" y="259" font-family="'Times New Roman', serif" font-size="8.5" text-anchor="middle"
+          font-weight="bold">Kredit Otomatis ke Target KPI (Cap 100%)</text>
+        <line x1="170" y1="268" x2="170" y2="282" stroke="#000" stroke-width="1.3" marker-end="url(#arrow-tobe)" />
+
+        <!-- Action 6 -->
+        <rect x="25" y="282" width="290" height="26" rx="13" fill="#81d4fa" stroke="#000" stroke-width="1.2" />
+        <text x="170" y="299" font-family="'Times New Roman', serif" font-size="8.5" text-anchor="middle"
+          font-weight="bold">Normalisasi Matriks 6 Kriteria (Benefit/Cost)</text>
+        <line x1="170" y1="308" x2="170" y2="322" stroke="#000" stroke-width="1.3" marker-end="url(#arrow-tobe)" />
+
+        <!-- Action 7 -->
+        <rect x="25" y="322" width="290" height="26" rx="13" fill="#81d4fa" stroke="#000" stroke-width="1.2" />
+        <text x="170" y="339" font-family="'Times New Roman', serif" font-size="8.5" text-anchor="middle"
+          font-weight="bold">Kalkulasi Preferensi (Vi) &amp; Rangking Otomatis</text>
+        <line x1="170" y1="348" x2="170" y2="362" stroke="#000" stroke-width="1.3" marker-end="url(#arrow-tobe)" />
+
+        <!-- Action 8 -->
+        <rect x="25" y="362" width="290" height="26" rx="13" fill="#81d4fa" stroke="#000" stroke-width="1.2" />
+        <text x="170" y="379" font-family="'Times New Roman', serif" font-size="8.5" text-anchor="middle"
+          font-weight="bold">Simulasi Bobot Kebijakan &amp; Radar Chart</text>
+        <line x1="170" y1="388" x2="170" y2="402" stroke="#000" stroke-width="1.3" marker-end="url(#arrow-tobe)" />
+
+        <!-- Action 9 -->
+        <rect x="25" y="402" width="290" height="26" rx="13" fill="#81d4fa" stroke="#000" stroke-width="1.2" />
+        <text x="170" y="419" font-family="'Times New Roman', serif" font-size="8.5" text-anchor="middle"
+          font-weight="bold">Penerbitan Rapor Kinerja &amp; Ekspor Excel</text>
+        <line x1="170" y1="428" x2="170" y2="448" stroke="#000" stroke-width="1.3" marker-end="url(#arrow-tobe)" />
+
+        <!-- Final Node -->
+        <circle cx="170" cy="460" r="12" fill="none" stroke="#000" stroke-width="1.3" />
+        <circle cx="170" cy="460" r="7" fill="#000" />
+      </svg>
+
+      <p style="font-size: 7.8pt; color: #475569; margin-top: 6px; line-height: 1.3; text-align: justify;">
+        <strong>Keunggulan TO-BE:</strong> Pelaporan online 7 modul terintegrasi, upload bukti digital, antrean
+        verifikasi terpusat dengan log audit RLS, kredit target KPI real-time tanpa rekap manual, serta kalkulasi
+        otomatis SPK SAW transparan dan obyektif.
+      </p>
+    </div>
+  </div>
+
+  <div class="diagram-box">
+    =============================================================================================================
+    KOMPARASI SISTEMATIS: ALUR BISNIS AS-IS (MKI) vs. TO-BE / IS (TA)
+    =============================================================================================================
+    1. ALUR AS-IS (Saat MKI — Fragmented & Intuitive):
+    [Staf Marketing] --> (Catatan Buku / Chat WA) --> (Kirim Foto / Nota Fisik)
+    |
+    v
+    [Pimpinan/Direksi] <-- (Estimasi Subjektif Bonus) <-- (Rekap Excel 3-5 Hari) <-- (Pemeriksaan Manual HRD) * Kendala
+      Utama : Berkas bukti rawan hilang, rekapitulasi data lambat, dan rawan bias subjektif (halo effect).
+      ------------------------------------------------------------------------------------------------------------- 2.
+      ALUR TO-BE / IS (Saat TA — Integrated Decision Support System): [Staf Marketing] --> [Portal Web Karyawan] -->
+      [Form Input 7 Aktivitas + Unggah Berkas Bukti Otentik]
+      |
+      v
+      [HRD / Supervisor] <-- [Antrean Verifikasi Terpusat] --> [Validasi: Approved / Revision / Rejected]
+        | | (Jika Approved)
+        v v
+        [Modul SPK SAW] <---- [Normalisasi 6 Kriteria (Benefit & Cost)] <---- [Kredit Capaian KPI Real-Time] | +--->
+          [Interactive Weight Simulator (Simulasi Sensitivitas Bobot Kebijakan Direksi)]
+          +---> [Head-to-Head Radar Chart (Komparasi Grafis Multi-Dimensi Antar Staf Pemasaran)]
+          +---> [Perangkingan Nilai Preferensi Vi Otomatis & Rekomendasi Predikat Kinerja/Bonus]
+          +---> [Penerbitan Rapor Kinerja Personal Karyawan & Generator Laporan Resmi Excel .xlsx]
+          =============================================================================================================
+  </div>
+
+  <p>
+    <strong>5. Solusi Sistem Berbasis Web dan Integrasi Metode SAW:</strong><br>
+    Pemanfaatan sistem informasi berbasis web terbukti efektif memigrasikan pengelolaan kinerja dari manual menjadi
+    otomatis dan transparan [21]. Hendradi dan Aji membuktikan bahwa penerapan metode <em>Simple Additive Weighting</em>
+    (SAW) pada sistem berbasis web mampu menghasilkan keputusan penilaian karyawan yang objektif, transparan, dan akurat
+    melalui proses normalisasi matriks kriteria [23]. Penelitian ini mengintegrasikan pencatatan aktivitas lapangan
+    terverifikasi HRD dengan algoritma SAW 6 kriteria untuk menerbitkan pemeringkatan kinerja dan rekomendasi insentif
+    secara otomatis.
+  </p>
+  <p>
+    <strong>6. Landasan Metodologi dan Rencana Evaluasi:</strong><br>
+    Pengembangan sistem direncanakan menggunakan metodologi rekayasa perangkat lunak terstandar berbasis tahapan
+    identifikasi masalah, perancangan kebutuhan, implementasi artefak, hingga pengujian dan evaluasi [13], [18].
+    Kualitas dan penerimaan sistem akan diuji secara komprehensif menggunakan <em>Black-Box Testing</em>, pengujian
+    karakteristik kualitas perangkat lunak ISO/IEC 25010 [5], [28], serta <em>User Acceptance Testing</em> (UAT) dan
+    pengujian performa [29].
+  </p>
+
+  <div class="page-break"></div>
+
+  <div class="section-title">D. METODE DAN TEKNOLOGI YANG DIGUNAKAN</div>
+  <p><strong>1. Pendekatan Rekayasa Perangkat Lunak: Waterfall &amp; DSRM Cycle [13], [18]</strong></p>
+  <ul>
+    <li><em>Communication &amp; Requirements</em>: Penggalian kebutuhan operasional Divisi Pemasaran Radar Kediri
+      (tertuang dalam Master PRD v3.0).</li>
+    <li><em>System Architecture &amp; Database Design</em>: Perancangan skema relasional PostgreSQL Supabase, aturan
+      verifikasi berjenjang, dan matriks keputusan kriteria.</li>
+    <li><em>Implementation</em>: Pemrograman full-stack Astro v7 SSR, TypeScript strict-mode, Tailwind CSS, dan
+      Chart.js.</li>
+    <li><em>Testing &amp; Evaluation</em>: Validasi matematis SAW terhadap lembar kerja manual, pengujian fungsional
+      Black-Box, dan UAT pengguna [29].</li>
+  </ul>
+
+  <p><strong>2. Algoritma Pengambilan Keputusan: Simple Additive Weighting (SAW) [23]</strong></p>
+  <p>Metode SAW mencari penjumlahan terbobot dari rating kinerja pada setiap alternatif di semua kriteria:</p>
+  <ul>
+    <li>$C_1$: Perolehan Klien Baru Terdaftar (Benefit, Bobot: 15%)</li>
+    <li>$C_2$: Proposal Iklan Terkirim (Benefit, Bobot: 20%)</li>
+    <li>$C_3$: Nilai Kontrak Deal Closing Tercapai (Benefit, Bobot: 30%)</li>
+    <li>$C_4$: Riset &amp; Profiling Calon Mitra (Benefit, Bobot: 10%)</li>
+    <li>$C_5$: Progres Kunjungan &amp; Audiensi Lapangan (Benefit, Bobot: 15%)</li>
+    <li>$C_6$: Laporan Ditolak / Diminta Revisi (Cost, Bobot: 10%)</li>
+  </ul>
+  <div class="formula-box">
+    Normalisasi Matriks (R):<br>
+    r_ij = (x_ij / max(x_ij)) &nbsp; [untuk Kriteria Benefit]<br>
+    r_ij = (min(x_ij) / x_ij) &nbsp; [untuk Kriteria Cost]<br><br>
+    Nilai Preferensi Akhir (V_i):<br>
+    V_i = &Sigma; (w_j * r_ij) &nbsp; dari j=1 sampai n &nbsp; | &nbsp; Rangking: Alternatif dengan V_i tertinggi
+  </div>
+
+  <p><strong>3. Tumpukan Teknologi Terkini (Tech Stack):</strong></p>
+  <ul>
+    <li><strong>Astro v7 (Server-Side Rendering)</strong>: Framework modern berkecepatan tinggi dengan isolasi
+      JavaScript klien minimal.</li>
+    <li><strong>TypeScript (Strict Mode)</strong>: Menjamin keamanan tipe data (*type safety*) di seluruh arsitektur
+      sistem.</li>
+    <li><strong>Supabase (PostgreSQL 15)</strong>: Layanan BaaS andal dengan enkripsi Row Level Security (RLS) dan
+      sinkronisasi real-time.</li>
+    <li><strong>Chart.js &amp; Radar Visualization</strong>: Visualisasi grafik laba-laba (*spider/radar chart*) untuk
+      komparasi multi-dimensi antar kandidat promosi.</li>
+    <li><strong>ExcelJS</strong>: Generator laporan resmi format spreadsheet (.xlsx) berjenjang multi-sheet.</li>
+  </ul>
+
+  <div class="section-title">E. FITUR DAN STRUKTUR MENU SISTEM</div>
+  <div class="diagram-box">SISTEM INFORMASI KINERJA & SPK RADAR KEDIRI
+    ├── 1. PORTAL KARYAWAN (Horizontal Navbar)
+    │ ├── Beranda (Ringkasan Personal, Target Dinamis Periode Aktif)
+    │ ├── Catat Aktivitas (Oplah Koran, Klien Baru, Proposal Iklan, Kunjungan, Deal, Event, Profiling)
+    │ ├── Riwayat Aktivitas Saya (Log Kerja, Status Verifikasi, Form Resubmit Revisi)
+    │ ├── Capaian Target (Monitoring Target Kolektif Divisi & Target Individu)
+    │ ├── Raport Kinerja & Feedback (Nilai Preferensi SAW & Rekomendasi)
+    │ └── Pusat Notifikasi (Lonceng Real-time & Tracking Status Baca Fail-Safe)
+    │
+    ├── 2. DASBOR HRD / SUPERVISOR
+    │ ├── Dashboard HRD (Metrik Divisi, Antrean Pending Verifikasi)
+    │ ├── Antrean Verifikasi (Setujui, Minta Revisi, Tolak, Hapus Permanen)
+    │ ├── Target Operasional (Target Bersama vs Individu: CRUD In-Place)
+    │ ├── Realisasi Capaian Model Tab (Tab Bersama & Tab Individu + Drill-down)
+    │ ├── Rekapitulasi Laporan Bulanan (Rekapitulasi Kinerja Staf & Unduh Excel .xlsx)
+    │ └── Modul SPK SAW
+    │ ├── Interactive Weight Simulator (Simulasi What-If Bobot Slider)
+    │ ├── Matriks Keputusan, Normalisasi, & Perangkingan Preferensi (Vi)
+    │ ├── Decision & Reward Engine (Klasifikasi Predikat Bonus Kinerja)
+    │ ├── Head-to-Head Comparison (Grafik Radar Komparasi Kandidat)
+    │ └── Pengesahan & Frozen Period Snapshot
+    │
+    └── 3. DASBOR SUPER ADMIN
+    ├── Manajemen Akun Pengguna (Toggle Aktif/Nonaktif, Switch Role, Anti Self-Lockout)
+    ├── Master Data Personel & Struktur Jabatan Fungsional
+    ├── Log Audit Sistem & Security Trail
+    └── Pengaturan Sistem & Konfigurasi Global</div>
+
+  <div class="section-title">F. MANFAAT PENELITIAN</div>
+  <ul>
+    <li><strong>Bagi Karyawan:</strong> Kemudahan pelaporan aktivitas lapangan secara mobile, pelacakan status berkas
+      real-time, transparansi penilaian kinerja bulanan, dan evaluasi diri berbasis rapor analitis.</li>
+    <li><strong>Bagi HRD &amp; Supervisor:</strong> Menghemat waktu verifikasi dan rekapitulasi bulanan, menghilangkan
+      subjektivitas penentuan staf terbaik, serta memudahkan simulasi penyesuaian bobot prioritas bisnis.</li>
+    <li><strong>Bagi Direksi Radar Kediri:</strong> Menyajikan data terpusat (*data-driven*) mengenai penetrasi pasar di
+      7 wilayah edar sebagai acuan alokasi bonus dan promosi jabatan.</li>
+    <li><strong>Bagi Akademik:</strong> Memberikan kontribusi ilmiah dalam penerapan metode SAW berbasis web modern
+      (Astro SSR) pada studi kasus nyata industri pers daerah.</li>
+  </ul>
+
+  <div class="page-break"></div>
+
+  <div class="section-title">G. ANALISIS SISTEM SEJENIS</div>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th style="width: 5%;">No.</th>
+        <th style="width: 23%;">Nama Sistem</th>
+        <th style="width: 25%;">Teknologi yang Digunakan</th>
+        <th style="width: 25%;">Deskripsi dan Manfaat</th>
+        <th style="width: 22%;">Kelebihan / Kekurangan</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="text-align: center;">1.</td>
+        <td><strong>Keka HR / Talenta by Mekari</strong></td>
+        <td>Cloud SaaS, React.js, Node.js, MySQL</td>
+        <td>Sistem HRM komersial skala enterprise untuk presensi GPS, payroll, dan administrasi umum.</td>
+        <td>Unggul di presensi korporat umum, namun tidak memiliki SPK multi-kriteria untuk operasional pers/oplah
+          lapangan.</td>
+      </tr>
+      <tr>
+        <td style="text-align: center;">2.</td>
+        <td><strong>Sistem SPK Karyawan Terdahulu [21], [23]</strong></td>
+        <td>PHP Native / Laravel, MySQL, Bootstrap</td>
+        <td>Sistem pendukung keputusan sederhana untuk staf administrasi perkantoran.</td>
+        <td>Perhitungan SAW standar, namun data harus diinput ulang manual oleh admin (tidak terhubung dengan log kerja
+          harian).</td>
+      </tr>
+      <tr>
+        <td style="text-align: center;">3.</td>
+        <td><strong>Sistem yang Diajukan (Radar Kediri DSS)</strong></td>
+        <td><strong>Astro SSR, TypeScript, Supabase (PostgreSQL), Tailwind CSS, Chart.js</strong></td>
+        <td><strong>Sistem terpadu dari pencatatan lapangan harian, approval berkas HRD, monitoring target KPI, hingga
+            SPK SAW cerdas.</strong></td>
+        <td><strong>Form 7 Aktivitas, Verifikasi HRD, Target In-Place, Model Tab Realisasi, SPK SAW 6 Kriteria, Weight
+            Simulator, Radar Chart, Ekspor Excel.</strong></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="section-title">H. MATRIKS PENELITIAN TERDAHULU DAN POSISI PENELITIAN</div>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th style="width: 4%;">No.</th>
+        <th style="width: 22%;">Peneliti &amp; Sumber</th>
+        <th style="width: 26%;">Fokus Penelitian</th>
+        <th style="width: 48%;">Posisi dan Diferensiasi Pengembangan (Radar Kediri)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="text-align: center;">1.</td>
+        <td>Wibisono &amp; Asrol (2023) [6]</td>
+        <td>Dashboard KPI karyawan dalam industri jasa pemeliharaan</td>
+        <td>Mengembangkan pengelolaan KPI sekaligus alur proses verifikasi berkas dan integrasi SPK otomatis.</td>
+      </tr>
+      <tr>
+        <td style="text-align: center;">2.</td>
+        <td>Cosa &amp; Torelli (2024) [9]</td>
+        <td>Transformasi digital pengukuran kinerja organisasi</td>
+        <td>Implementasi sistem terpadu yang disesuaikan dengan kebutuhan riil divisi pemasaran media cetak dan
+          sirkulasi.</td>
+      </tr>
+      <tr>
+        <td style="text-align: center;">3.</td>
+        <td>de Araújo et al. (2024) [10]</td>
+        <td>Evaluasi efektivitas sistem manajemen kinerja (PMS)</td>
+        <td>Evaluasi artefak aplikasi dan kesesuaian dengan kebutuhan operasional mitra melalui UAT dan performa sistem.
+        </td>
+      </tr>
+      <tr>
+        <td style="text-align: center;">4.</td>
+        <td>Haryanti et al. (2024) [13]</td>
+        <td>Metode Design Science Research Methodology (DSRM)</td>
+        <td>Mengadopsi tahapan DSRM dalam perancangan artefak perangkat lunak yang relevan dan bernilai bisnis nyata.
+        </td>
+      </tr>
+      <tr>
+        <td style="text-align: center;">5.</td>
+        <td>Kapoh &amp; Gunawan (2021) [21]</td>
+        <td>Penilaian kinerja karyawan berbasis web</td>
+        <td>Mengintegrasikan pencatatan aktivitas lapangan harian dengan basis data historis verifikasi dan KPI
+          berjenjang.</td>
+      </tr>
+      <tr>
+        <td style="text-align: center;">6.</td>
+        <td>Hendradi &amp; Aji (2023) [23]</td>
+        <td>Penilaian kinerja karyawan menggunakan metode SAW</td>
+        <td>Mengimplementasikan SPK SAW dengan formulasi matematis kriteria benefit/cost terkalibrasi data lapangan
+          riil.</td>
+      </tr>
+      <tr>
+        <td style="text-align: center;">7.</td>
+        <td>Kurnia et al. (2024) [27]</td>
+        <td>Evaluasi kinerja SDM menggunakan KPI</td>
+        <td>Mengintegrasikan target KPI pada tiga tingkatan: perusahaan, divisi pemasaran, dan individu karyawan.</td>
+      </tr>
+      <tr>
+        <td style="text-align: center;">8.</td>
+        <td>Puspita et al. (2025) [29]</td>
+        <td>User Acceptance Testing (UAT) dan performance testing</td>
+        <td>Menguji tingkat penerimaan pengguna fungsional (UAT) dan performa waktu respons akses sistem di staging
+          server.</td>
+      </tr>
+      <tr>
+        <td style="text-align: center;">9.</td>
+        <td>Nugroho et al. (2025) [30]</td>
+        <td>Sistem kepegawaian berbasis Key Performance Indicator</td>
+        <td>Mengembangkan pengelolaan periode dinamis, role-based verifier, dan riwayat penilaian kinerja permanen.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Research Gap (Kebaruan Penelitian):</strong><br>
+    Berdasarkan sintesis penelitian terdahulu [6], [21], [23], [27], [30], pengembangan sistem penilaian kinerja
+    berbasis website dan dashboard KPI umumnya masih berdiri terpisah antara sistem presensi umum, pencatatan logbook
+    lapangan, dan modul perangkingan keputusan. Ruang pengembangan strategis pada penelitian ini mencakup: (1) Integrasi
+    utuh antara pelaporan 7 aktivitas lapangan marketing dengan verifikasi berkas HRD; (2) Pengelolaan target KPI tiga
+    tingkat (perusahaan, divisi, individu) dengan model tab tanpa duplikasi data; (3) Implementasi algoritma SAW 6
+    kriteria yang dilengkapi simulasi bobot dinamis (*Interactive Weight Simulator*); serta (4) Penyediaan visualisasi
+    grafik radar multi-dimensi dan rapor analitis personal dalam satu sistem internal terpadu di PT Kediri Intermedia
+    Pers (Jawa Pos Radar Kediri).
+  </p>
+
+  <div class="page-break"></div>
+
+  <div class="section-title">I. DAFTAR PUSTAKA (Format IEEE Style — 30 Referensi Terindeks 2021–2025)</div>
+  <p style="font-weight: bold; font-size: 9.5pt; margin-bottom: 2px;">A. Jurnal Internasional (20 Referensi)</p>
+  <ol class="ref-list" start="1">
+    <li>P. Garengo, F. Sardi, and S. S. Nudurupati, "Human Resource Management (HRM) in the Performance Measurement and
+      Management (PMM) Domain: A Bibliometric Review," <em>International Journal of Productivity and Performance
+        Management</em>, vol. 71, no. 7, pp. 3056–3077, 2022. DOI: <a class="doi-link"
+        href="https://doi.org/10.1108/IJPPM-04-2020-0177">10.1108/IJPPM-04-2020-0177</a>.</li>
+    <li>A. S. Babar, M. F. Malik, R. R. Ahmed, and D. Streimikiene, "Performance Appraisal Quality and Employee
+      Performance: The Boundary Conditions of Human Resource Strength and Religiosity," <em>Human Resource Management
+        Journal</em>, vol. 32, no. 4, pp. 885–904, 2022. DOI: <a class="doi-link"
+        href="https://doi.org/10.1111/1744-7941.12327">10.1111/1744-7941.12327</a>.</li>
+    <li>D. Thomas, Y. Li, and Y. Lee, "Generalizing the Information Systems Artifact," <em>Information Systems
+        Research</em>, vol. 33, no. 3, pp. 917–934, 2022. DOI: <a class="doi-link"
+        href="https://doi.org/10.1287/isre.2022.1106">10.1287/isre.2022.1106</a>.</li>
+    <li>P. Antunes, N. Thuan, and D. Johnstone, "Nature and Purpose of Visual Artifacts in Design Science Research,"
+      <em>Information Systems and e-Business Management</em>, vol. 20, no. 3, pp. 581–609, 2022. DOI: <a
+        class="doi-link" href="https://doi.org/10.1007/s10257-022-00559-2">10.1007/s10257-022-00559-2</a>.</li>
+    <li>Y. Zhang, J. Liu, X. Chen, and H. Wang, "A Hierarchical Model for Quality Evaluation of Mixed Source Software
+      Based on ISO/IEC 25010," <em>International Journal of Software Engineering and Knowledge Engineering</em>, vol.
+      33, no. 1, pp. 45–66, 2023. DOI: <a class="doi-link"
+        href="https://doi.org/10.1142/S021819402250070X">10.1142/S021819402250070X</a>.</li>
+    <li>S. Wibisono and M. Asrol, "A Dashboard Design of Key Performance Indicators for Monitoring and Improving
+      Employee Performance in the Maintenance Service Industry," <em>International Journal of Management and Decision
+        Making</em>, vol. 22, no. 2, pp. 195–218, 2023. DOI: <a class="doi-link"
+        href="https://doi.org/10.1504/IJMDM.2023.131777">10.1504/IJMDM.2023.131777</a>.</li>
+    <li>R. Batta, V. Bandameeda, and S. Parayitam, "Human Resource Management Practices, Job Satisfaction and
+      Performance: Evidence from Transportation Sector in India," <em>IIM Kozhikode Society &amp; Management
+        Review</em>, vol. 12, no. 2, pp. 211–227, 2023. DOI: <a class="doi-link"
+        href="https://doi.org/10.1177/2319510X231166800">10.1177/2319510X231166800</a>.</li>
+    <li>P. Varadejsatitwong, R. Banomyong, and N. Julagasigorn, "A Proposed Performance-Measurement System for Enabling
+      Supply-Chain Strategies," <em>Sustainability</em>, vol. 14, no. 19, Art. no. 11797, 2022. DOI: <a class="doi-link"
+        href="https://doi.org/10.3390/su141911797">10.3390/su141911797</a>.</li>
+    <li>E. Cosa and M. Torelli, "Digital Transformation and Flexible Performance Management: A Systematic Literature
+      Review of the Evolution of Performance Measurement Systems," <em>Operations Management Research</em>, vol. 17, no.
+      2, pp. 531–552, 2024. DOI: <a class="doi-link"
+        href="https://doi.org/10.1007/s40171-024-00409-9">10.1007/s40171-024-00409-9</a>.</li>
+    <li>F. O. de Araújo, C. C. M. Santos, and R. G. G. Barbosa, "How to Evaluate the Effectiveness of Performance
+      Management Systems? An Overview of the Literature and a Proposed Integrative Model," <em>Administrative
+        Sciences</em>, vol. 14, no. 6, Art. no. 117, 2024. DOI: <a class="doi-link"
+        href="https://doi.org/10.3390/admsci14060117">10.3390/admsci14060117</a>.</li>
+    <li>D. Giamos, F. X. Doucet, and M. Lapalme, "What Is Known about Development-Oriented Performance Management
+      Practices? A Scoping Review," <em>Human Resource Development Review</em>, vol. 24, no. 1, pp. 78–109, 2025. DOI:
+      <a class="doi-link" href="https://doi.org/10.1177/15344843241278405">10.1177/15344843241278405</a>.</li>
+    <li>M. N. Rajaa, S. Al-Emran, and K. Shaalan, "Does Human Resource Information System Influence Performance
+      Management? A Structural Equation Modeling Approach," <em>Cogent Business &amp; Management</em>, vol. 12, no. 1,
+      Art. no. 2438862, 2025. DOI: <a class="doi-link"
+        href="https://doi.org/10.1080/23311975.2024.2438862">10.1080/23311975.2024.2438862</a>.</li>
+    <li>E. Haryanti, P. B. Rakhmawati, and A. E. Subriadi, "Measuring the Digital Transformation Maturity Level
+      Independently with the Design Science Research Methodology," <em>Systems Engineering</em>, vol. 27, no. 4, pp.
+      512–530, 2024. DOI: <a class="doi-link" href="https://doi.org/10.1002/sys.21714">10.1002/sys.21714</a>.</li>
+    <li>M. N. Sakib, T. Rahman, M. Hasan, and A. R. Khan, "How HR Analytics Evolved over Time: A Bibliometric Analysis
+      on Scopus Database," <em>Journal of Innovation and Entrepreneurship</em>, vol. 13, no. 1, Art. no. 58, 2024. DOI:
+      <a class="doi-link" href="https://doi.org/10.1186/s43093-024-00375-9">10.1186/s43093-024-00375-9</a>.</li>
+    <li>S. Xu, L. Zhang, Y. Wang, and Z. Chen, "Does Digitalization Benefit Employees? A Systematic Meta-Analysis of the
+      Digital Technology–Employee Nexus in the Workplace," <em>Systems</em>, vol. 13, no. 6, Art. no. 409, 2025. DOI: <a
+        class="doi-link" href="https://doi.org/10.3390/systems13060409">10.3390/systems13060409</a>.</li>
+    <li>G. Shiferaw and T. Birbirsa, "Digital Technology and Human Resource Practices: A Systematic Literature Review,"
+      <em>Heliyon</em>, vol. 11, no. 3, Art. no. e41946, 2025. DOI: <a class="doi-link"
+        href="https://doi.org/10.1016/j.heliyon.2025.e41946">10.1016/j.heliyon.2025.e41946</a>.</li>
+    <li>A. Pudjono, S. Wibisono, and A. Fatima, "Advancing Local Governance: A Systematic Review of Performance
+      Management Systems," <em>Cogent Social Sciences</em>, vol. 11, no. 1, Art. no. 2442545, 2025. DOI: <a
+        class="doi-link" href="https://doi.org/10.1080/23311975.2024.2442545">10.1080/23311975.2024.2442545</a>.</li>
+    <li>V. C. Storey, R. Baskerville, and M. Kaul, "Reliability in Design Science Research," <em>Information Systems
+        Journal</em>, vol. 35, no. 2, pp. 245–269, 2025. DOI: <a class="doi-link"
+        href="https://doi.org/10.1111/isj.12564">10.1111/isj.12564</a>.</li>
+    <li>P. Arz von Straussenburg, J. Webster, and F. Niederman, "IoT Artifacts in Information Systems Research—A Design
+      Science Problem," <em>Communications of the Association for Information Systems</em>, vol. 55, pp. 1023–1048,
+      2025. DOI: <a class="doi-link" href="https://doi.org/10.17705/1CAIS.05547">10.17705/1CAIS.05547</a>.</li>
+    <li>L. Sadiyawati and N. Hasanati, "Effectiveness of Performance Appraisal System in Employee Development: A
+      Systematic Review," <em>International Journal of Research and Innovation in Social Science (IJRISS)</em>, vol. 8,
+      no. 7, pp. 248–261, 2024. DOI: <a class="doi-link"
+        href="https://doi.org/10.47772/IJRISS.2024.807248">10.47772/IJRISS.2024.807248</a>.</li>
+  </ol>
+
+  <p style="font-weight: bold; font-size: 9.5pt; margin-top: 10px; margin-bottom: 2px;">B. Jurnal Nasional Terindeks
+    SINTA (10 Referensi)</p>
+  <ol class="ref-list" start="21">
+    <li>E. B. Kapoh and R. Gunawan, "Perancangan Sistem Informasi Penilaian Kinerja Karyawan Berbasis Web pada PT Dwi
+      Wahana Ekualindo Jakarta," <em>Jurnal Ilmu Komputer dan Informatika (JIKI)</em>, vol. 15, no. 2, pp. 93–102, 2021.
+      DOI: <a class="doi-link" href="https://doi.org/10.56956/jiki.v15i02.93">10.56956/jiki.v15i02.93</a>.</li>
+    <li>H. Kurniawan, M. Chafid, and D. Kurniati, "Sistem Informasi Penilaian Kinerja Pegawai Berbasis Web pada PT
+      Permata Indonesia," <em>Jurnal Logika Manajemen dan Teknologi (JLMT)</em>, vol. 20, no. 2, pp. 607–616, 2023. DOI:
+      <a class="doi-link" href="https://doi.org/10.59134/jlmt.v20i2.607">10.59134/jlmt.v20i2.607</a>.</li>
+    <li>P. W. Hendradi and P. P. Aji, "Perancangan Sistem Informasi Penilaian Kinerja Karyawan Housekeeping PT Fajar
+      Mekar Indah Berbasis Web Menggunakan Metode SAW," <em>Jurnal Logika Manajemen dan Teknologi (JLMT)</em>, vol. 20,
+      no. 1, pp. 324–335, 2023. DOI: <a class="doi-link"
+        href="https://doi.org/10.59134/jlmt.v20i1.324">10.59134/jlmt.v20i1.324</a>.</li>
+    <li>A. Ardiansyah, "Perancangan Aplikasi Sistem Penilaian Kinerja Karyawan Metode TOPSIS Berbasis Website,"
+      <em>SMARTICS Journal</em>, vol. 9, no. 2, pp. 67–76, 2023. DOI: <a class="doi-link"
+        href="https://doi.org/10.21067/smartics.v9i2.8767">10.21067/smartics.v9i2.8767</a>.</li>
+    <li>D. Mulyana, R. H. Permana, S. Suhartono, and I. Maryati, "Pengembangan Aplikasi Berbasis Web untuk Penilaian
+      Kinerja Karyawan pada PT Stars Internasional," <em>Jurnal Mahasiswa Teknik Informatika (JATI)</em>, vol. 8, no. 2,
+      pp. 9474–9482, 2024. DOI: <a class="doi-link"
+        href="https://doi.org/10.36040/jati.v8i2.9474">10.36040/jati.v8i2.9474</a>.</li>
+    <li>Y. Mare and Triase, "Rancang Bangun Sistem Informasi Monitoring Kinerja Karyawan Berbasis Web dengan Metode
+      Balanced Scorecard pada BPJS Ketenagakerjaan," <em>Jurnal Teknologi Informasi dan Multimedia (JTIM)</em>, vol. 6,
+      no. 2, pp. 561–570, 2024. DOI: <a class="doi-link"
+        href="https://doi.org/10.35746/jtim.v6i2.561">10.35746/jtim.v6i2.561</a>.</li>
+    <li>A. Kurnia, C. Nurlani, and W. Perdana, "Sistem Informasi Evaluasi Kinerja Manajemen SDM Menggunakan Key
+      Performance Indicator pada PT X," <em>Jurnal Sistem Informasi Galuh (JSIG)</em>, vol. 2, no. 2, pp. 3951–3960,
+      2024. DOI: <a class="doi-link" href="https://doi.org/10.25157/jsig.v2i2.3951">10.25157/jsig.v2i2.3951</a>.</li>
+    <li>T. Ratnaduhita, B. Sudianto, and I. Kusumawati, "ISO/IEC 25010: Analisis Kualitas Sistem E-Learning sebagai
+      Media Pembelajaran Online," <em>Jurnal Inovasi dan Sains Terapan (INSIGHT)</em>, vol. 5, no. 1, pp. 302–311, 2023.
+      DOI: <a class="doi-link" href="https://doi.org/10.37823/insight.v5i1.302">10.37823/insight.v5i1.302</a>.</li>
+    <li>K. Puspita, R. A. Nugroho, D. S. Utami, and F. Handayani, "User Acceptance Testing dan Performance Testing pada
+      Pengembangan Website Kanal Pengetahuan Dikti," <em>Journal of Information Engineering and Educational Technology
+        (JIEET)</em>, vol. 8, no. 2, pp. 96–101, 2025. DOI: <a class="doi-link"
+        href="https://doi.org/10.26740/jieet.v8n2.p96-101">10.26740/jieet.v8n2.p96-101</a>.</li>
+    <li>F. Nugroho, E. Setiaji, and A. S. Nugraha, "Sistem Informasi Kepegawaian Menggunakan Metode Key Performance
+      Indicator untuk Penilaian Kinerja Pegawai," <em>Jurnal Sistem Komputer dan Informatika (JSON)</em>, vol. 7, no. 1,
+      pp. 8832–8841, 2025. DOI: <a class="doi-link"
+        href="https://doi.org/10.30865/json.v7i1.8832">10.30865/json.v7i1.8832</a>.</li>
+  </ol>
+
+  <table class="signatures">
+    <tr>
+      <td>
+        Menyetujui,<br>
+        <strong>Dosen Pembimbing 1</strong>
+        <div class="sign-space"></div>
+        ( ............................................................ )<br>
+        NIP.
+      </td>
+      <td>
+        Kediri, 12 November 2026<br>
+        Pengusul Topik TA,
+        <div class="sign-space"></div>
+        <strong>Reza Maulana Nehru</strong><br>
+        NIM. 362358302158
+      </td>
+    </tr>
+  </table>
+
+</body>
+
+</html>

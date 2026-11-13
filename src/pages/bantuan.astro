@@ -1,0 +1,400 @@
+---
+import PublicLayout from "../layouts/PublicLayout.astro";
+import Icon from "../components/ui/Icon.astro";
+
+const user = Astro.locals.user;
+---
+
+<PublicLayout
+  title="Pusat Bantuan & FAQ"
+  activeNav="bantuan"
+  description="Pusat bantuan dan FAQ sistem informasi kinerja karyawan Radar Kediri: kontak helpdesk IT, HRD, dan panduan teknis."
+>
+  <!-- Hero Section -->
+  <section class="help-hero">
+    <div class="help-hero-container">
+      <span class="badge" style="background:rgba(255,255,255,0.15);color:#e0f2fe;margin-bottom:1rem;display:inline-flex;">
+        LAYANAN BANTUAN &amp; DUKUNGAN
+      </span>
+      <h1>Pusat Bantuan &amp; Tanya Jawab (FAQ)</h1>
+      <p>
+        Temukan panduan solusi kendala akun, prosedur verifikasi berkas lapangan, atau hubungi tim teknis dan personalia Radar Kediri.
+      </p>
+    </div>
+  </section>
+
+  <div class="help-container">
+    <!-- Saluran Kontak Cepat -->
+    <div class="contact-channels-grid">
+      <div class="channel-card" id="kontak-it">
+        <div class="channel-icon icon-blue">
+          <Icon name="settings" size={24} />
+        </div>
+        <h4>Helpdesk IT &amp; Administrator</h4>
+        <p>Kendala login, reset password, integrasi Supabase, dan penetapan role akun.</p>
+        <div class="channel-contact-info">
+          <span><strong>Email:</strong> it.support@radarkediri.jawapos.com</span>
+          <span><strong>Ext Kantor:</strong> 104 (Senin - Jumat 08.00 - 17.00 WIB)</span>
+        </div>
+      </div>
+
+      <div class="channel-card">
+        <div class="channel-icon icon-teal">
+          <Icon name="check" size={24} />
+        </div>
+        <h4>Personalia &amp; Verifikator HRD</h4>
+        <p>Pertanyaan seputar catatan revisi bukti fisik, kriteria validasi, dan penilaian capaian kinerja.</p>
+        <div class="channel-contact-info">
+          <span><strong>Email:</strong> hrd@radarkediri.jawapos.com</span>
+          <span><strong>Ext Kantor:</strong> 102 / WhatsApp HRD Center</span>
+        </div>
+      </div>
+
+      <div class="channel-card">
+        <div class="channel-icon icon-amber">
+          <Icon name="briefcase" size={24} />
+        </div>
+        <h4>Divisi Iklan &amp; Komersial</h4>
+        <p>Informasi rate-card iklan koran cetak, formulir order iklan (PO), dan promo suplemen.</p>
+        <div class="channel-contact-info">
+          <span><strong>Email:</strong> iklan@radarkediri.jawapos.com</span>
+          <span><strong>Telepon:</strong> (0354) 687987</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAQ Accordion / List -->
+    <section class="faq-section">
+      <div class="faq-header">
+        <span class="section-tag">PERTANYAAN UMUM</span>
+        <h2>Pertanyaan yang Sering Diajukan (FAQ)</h2>
+        <p>Solusi cepat untuk pertanyaan teknis dan operasional yang paling sering ditanyakan.</p>
+      </div>
+
+      <div class="faq-list">
+        <!-- FAQ 1 -->
+        <details class="faq-item" open>
+          <summary class="faq-question">
+            <span>Bagaimana cara mendaftar akun baru dan apa hak akses awal saya?</span>
+            <span class="faq-toggle-icon">+</span>
+          </summary>
+          <div class="faq-answer">
+            <p>
+              Anda dapat mendaftar melalui halaman <a href="/register">Registrasi Akun</a> dengan mengisi Nama Lengkap, Email resmi, dan Password, atau menggunakan tombol <em>Daftar dengan Google</em>.
+            </p>
+            <p>
+              Untuk menjaga keamanan dan integritas data perusahaan, seluruh akun yang baru terdaftar secara otomatis diberikan hak akses sebagai <strong>Pengguna (Karyawan)</strong>. Penetapan akun menjadi <strong>Admin (HRD)</strong> atau <strong>Super Admin</strong> dilakukan secara terpusat oleh Administrator melalui basis data Supabase.
+            </p>
+          </div>
+        </details>
+
+        <!-- FAQ 2 -->
+        <details class="faq-item">
+          <summary class="faq-question">
+            <span>Apa yang harus saya lakukan jika laporan berstatus "Revision"?</span>
+            <span class="faq-toggle-icon">+</span>
+          </summary>
+          <div class="faq-answer">
+            <p>
+              Status <strong>Revision</strong> menandakan verifikator HRD membutuhkan kelengkapan berkas tambahan (misal: foto kuitansi kurang jelas atau nominal penawaran belum sesuai faktur).
+            </p>
+            <p>
+              Anda cukup membuka menu <em>Aktivitas Saya</em>, pilih laporan yang berstatus Revisi, lalu klik tombol <strong>Edit</strong>. Perbaiki data atau unggah ulang dokumen lampiran yang diminta sesuai catatan verifikator. Setelah diperbarui, status akan kembali menjadi Pending untuk diverifikasi ulang oleh HRD.
+            </p>
+          </div>
+        </details>
+
+        <!-- FAQ 3 -->
+        <details class="faq-item">
+          <summary class="faq-question">
+            <span>Mengapa verifikator HRD tidak dapat menyetujui laporannya sendiri?</span>
+            <span class="faq-toggle-icon">+</span>
+          </summary>
+          <div class="faq-answer">
+            <p>
+              Sistem menerapkan prinsip <em>Separation of Duties</em> dan aturan basis data anti-self-verification (<code>guard_self_verification</code>). Seorang staf yang juga bertindak sebagai verifikator HRD dilarang memvalidasi laporan kegiatan yang dia buat sendiri. Hal ini dilakukan demi menjamin transparansi, objektivitas audit, dan mencegah manipulasi angka capaian kinerja.
+            </p>
+          </div>
+        </details>
+
+        <!-- FAQ 4 -->
+        <details class="faq-item">
+          <summary class="faq-question">
+            <span>Bagaimana proses penilaian capaian kinerja bulanan karyawan dihitung?</span>
+            <span class="faq-toggle-icon">+</span>
+          </summary>
+          <div class="faq-answer">
+            <p>
+              Hanya aktivitas lapangan berstatus <strong>Disetujui (Approved)</strong> oleh verifikator HRD pada periode berjalan yang diperhitungkan. Seluruh perolehan riil (seperti akumulasi sirkulasi oplah, omzet kontrak deal iklan, pendaftaran mitra klien baru, dan intensitas kunjungan) direkapitulasi secara otomatis.
+            </p>
+            <p>
+              Sistem memproses pencapaian tersebut berdasarkan bobot indikator resmi yang telah ditetapkan manajemen Radar Kediri (Oplah 25%, Omzet Iklan 30%, Klien Baru 15%, Kunjungan 15%, Pengendalian Retur 15%) untuk menghasilkan rapor evaluasi kinerja bulanan yang transparan, akurat, dan adil.
+            </p>
+          </div>
+        </details>
+
+        <!-- FAQ 5 -->
+        <details class="faq-item">
+          <summary class="faq-question">
+            <span>Berapa batas waktu maksimal bagi HRD untuk memverifikasi laporan?</span>
+            <span class="faq-toggle-icon">+</span>
+          </summary>
+          <div class="faq-answer">
+            <p>
+              Sesuai dengan SOP internal Radar Kediri, verifikasi berkas laporan dilakukan maksimal <strong>2 &times; 24 jam kerja</strong> sejak laporan disubmit oleh karyawan. Apabila lewat dari batas tersebut, sistem menampilkan tanda pengingat (warning) pada dashboard verifikasi HRD.
+            </p>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <!-- Kotak Hubungi Kami -->
+    <div class="contact-office-card">
+      <div class="office-info">
+        <h3>Kantor Pusat Radar Kediri</h3>
+        <p>
+          Bagi karyawan atau mitra yang memerlukan bantuan tatap muka, silakan mengunjungi sekretariat kantor kami:
+        </p>
+        <div class="office-details">
+          <div>
+            <strong>Alamat:</strong>
+            <span>Gedung Radar Kediri, Jl. Brawijaya No. 27D, Kel. Pocanan, Kec. Kota, Kota Kediri 64129</span>
+          </div>
+          <div>
+            <strong>Jam Operasional:</strong>
+            <span>Senin – Jumat: 08.00 – 17.00 WIB | Sabtu: 08.00 – 14.00 WIB</span>
+          </div>
+          <div>
+            <strong>Telepon Sentral:</strong>
+            <span>(0354) 687987 / 687988</span>
+          </div>
+        </div>
+      </div>
+      <div class="office-action">
+        <a class="btn btn-primary" href="mailto:it.support@radarkediri.jawapos.com">
+          Kirim Email ke Helpdesk IT &rarr;
+        </a>
+      </div>
+    </div>
+  </div>
+</PublicLayout>
+
+<style>
+  .help-hero {
+    background: linear-gradient(135deg, var(--color-primary-900) 0%, #173d66 100%);
+    color: #ffffff;
+    padding: 4.5rem 1.5rem 3.5rem;
+    text-align: center;
+  }
+
+  .help-hero-container {
+    max-width: 52rem;
+    margin: 0 auto;
+  }
+
+  .help-hero h1 {
+    font-size: 2.5rem;
+    color: #ffffff;
+    margin: 0 0 1rem;
+    letter-spacing: -0.01em;
+  }
+
+  .help-hero p {
+    font-size: 1.1rem;
+    color: #cbd5e1;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  .help-container {
+    max-width: 80rem;
+    margin: 0 auto;
+    padding: 3.5rem 1.5rem 5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 3.5rem;
+  }
+
+  /* Contact Channels */
+  .contact-channels-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .channel-card {
+    background: #ffffff;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .channel-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.25rem;
+  }
+
+  .icon-blue { background: #dbeafe; color: #1e40af; }
+  .icon-teal { background: #ccfbf1; color: #0f766e; }
+  .icon-amber { background: #fef3c7; color: #b45309; }
+
+  .channel-card h4 {
+    font-size: 1.15rem;
+    color: var(--color-primary-900);
+    margin: 0 0 0.5rem;
+  }
+
+  .channel-card p {
+    font-size: var(--text-sm);
+    color: #475569;
+    line-height: 1.55;
+    margin: 0 0 1.25rem;
+    flex-grow: 1;
+  }
+
+  .channel-contact-info {
+    border-top: 1px solid var(--color-border);
+    padding-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    font-size: var(--text-xs);
+    color: #334155;
+  }
+
+  /* FAQ */
+  .faq-section {
+    background: #ffffff;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 3.5rem 3rem;
+  }
+
+  .faq-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  .faq-header h2 {
+    font-size: 2rem;
+    color: var(--color-primary-900);
+    margin: 0.5rem 0 0.5rem;
+  }
+
+  .faq-header p {
+    color: var(--color-muted);
+    font-size: var(--text-sm);
+    margin: 0;
+  }
+
+  .faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-width: 56rem;
+    margin: 0 auto;
+  }
+
+  .faq-item {
+    background: #f8fafc;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+
+  .faq-question {
+    padding: 1.25rem 1.5rem;
+    font-weight: 650;
+    font-size: 1.05rem;
+    color: var(--color-primary-900);
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    user-select: none;
+  }
+
+  .faq-question::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq-toggle-icon {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-primary-700);
+    transition: transform 0.2s ease;
+  }
+
+  .faq-item[open] .faq-toggle-icon {
+    transform: rotate(45deg);
+  }
+
+  .faq-answer {
+    padding: 0 1.5rem 1.5rem;
+    font-size: var(--text-sm);
+    color: #475569;
+    line-height: 1.65;
+    border-top: 1px solid rgba(0,0,0,0.04);
+  }
+
+  .faq-answer p {
+    margin: 0.75rem 0 0;
+  }
+
+  /* Office Card */
+  .contact-office-card {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border: 1px solid #bfdbfe;
+    border-radius: var(--radius-lg);
+    padding: 2.5rem 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .office-info h3 {
+    font-size: 1.4rem;
+    color: #1e3a8a;
+    margin: 0 0 0.5rem;
+  }
+
+  .office-info p {
+    font-size: var(--text-sm);
+    color: #3b82f6;
+    margin: 0 0 1.25rem;
+  }
+
+  .office-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: var(--text-xs);
+    color: #1e40af;
+  }
+
+  .office-details strong {
+    color: #1e3a8a;
+    margin-right: 0.35rem;
+  }
+
+  @media (max-width: 768px) {
+    .faq-section {
+      padding: 2rem 1.25rem;
+    }
+    .contact-office-card {
+      padding: 1.75rem 1.25rem;
+    }
+  }
+</style>
+

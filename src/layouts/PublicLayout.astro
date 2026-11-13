@@ -1,0 +1,1033 @@
+---
+import "../assets/styles/global.css";
+import Icon from "../components/ui/Icon.astro";
+import { ROLE_LABEL, initials } from "../lib/formatters";
+import { employee, divisionName, positions, notificationsFor } from "../lib/data/store";
+
+interface Props {
+  title: string;
+  activeNav?: "beranda" | "catat-aktivitas" | "aktivitas-saya" | "kinerja" | "modul-marketing" | "alur-kerja" | "fitur" | "layanan-modul" | "tentang" | "bantuan";
+  description?: string;
+}
+
+const {
+  title,
+  activeNav = "beranda",
+  description = "Portal Kinerja & Aktivitas Karyawan PT Kediri Intermedia Pers (Jawa Pos Radar Kediri) - Sistem Monitoring Oplah, Iklan, Program, & Evaluasi Capaian Kinerja Terstandarisasi."
+} = Astro.props;
+
+const user = Astro.locals.user;
+let emp: any = null;
+let posName = "Karyawan";
+let divName = "Divisi Pemasaran & Sirkulasi";
+let nip = "RK-0000";
+let notifCount = 0;
+
+if (user) {
+  emp = employee(user.id);
+  posName = positions.find((pos) => pos.id === emp?.positionId)?.name ?? (user.role === "admin" ? "Super Admin" : user.role === "hrd" ? "Admin HRD" : "Eksekutif Marketing");
+  divName = divisionName(user.divisionId) || "Divisi Pemasaran & Sirkulasi";
+  nip = emp?.nip || `RK-${user.id.slice(0, 4).toUpperCase()}`;
+
+  const allNotifs = notificationsFor({ id: user.id, role: user.role });
+  const readIdsCookie = Astro.cookies.get(`rk_read_ids_${user.id}`)?.value;
+  let readIds: string[] = [];
+  try {
+    readIds = readIdsCookie ? JSON.parse(readIdsCookie) : [];
+  } catch {
+    readIds = [];
+  }
+  const lastReadCookie = Astro.cookies.get(`rk_notif_read_${user.id}`)?.value || Astro.cookies.get("rk_notif_read")?.value;
+  const lastReadTimestamp = lastReadCookie ? Number(lastReadCookie) : 0;
+
+  const isRead = (n: { id: string; at: string }) => {
+    if (readIds.includes(n.id)) return true;
+    if (lastReadTimestamp > 0 && new Date(n.at).getTime() <= lastReadTimestamp) return true;
+    return false;
+  };
+
+  const unreadNotifs = allNotifs.filter((n) => !isRead(n));
+  notifCount = unreadNotifs.length;
+}
+---
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap"
+      rel="stylesheet"
+    />
+    <title>{title} · Radar Kediri</title>
+    <style>
+      :root {
+        --public-nav-height: 4.25rem;
+      }
+
+      /* Mencegah overflow horizontal & layout tembus */
+      html, body {
+        overflow-x: hidden;
+        max-width: 100vw;
+      }
+
+      /* Navbar Utama */
+      .pub-navbar {
+        background: #ffffff !important;
+        border-bottom: 1px solid #e2e8f0;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      }
+
+      .pub-nav-container {
+        max-width: 80rem;
+        margin: 0 auto;
+        padding: 0 1.5rem;
+        height: var(--public-nav-height);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+
+      /* Brand */
+      .pub-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        text-decoration: none;
+        color: var(--color-primary-900);
+        flex-shrink: 0;
+      }
+
+      .pub-brand-mark {
+        width: 38px;
+        height: 38px;
+        flex-shrink: 0;
+        border-radius: var(--radius-sm);
+        box-shadow: 0 2px 4px rgba(18, 52, 90, 0.15);
+      }
+
+      .pub-brand-title {
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: 1.2rem;
+        line-height: 1.15;
+        letter-spacing: -0.01em;
+        color: var(--color-primary-900);
+        display: block;
+      }
+
+      .pub-brand-subtitle {
+        font-family: var(--font-body);
+        font-size: 0.65rem;
+        font-weight: 600;
+        color: var(--color-muted);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        display: block;
+        margin-top: 1px;
+      }
+
+      /* Navigation Menu */
+      .pub-menu {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+
+      .pub-menu-link {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.45rem 0.65rem;
+        border-radius: var(--radius-sm);
+        font-size: var(--text-sm);
+        font-weight: 550;
+        color: #475569;
+        text-decoration: none;
+        white-space: nowrap;
+        transition: all 0.15s ease-in-out;
+      }
+
+      .pub-menu-link:hover {
+        color: var(--color-primary-900);
+        background: #f1f5f9;
+      }
+
+      .pub-menu-link.is-active {
+        color: #1e40af;
+        background: #eff6ff;
+        font-weight: 650;
+      }
+
+      /* Action Buttons / User Menu di kanan */
+      .pub-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-shrink: 0;
+      }
+
+      /* Tombol Lonceng Notifikasi */
+      .pub-icon-btn {
+        position: relative;
+        width: 38px;
+        height: 38px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        color: #475569;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      .pub-icon-btn:hover {
+        background: #f1f5f9;
+        color: #0f172a;
+        border-color: #cbd5e1;
+      }
+
+      .pub-badge-counter {
+        position: absolute;
+        top: -3px;
+        right: -3px;
+        background: #ef4444;
+        color: #ffffff;
+        font-size: 0.6875rem;
+        font-weight: 700;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 4px;
+        border-radius: 999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid #ffffff;
+        line-height: 1;
+      }
+
+      /* User Avatar Button & Wrapper Dropdown */
+      .pub-user-profile-wrap {
+        position: relative;
+      }
+
+      .pub-avatar-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.2rem 0.5rem 0.2rem 0.2rem;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 999px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        user-select: none;
+      }
+
+      .pub-avatar-btn:hover,
+      .pub-avatar-btn.is-active {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+      }
+
+      .pub-avatar-circle {
+        width: 34px;
+        height: 34px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, #1d4ed8, #2563eb);
+        color: #ffffff;
+        font-size: 0.8125rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        letter-spacing: -0.02em;
+      }
+
+      .pub-avatar-chevron {
+        color: #64748b;
+        display: flex;
+        align-items: center;
+        transition: transform 0.2s ease;
+      }
+
+      .pub-avatar-btn.is-active .pub-avatar-chevron {
+        transform: rotate(180deg);
+      }
+
+      /* Dropdown Popover (Identik dengan Gambar Referensi) */
+      .pub-dropdown-menu {
+        position: absolute;
+        top: calc(100% + 8px);
+        right: 0;
+        width: 275px;
+        background: #ffffff;
+        border-radius: 14px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+        padding: 0.5rem 0;
+        display: none;
+        z-index: 1050;
+        animation: dropdownFadeIn 0.15s ease-out;
+      }
+
+      .pub-dropdown-menu.is-open {
+        display: block;
+      }
+
+      @keyframes dropdownFadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-6px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Header Profil dalam Dropdown */
+      .dropdown-user-header {
+        padding: 0.85rem 1.15rem 0.65rem;
+      }
+
+      .dropdown-user-name {
+        font-size: 0.9375rem;
+        font-weight: 700;
+        color: #0f172a;
+        line-height: 1.25;
+        margin-bottom: 0.2rem;
+      }
+
+      .dropdown-user-email {
+        font-size: 0.8125rem;
+        color: #64748b;
+        margin-bottom: 0.45rem;
+        word-break: break-all;
+      }
+
+      .dropdown-user-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+
+      .dropdown-divider {
+        height: 1px;
+        background: #f1f5f9;
+        margin: 0.4rem 0;
+      }
+
+      /* Item List Dropdown */
+      .dropdown-links {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.6rem 1.15rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #334155;
+        text-decoration: none;
+        transition: all 0.12s ease;
+        cursor: pointer;
+        border: none;
+        background: transparent;
+        width: 100%;
+        text-align: left;
+        box-sizing: border-box;
+      }
+
+      .dropdown-item:hover {
+        background: #f8fafc;
+        color: #0f172a;
+      }
+
+      .dropdown-item-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #64748b;
+        flex-shrink: 0;
+      }
+
+      .dropdown-item:hover .dropdown-item-icon {
+        color: #2563eb;
+      }
+
+      /* Item Keluar (Warna Merah seperti Referensi) */
+      .dropdown-item-logout {
+        color: #dc2626 !important;
+      }
+
+      .dropdown-item-logout .dropdown-item-icon {
+        color: #dc2626 !important;
+      }
+
+      .dropdown-item-logout:hover {
+        background: #fef2f2 !important;
+        color: #b91c1c !important;
+      }
+
+      .pub-role-badge {
+        font-weight: 650;
+        font-size: 0.6875rem;
+        padding: 0.15rem 0.45rem;
+        border-radius: 999px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      .badge-admin { background: #ede9fe; color: #6d28d9; }
+      .badge-hrd { background: #e0f2fe; color: #0369a1; }
+      .badge-employee { background: #f1f5f9; color: #475569; }
+
+      /* Mobile Hamburger */
+      .pub-mobile-toggle {
+        display: none;
+        background: transparent;
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-sm);
+        padding: 0.45rem;
+        cursor: pointer;
+        color: var(--color-text);
+      }
+
+      .pub-mobile-menu {
+        display: none;
+        background: #ffffff;
+        border-bottom: 1px solid var(--color-border);
+        padding: 1rem 1.5rem 1.25rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+      }
+
+      .pub-mobile-menu.is-open {
+        display: block;
+      }
+
+      .pub-mobile-user-card {
+        padding: 0.85rem 1rem;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: var(--radius-md);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .pub-mobile-links {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        margin-bottom: 1rem;
+      }
+
+      .pub-mobile-link {
+        padding: 0.65rem 0.85rem;
+        border-radius: var(--radius-sm);
+        text-decoration: none;
+        font-size: var(--text-sm);
+        font-weight: 550;
+        color: #334155;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+      }
+
+      .pub-mobile-link:hover,
+      .pub-mobile-link.is-active {
+        background: #eff6ff;
+        color: #1e40af;
+      }
+
+      .pub-mobile-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid var(--color-border);
+      }
+
+      @media (max-width: 1040px) {
+        .pub-menu {
+          display: none;
+        }
+        .pub-mobile-toggle {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .pub-actions {
+          display: none;
+        }
+      }
+
+      /* Footer */
+      .pub-footer {
+        background: #0f243d;
+        color: #94a3b8;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 4rem 1.5rem 2rem;
+        margin-top: auto;
+      }
+
+      .pub-footer-container {
+        max-width: 80rem;
+        margin: 0 auto;
+      }
+
+      .pub-footer-grid {
+        display: grid;
+        grid-template-columns: 2.2fr 1fr 1fr;
+        gap: 3.5rem;
+        margin-bottom: 3.5rem;
+      }
+
+      .pub-footer-brand h4 {
+        color: #ffffff;
+        font-family: var(--font-display);
+        font-size: 1.25rem;
+        margin: 0 0 0.5rem;
+      }
+
+      .pub-footer-brand p {
+        font-size: var(--text-sm);
+        line-height: 1.6;
+        color: #cbd5e1;
+        margin-bottom: 1.25rem;
+      }
+
+      .pub-footer-col h5 {
+        color: #ffffff;
+        font-size: 0.875rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin: 0 0 1rem;
+      }
+
+      .pub-footer-col ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.65rem;
+      }
+
+      .pub-footer-col a {
+        color: #cbd5e1;
+        text-decoration: none;
+        font-size: var(--text-sm);
+        transition: color 0.15s;
+      }
+
+      .pub-footer-col a:hover {
+        color: #ffffff;
+      }
+
+      .pub-footer-bottom {
+        padding-top: 2rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: var(--text-xs);
+        color: #64748b;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+
+      @media (max-width: 900px) {
+        .pub-footer-grid {
+          grid-template-columns: 1fr 1fr;
+          gap: 2rem;
+        }
+      }
+
+      @media (max-width: 560px) {
+        .pub-footer-grid {
+          grid-template-columns: 1fr;
+        }
+        .pub-footer-bottom {
+          flex-direction: column;
+          text-align: center;
+        }
+      }
+    </style>
+  </head>
+  <body style="background: var(--color-page); margin: 0; min-height: 100vh; display: flex; flex-direction: column;">
+    <!-- Public Navbar -->
+    <header class="pub-navbar">
+      <div class="pub-nav-container">
+        <!-- Brand Logo -->
+        <a class="pub-brand" href="/" title="Beranda Portal Radar Kediri">
+          <svg class="pub-brand-mark" viewBox="0 0 40 40" width="38" height="38" aria-hidden="true">
+            <rect width="40" height="40" rx="8" fill="#12345a"/>
+            <path d="M9 29V11h10a6 6 0 010 12h-4l8 6h-6l-7-6M15 23v-8h4a2 2 0 010 4" fill="none" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+            <path d="M27 11h4M27 16h4" stroke="#60a5fa" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+          <div>
+            <span class="pub-brand-title">Radar Kediri</span>
+            <span class="pub-brand-subtitle">Portal Kinerja &amp; Aktivitas</span>
+          </div>
+        </a>
+
+        <!-- Desktop Nav Links (No duplicate buttons) -->
+        <nav class="pub-menu" aria-label="Menu Utama">
+          {user?.role === "employee" ? (
+            <>
+              <a class={`pub-menu-link ${activeNav === "beranda" ? "is-active" : ""}`} href="/">Beranda</a>
+              <a class={`pub-menu-link ${activeNav === "catat-aktivitas" ? "is-active" : ""}`} href="/catat-aktivitas">Catat Aktivitas</a>
+              <a class={`pub-menu-link ${activeNav === "aktivitas-saya" ? "is-active" : ""}`} href="/aktivitas-saya">Aktivitas Saya</a>
+              <a class={`pub-menu-link ${activeNav === "kinerja" ? "is-active" : ""}`} href="/kinerja">Capaian Target</a>
+              <a class={`pub-menu-link ${activeNav === "modul-marketing" ? "is-active" : ""}`} href="/modul-marketing">Modul Marketing</a>
+              <a class={`pub-menu-link ${activeNav === "alur-kerja" ? "is-active" : ""}`} href="/alur-kerja">Alur Kerja &amp; SOP</a>
+            </>
+          ) : (
+            <>
+              <a class={`pub-menu-link ${activeNav === "beranda" ? "is-active" : ""}`} href="/">Beranda</a>
+              <a class={`pub-menu-link ${activeNav === "tentang" ? "is-active" : ""}`} href="/tentang">Tentang Kami</a>
+              <a class={`pub-menu-link ${activeNav === "fitur" || activeNav === "layanan-modul" ? "is-active" : ""}`} href="/layanan-modul">Layanan &amp; Modul</a>
+              <a class={`pub-menu-link ${activeNav === "alur-kerja" ? "is-active" : ""}`} href="/alur-kerja">Alur Kerja &amp; SOP</a>
+              <a class={`pub-menu-link ${activeNav === "bantuan" ? "is-active" : ""}`} href="/bantuan">Pusat Bantuan</a>
+            </>
+          )}
+        </nav>
+
+        <!-- Right Action Buttons / Avatar Popover -->
+        <div class="pub-actions">
+          {user ? (
+            <>
+              <!-- Tombol Notifikasi Bell -->
+              <a
+                href="/notifications"
+                class="pub-icon-btn"
+                title={notifCount > 0 ? `${notifCount} pemberitahuan baru` : "Semua pemberitahuan sudah dibaca"}
+                aria-label="Pemberitahuan aktivitas"
+              >
+                <Icon name="bell" size={18} />
+                {notifCount > 0 && (
+                  <span class="pub-badge-counter">{notifCount > 9 ? "9+" : notifCount}</span>
+                )}
+              </a>
+
+              <!-- Avatar Button & Dropdown Popover (Identik Referensi) -->
+              <div class="pub-user-profile-wrap">
+                <button
+                  type="button"
+                  class="pub-avatar-btn"
+                  id="pub-user-avatar-btn"
+                  aria-haspopup="true"
+                  aria-expanded="false"
+                  title={`Menu Akun: ${user.name}`}
+                >
+                  <div class="pub-avatar-circle">
+                    {initials(user.name)}
+                  </div>
+                  <span class="pub-avatar-chevron" aria-hidden="true">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M6 9l6 6 6-6"/>
+                    </svg>
+                  </span>
+                </button>
+
+                <!-- Floating Dropdown Card Popover -->
+                <div class="pub-dropdown-menu" id="pub-user-dropdown" role="menu">
+                  <!-- Header Profil -->
+                  <div class="dropdown-user-header">
+                    <div class="dropdown-user-name">{user.name}</div>
+                    <div class="dropdown-user-email">{user.email}</div>
+                    <div class="dropdown-user-meta">
+                      <span class={`pub-role-badge badge-${user.role}`}>
+                        {user.role === "admin" ? "Super Admin" : user.role === "hrd" ? "Admin HRD" : "Karyawan"}
+                      </span>
+                      <span style="font-size:0.75rem;color:#64748b;font-weight:600;">{nip}</span>
+                    </div>
+                  </div>
+
+                  <div class="dropdown-divider"></div>
+
+                  <!-- Item Menu Sesuai Role -->
+                  <div class="dropdown-links">
+                    {user.role === "employee" ? (
+                      <>
+                        <a href="/catat-aktivitas" class="dropdown-item" role="menuitem">
+                          <span class="dropdown-item-icon"><Icon name="plus" size={17} /></span>
+                          <span>Catat Aktivitas Baru</span>
+                        </a>
+                        <a href="/aktivitas-saya" class="dropdown-item" role="menuitem">
+                          <span class="dropdown-item-icon"><Icon name="clipboard" size={17} /></span>
+                          <span>Aktivitas Saya</span>
+                        </a>
+                        <a href="/kinerja" class="dropdown-item" role="menuitem">
+                          <span class="dropdown-item-icon"><Icon name="chart" size={17} /></span>
+                          <span>Kinerja KPI Saya</span>
+                        </a>
+                        <a href="/modul-marketing" class="dropdown-item" role="menuitem">
+                          <span class="dropdown-item-icon"><Icon name="folder" size={17} /></span>
+                          <span>Modul Marketing</span>
+                        </a>
+                        <a href="/alur-kerja" class="dropdown-item" role="menuitem">
+                          <span class="dropdown-item-icon"><Icon name="file" size={17} /></span>
+                          <span>Panduan Alur &amp; SOP</span>
+                        </a>
+                        <a href="/api/export/excel?type=employee" class="dropdown-item" role="menuitem" download title="Unduh Rapor Kinerja Bulanan Excel">
+                          <span class="dropdown-item-icon">
+                            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                              <polyline points="7 10 12 15 17 10"></polyline>
+                              <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                          </span>
+                          <span>Unduh Rekap Excel (.xlsx)</span>
+                        </a>
+                        <a href="/profile" class="dropdown-item" role="menuitem">
+                          <span class="dropdown-item-icon"><Icon name="settings" size={17} /></span>
+                          <span>Pengaturan Akun</span>
+                        </a>
+                      </>
+                    ) : (
+                      <>
+                        <a href="/dashboard" class="dropdown-item" role="menuitem">
+                          <span class="dropdown-item-icon"><Icon name="chart" size={17} /></span>
+                          <span>Dashboard Utama</span>
+                        </a>
+                        {user.role === "hrd" && (
+                          <>
+                            <a href="/hrd/verifications" class="dropdown-item" role="menuitem">
+                              <span class="dropdown-item-icon"><Icon name="check" size={17} /></span>
+                              <span>Verifikasi Aktivitas</span>
+                            </a>
+                            <a href="/hrd/spk/calculations" class="dropdown-item" role="menuitem">
+                              <span class="dropdown-item-icon"><Icon name="target" size={17} /></span>
+                              <span>Perhitungan SPK SAW</span>
+                            </a>
+                            <a href="/api/export/excel?type=hrd" class="dropdown-item" role="menuitem" download title="Unduh Rekap SAW Excel">
+                              <span class="dropdown-item-icon">
+                                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                  <polyline points="7 10 12 15 17 10"></polyline>
+                                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                              </span>
+                              <span>Unduh Rekap SAW Excel</span>
+                            </a>
+                          </>
+                        )}
+                        {user.role === "admin" && (
+                          <>
+                            <a href="/admin/users" class="dropdown-item" role="menuitem">
+                              <span class="dropdown-item-icon"><Icon name="users" size={17} /></span>
+                              <span>Kelola Karyawan</span>
+                            </a>
+                            <a href="/admin/audit-logs" class="dropdown-item" role="menuitem">
+                              <span class="dropdown-item-icon"><Icon name="shield" size={17} /></span>
+                              <span>Audit &amp; Log Keamanan</span>
+                            </a>
+                            <a href="/api/export/excel?type=admin" class="dropdown-item" role="menuitem" download title="Unduh Laporan Korporat Excel">
+                              <span class="dropdown-item-icon">
+                                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                  <polyline points="7 10 12 15 17 10"></polyline>
+                                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                              </span>
+                              <span>Unduh Laporan Korporat</span>
+                            </a>
+                          </>
+                        )}
+                        <a href="/profile" class="dropdown-item" role="menuitem">
+                          <span class="dropdown-item-icon"><Icon name="settings" size={17} /></span>
+                          <span>Pengaturan Akun</span>
+                        </a>
+                      </>
+                    )}
+                  </div>
+
+                  <div class="dropdown-divider"></div>
+
+                  <!-- Tombol Keluar (Merah Sesuai Referensi) -->
+                  <form method="post" action="/logout" style="margin:0;">
+                    <button type="submit" class="dropdown-item dropdown-item-logout" role="menuitem">
+                      <span class="dropdown-item-icon">
+                        <Icon name="logout" size={17} />
+                      </span>
+                      <span>Keluar</span>
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div style="display:flex;align-items:center;gap:0.5rem;">
+              <a class="btn btn-secondary btn-sm" href="/login">Masuk</a>
+              <a class="btn btn-primary btn-sm" href="/register">Daftar Akun</a>
+            </div>
+          )}
+        </div>
+
+        <!-- Mobile Toggle Button -->
+        <button
+          type="button"
+          class="pub-mobile-toggle"
+          id="btn-mobile-toggle"
+          aria-expanded="false"
+          aria-label="Buka menu navigasi"
+        >
+          <Icon name="menu" size={22} />
+        </button>
+      </div>
+
+      <!-- Mobile Dropdown Menu Drawer -->
+      <div class="pub-mobile-menu" id="pub-mobile-menu">
+        {user && (
+          <div class="pub-mobile-user-card">
+            <div class="pub-avatar-circle" style="width:40px;height:40px;font-size:0.9rem;">
+              {initials(user.name)}
+            </div>
+            <div style="overflow:hidden;">
+              <div style="font-weight:700;font-size:0.9375rem;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{user.name}</div>
+              <div style="font-size:0.75rem;color:#64748b;margin-bottom:0.25rem;">{user.email}</div>
+              <div style="display:flex;align-items:center;gap:0.35rem;">
+                <span class={`pub-role-badge badge-${user.role}`}>
+                  {user.role === "admin" ? "Super Admin" : user.role === "hrd" ? "Admin HRD" : "Karyawan"}
+                </span>
+                <span style="font-size:0.6875rem;color:#64748b;font-weight:600;">{nip}</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {user?.role === "employee" ? (
+          <nav class="pub-mobile-links">
+            <a class={`pub-mobile-link ${activeNav === "beranda" ? "is-active" : ""}`} href="/">
+              <Icon name="home" size={18} />
+              <span>Beranda</span>
+            </a>
+            <a class={`pub-mobile-link ${activeNav === "catat-aktivitas" ? "is-active" : ""}`} href="/catat-aktivitas">
+              <Icon name="plus" size={18} />
+              <span>Catat Aktivitas</span>
+            </a>
+            <a class={`pub-mobile-link ${activeNav === "aktivitas-saya" ? "is-active" : ""}`} href="/aktivitas-saya">
+              <Icon name="clipboard" size={18} />
+              <span>Aktivitas Saya</span>
+            </a>
+            <a class={`pub-mobile-link ${activeNav === "kinerja" ? "is-active" : ""}`} href="/kinerja">
+              <Icon name="chart" size={18} />
+              <span>Kinerja KPI</span>
+            </a>
+            <a class={`pub-mobile-link ${activeNav === "modul-marketing" ? "is-active" : ""}`} href="/modul-marketing">
+              <Icon name="folder" size={18} />
+              <span>Modul Marketing</span>
+            </a>
+            <a class={`pub-mobile-link ${activeNav === "alur-kerja" ? "is-active" : ""}`} href="/alur-kerja">
+              <Icon name="file" size={18} />
+              <span>Alur Kerja &amp; SOP</span>
+            </a>
+            <a class="pub-mobile-link" href="/api/export/excel?type=employee" download>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span>Unduh Rekap Excel</span>
+            </a>
+            <a class="pub-mobile-link" href="/profile">
+              <Icon name="settings" size={18} />
+              <span>Pengaturan Akun</span>
+            </a>
+          </nav>
+        ) : user ? (
+          <nav class="pub-mobile-links">
+            <a class={`pub-mobile-link ${activeNav === "beranda" ? "is-active" : ""}`} href="/">
+              <Icon name="home" size={18} />
+              <span>Beranda Portal</span>
+            </a>
+            <a class="pub-mobile-link" href="/dashboard">
+              <Icon name="chart" size={18} />
+              <span>Dashboard Utama</span>
+            </a>
+            {user.role === "hrd" && (
+              <>
+                <a class="pub-mobile-link" href="/hrd/activities">
+                  <Icon name="check" size={18} />
+                  <span>Verifikasi Aktivitas</span>
+                </a>
+                <a class="pub-mobile-link" href="/hrd/spk/calculations">
+                  <Icon name="target" size={18} />
+                  <span>Perhitungan SPK SAW</span>
+                </a>
+              </>
+            )}
+            {user.role === "admin" && (
+              <>
+                <a class="pub-mobile-link" href="/admin/users">
+                  <Icon name="users" size={18} />
+                  <span>Kelola Karyawan</span>
+                </a>
+                <a class="pub-mobile-link" href="/admin/audit-logs">
+                  <Icon name="shield" size={18} />
+                  <span>Audit &amp; Keamanan</span>
+                </a>
+              </>
+            )}
+            <a class="pub-mobile-link" href="/profile">
+              <Icon name="settings" size={18} />
+              <span>Pengaturan Akun</span>
+            </a>
+          </nav>
+        ) : (
+          <nav class="pub-mobile-links">
+            <a class={`pub-mobile-link ${activeNav === "beranda" ? "is-active" : ""}`} href="/">Beranda</a>
+            <a class={`pub-mobile-link ${activeNav === "tentang" ? "is-active" : ""}`} href="/tentang">Tentang Kami</a>
+            <a class={`pub-mobile-link ${activeNav === "fitur" || activeNav === "layanan-modul" ? "is-active" : ""}`} href="/layanan-modul">Layanan &amp; Modul</a>
+            <a class={`pub-mobile-link ${activeNav === "alur-kerja" ? "is-active" : ""}`} href="/alur-kerja">Alur Kerja &amp; SOP</a>
+            <a class={`pub-mobile-link ${activeNav === "bantuan" ? "is-active" : ""}`} href="/bantuan">Pusat Bantuan</a>
+          </nav>
+        )}
+
+        <div class="pub-mobile-actions">
+          {user ? (
+            <form method="post" action="/logout" style="margin:0;">
+              <button type="submit" class="btn btn-secondary" style="width:100%;justify-content:center;color:#dc2626;border-color:#fecaca;">
+                <Icon name="logout" size={16} />
+                <span>Keluar dari Akun</span>
+              </button>
+            </form>
+          ) : (
+            <>
+              <a class="btn btn-secondary" href="/login" style="justify-content:center;">Masuk ke Akun</a>
+              <a class="btn btn-primary" href="/register" style="justify-content:center;">Daftar Akun Karyawan</a>
+            </>
+          )}
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Slot -->
+    <main style="flex: 1 0 auto;">
+      <slot />
+    </main>
+
+    <!-- Public Footer -->
+    <footer class="pub-footer">
+      <div class="pub-footer-container">
+        <div class="pub-footer-grid">
+          <!-- Col 1: Brand & Profil -->
+          <div class="pub-footer-brand">
+            <h4>Radar Kediri</h4>
+            <p>
+              Sistem Informasi Manajemen Kinerja Karyawan &amp; Aktivitas Pemasaran terintegrasi PT Kediri Intermedia Pers (Jawa Pos Radar Kediri). 
+              Mendukung pencatatan oplah, periklanan, kemitraan event, dan evaluasi capaian kinerja berkala yang objektif, transparan, dan akuntabel.
+            </p>
+            <div style="font-size: var(--text-xs); color: #94a3b8; display: flex; flex-direction: column; gap: 0.35rem;">
+              <span><strong>Kantor Pusat:</strong> Jl. Brawijaya No. 27D, Kel. Pocanan, Kota Kediri 64129</span>
+              <span><strong>Telepon:</strong> (0354) 687987 / 687988</span>
+              <span><strong>Email:</strong> hrd@radarkediri.jawapos.com</span>
+            </div>
+          </div>
+
+          <!-- Col 2: Navigasi Cepat -->
+          <div class="pub-footer-col">
+            <h5>Navigasi Halaman</h5>
+            <ul>
+              <li><a href="/">Beranda Portal</a></li>
+              <li><a href="/tentang">Tentang Radar Kediri</a></li>
+              <li><a href="/layanan-modul">Layanan &amp; Modul</a></li>
+              <li><a href="/alur-kerja">Alur Kerja &amp; SOP</a></li>
+              <li><a href="/bantuan">Pusat Bantuan &amp; FAQ</a></li>
+            </ul>
+          </div>
+
+          <!-- Col 3: Akses Akun -->
+          <div class="pub-footer-col">
+            <h5>Akses Sistem</h5>
+            <ul>
+              <li><a href="/login">Masuk Akun Karyawan</a></li>
+              <li><a href="/register">Registrasi Akun Baru</a></li>
+              <li><a href="/dashboard">Portal Dashboard</a></li>
+              <li><a href="/alur-kerja">Panduan Standar SOP</a></li>
+              <li><a href="/bantuan">Pusat Bantuan</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="pub-footer-bottom">
+          <div>
+            &copy; {new Date().getFullYear()} PT Kediri Intermedia Pers (Jawa Pos Radar Kediri). Hak Cipta Dilindungi.
+          </div>
+          <div style="display:flex;gap:1.5rem;">
+            <span>Sistem Kinerja v1.0</span>
+            <span>Evaluasi Kinerja Terstandarisasi</span>
+            <span>Security by Supabase RLS</span>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Script Hamburger Drawer & Avatar Dropdown Popover -->
+    <script is:inline>
+      // 1. Mobile Drawer Toggle
+      const mobileBtn = document.getElementById("btn-mobile-toggle");
+      const mobileMenu = document.getElementById("pub-mobile-menu");
+      if (mobileBtn && mobileMenu) {
+        mobileBtn.addEventListener("click", () => {
+          const isOpen = mobileMenu.classList.toggle("is-open");
+          mobileBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+        });
+      }
+
+      // 2. Avatar Dropdown Popover Toggle (Sesuai Referensi)
+      const avatarBtn = document.getElementById("pub-user-avatar-btn");
+      const userDropdown = document.getElementById("pub-user-dropdown");
+      if (avatarBtn && userDropdown) {
+        avatarBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const isOpen = userDropdown.classList.toggle("is-open");
+          avatarBtn.classList.toggle("is-active", isOpen);
+          avatarBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+        });
+
+        // Klik di luar dropdown untuk menutup
+        document.addEventListener("click", (e) => {
+          if (!userDropdown.contains(e.target) && !avatarBtn.contains(e.target)) {
+            userDropdown.classList.remove("is-open");
+            avatarBtn.classList.remove("is-active");
+            avatarBtn.setAttribute("aria-expanded", "false");
+          }
+        });
+
+        // Tombol Escape untuk menutup
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape" && userDropdown.classList.contains("is-open")) {
+            userDropdown.classList.remove("is-open");
+            avatarBtn.classList.remove("is-active");
+            avatarBtn.setAttribute("aria-expanded", "false");
+          }
+        });
+      }
+    </script>
+  </body>
+</html>
+

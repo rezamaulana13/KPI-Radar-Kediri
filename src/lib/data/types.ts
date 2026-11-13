@@ -10,6 +10,7 @@ export interface Position { id: string; name: string; level: string }
 export interface Employee {
   id: string; nip: string; name: string; email: string; role: Role;
   divisionId: string; positionId: string; supervisorId: string | null; active: boolean; lastLogin: string;
+  password?: string;
 }
 export interface Period { id: string; name: string; start: string; end: string; status: "draft" | "active" | "closed" }
 export interface KpiCategory { id: string; name: string; scope: KpiScope; description: string }
@@ -28,6 +29,7 @@ export interface Activity {
   description: string; status: ActivityStatus; clientId?: string; offerId?: string; programId?: string;
   qty?: number; value?: number; source?: string; sourceName?: string; progressType?: string;
   outcome?: "deal" | "no"; reasonCategory?: string; reason?: string; potential?: string; evidence?: string;
+  createdAt?: string;
 }
 export interface Verification { id: string; activityId: string; status: ActivityStatus; by: string; at: string; note: string }
 export interface Offer { id: string; clientId: string; programName: string; ownerId: string; date: string; value: number; periodId: string; note: string }

@@ -1,24 +1,676 @@
 ---
 import DashboardLayout from "../../../layouts/DashboardLayout.astro";
-import ListPage from "../../../components/ui/ListPage.astro";
+import PageHeader from "../../../components/layout/PageHeader.astro";
 import PeriodFilter from "../../../components/ui/PeriodFilter.astro";
 import Alert from "../../../components/ui/Alert.astro";
-import { divisionName, employeeName } from "../../../lib/data/store";
+import Icon from "../../../components/ui/Icon.astro";
+import { db, divisionName, employeeName, positionName } from "../../../lib/data/store";
 import { achievements } from "../../../features/kpi/achievements";
 import { selectedPeriod } from "../../../lib/utils/period";
-import { SCOPE_LABEL } from "../../../lib/formatters";
+import { num, rupiah, SCOPE_LABEL } from "../../../lib/formatters";
+
+const user = Astro.locals.user;
+if (!user || (user.role !== "admin" && user.role !== "hrd")) {
+  return Astro.redirect("/login?next=/hrd/kpi/achievements");
+}
+
 const p = selectedPeriod(Astro.url);
-const rows = achievements(p.id).map((r) => ({
-  id: r.target.id, name: r.indicator.name, scope: r.target.scope, scopeLabel: SCOPE_LABEL[r.target.scope], unit: r.indicator.unit,
-  subject: r.target.scope === "company" ? "Seluruh perusahaan" : r.target.scope === "division" ? divisionName(r.target.divisionId) : employeeName(r.target.employeeId),
-  target: r.target.value, actual: r.actual, sources: r.mapped ? r.sources.length : null, percent: r.percent,
-}));
+const currentTab = Astro.url.searchParams.get("tab") || "bersama";
+const selectedStaff = Astro.url.searchParams.get("staff") || "all";
+
+// Ambil seluruh data realisasi untuk periode ini
+const allRows = achievements(p.id).map((r) => {
+  const isIndividual = r.target.scope === "individual";
+  const staff = isIndividual ? db.employees.find((e) => e.id === r.target.employeeId) : null;
+  return {
+    id: r.target.id,
+    indicatorId: r.indicator.id,
+    name: r.indicator.name,
+    definition: r.indicator.definition,
+    scope: r.target.scope,
+    scopeLabel: SCOPE_LABEL[r.target.scope],
+    unit: r.indicator.unit,
+    subject: r.target.scope === "company"
+      ? "Seluruh Perusahaan"
+      : r.target.scope === "division"
+      ? (divisionName(r.target.divisionId) || "Divisi Pemasaran & Sirkulasi")
+      : (employeeName(r.target.employeeId) || "Staf Pemasaran"),
+    employeeId: r.target.employeeId,
+    employeeName: staff?.name ?? (r.target.employeeId ? employeeName(r.target.employeeId) : ""),
+    employeeNip: staff?.nip ?? "",
+    employeePosition: staff ? positionName(staff.positionId) : "",
+    target: r.target.value,
+    actual: r.actual,
+    sourcesCount: r.sources.length,
+    sources: r.sources,
+    percent: r.percent,
+    mapped: r.mapped,
+  };
+});
+
+// Pisahkan berdasarkan Cakupan Target:
+// 1. Target Bersama: mencakup level Divisi & Perusahaan
+const collectiveRows = allRows.filter((r) => r.scope === "division" || r.scope === "company");
+
+// 2. Target Individu: khusus dibebankan ke perorangan Staf
+const individualRowsAll = allRows.filter((r) => r.scope === "individual");
+const individualRows = selectedStaff === "all"
+  ? individualRowsAll
+  : individualRowsAll.filter((r) => r.employeeId === selectedStaff);
+
+// Daftar staf pemasaran untuk filter dropdown & pengecekan target
+const marketingStaff = db.employees.filter((e) => e.role === "employee");
+const staffWithTargetIds = new Set(individualRowsAll.map((r) => r.employeeId));
+const staffWithoutTargets = marketingStaff.filter((e) => !staffWithTargetIds.has(e.id));
+
+// Helper formatting angka & rupiah
+const formatVal = (val: number | null | undefined, unit: string) => {
+  if (val == null) return "—";
+  if (unit === "Rp" || unit.toLowerCase().includes("rupiah")) {
+    return rupiah(val);
+  }
+  return `${num(val)} ${unit}`;
+};
+
+// Helper visualisasi status & progress bar
+const getStatusMeta = (pct: number | null | undefined) => {
+  if (pct == null || pct === 0) {
+    return { color: "#94a3b8", label: "Belum Ada Realisasi", badgeClass: "badge-neutral" };
+  }
+  if (pct >= 100) {
+    return { color: "#10b981", label: "Tercapai", badgeClass: "badge-success" };
+  }
+  if (pct >= 70) {
+    return { color: "#0284c7", label: "Progres Baik", badgeClass: "badge-info" };
+  }
+  if (pct >= 40) {
+    return { color: "#f59e0b", label: "Berjalan", badgeClass: "badge-warning" };
+  }
+  return { color: "#ef4444", label: "Perlu Ditingkatkan", badgeClass: "badge-danger" };
+};
+
+// Statistik Tab Kolektif (Bersama)
+const collectiveAchieved = collectiveRows.filter((r) => (r.percent ?? 0) >= 100).length;
+const collectiveAvg = collectiveRows.length
+  ? Math.round(collectiveRows.reduce((acc, r) => acc + (r.percent ?? 0), 0) / collectiveRows.length)
+  : 0;
+const collectiveSources = collectiveRows.reduce((acc, r) => acc + r.sourcesCount, 0);
+
+// Statistik Tab Individu
+const individualAchieved = individualRowsAll.filter((r) => (r.percent ?? 0) >= 100).length;
+const individualAvg = individualRowsAll.length
+  ? Math.round(individualRowsAll.reduce((acc, r) => acc + (r.percent ?? 0), 0) / individualRowsAll.length)
+  : 0;
 ---
-<DashboardLayout title="Realisasi KPI">
-  <ListPage title="Realisasi KPI" description={`Realisasi ${p.name} dihitung dari aktivitas yang disetujui dan punya mapping.`} crumbs={[{ label: "HRD" }, { label: "KPI" }]} rows={rows} searchKeys={["name", "subject"]}
-    filters={[{ name: "scope", label: "Cakupan", options: Object.entries(SCOPE_LABEL).map(([value, label]) => ({ value, label })) }]}
-    columns={[{ key: "name", label: "Indikator", href: (r) => `/hrd/kpi/achievements/${r.id}` }, { key: "scopeLabel", label: "Cakupan" }, { key: "subject", label: "Subjek" }, { key: "target", label: "Target", type: "number" }, { key: "actual", label: "Realisasi", type: "number" }, { key: "sources", label: "Aktivitas sumber", type: "number" }, { key: "percent", label: "Capaian", type: "meter" }]} perPage={12}>
-    <PeriodFilter slot="actions" />
-    <Alert slot="before" tone="info" title="Klik nama indikator untuk melihat aktivitas sumber">Realisasi dihitung ulang saat halaman dibuka dari aktivitas berstatus disetujui, sehingga selalu dapat ditelusuri.</Alert>
-  </ListPage>
+
+<DashboardLayout title="Realisasi Capaian Operasional">
+  <PageHeader
+    title="Realisasi Capaian Operasional"
+    description={`Monitoring pemenuhan target operasional Divisi Pemasaran periode ${p.name}. Data realisasi dihitung otomatis dari aktivitas lapangan staf yang telah diverifikasi dan disetujui HRD.`}
+    crumbs={[{ label: "HRD" }, { label: "Realisasi Capaian" }]}
+  >
+    <Fragment slot="actions">
+      <PeriodFilter />
+    </Fragment>
+  </PageHeader>
+
+  <!-- TAB NAVIGASI UTAMA (Bersama Divisi vs Individu Staf) -->
+  <div class="achieve-tabs-bar">
+    <div class="tabs-nav" role="tablist">
+      <a
+        href={`/hrd/kpi/achievements?tab=bersama&period=${p.id}`}
+        class={`tab-item ${currentTab === "bersama" ? "active" : ""}`}
+        role="tab"
+        aria-selected={currentTab === "bersama"}
+      >
+        <Icon name="briefcase" size={18} />
+        <span>Target Bersama (Kolektif Divisi)</span>
+        <span class="tab-pill">{collectiveRows.length}</span>
+      </a>
+
+      <a
+        href={`/hrd/kpi/achievements?tab=individu&period=${p.id}`}
+        class={`tab-item ${currentTab === "individu" ? "active" : ""}`}
+        role="tab"
+        aria-selected={currentTab === "individu"}
+      >
+        <Icon name="user" size={18} />
+        <span>Target Individu (Khusus Staf)</span>
+        <span class="tab-pill">{individualRowsAll.length}</span>
+      </a>
+    </div>
+
+    <div class="tab-side-action">
+      <a href="/hrd/kpi/targets" class="btn btn-secondary btn-sm">
+        <Icon name="cog" size={15} />
+        <span>Atur Nilai Target &rarr;</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- TAB 1: TARGET BERSAMA (KOLEKTIF DIVISI & PERUSAHAAN)            -->
+  <!-- ============================================================== -->
+  {currentTab === "bersama" && (
+    <div class="tab-panel active">
+      <!-- STATISTIK RINGKAS BERSAMA -->
+      <div class="stat-grid" style="margin-bottom: 1.5rem;">
+        <div class="stat">
+          <div class="stat-label">Total Target Bersama</div>
+          <div class="stat-value">{collectiveRows.length}</div>
+          <div class="stat-note">Sasaran divisi &amp; perusahaan</div>
+        </div>
+
+        <div class="stat">
+          <div class="stat-label">Rata-rata Capaian Divisi</div>
+          <div class={`stat-value ${collectiveAvg >= 100 ? "text-success" : collectiveAvg >= 70 ? "text-primary" : ""}`}>
+            {collectiveAvg}%
+          </div>
+          <div class="stat-note">Periode {p.name}</div>
+        </div>
+
+        <div class="stat ok">
+          <div class="stat-label">Target Tercapai (&ge;100%)</div>
+          <div class="stat-value">{collectiveAchieved} <span style="font-size: 1rem; color: #64748b; font-weight: normal;">/ {collectiveRows.length}</span></div>
+          <div class="stat-note">Sasaran telah terpenuhi</div>
+        </div>
+
+        <div class="stat">
+          <div class="stat-label">Laporan Disetujui</div>
+          <div class="stat-value">{collectiveSources}</div>
+          <div class="stat-note">Sumber verifikasi HRD</div>
+        </div>
+      </div>
+
+      <!-- TABEL TARGET BERSAMA -->
+      <section class="card">
+        <div class="card-head">
+          <div>
+            <h2>Capaian Target Bersama Divisi Pemasaran</h2>
+            <p class="muted" style="margin: 0.2rem 0 0; font-size: 0.8125rem;">
+              Target kolektif yang diselesaikan secara bersama-sama oleh seluruh tim Divisi Pemasaran &amp; Sirkulasi pada periode <strong>{p.name}</strong>.
+            </p>
+          </div>
+          <span class="badge badge-info">{collectiveRows.length} Indikator Kolektif</span>
+        </div>
+
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th style="min-width: 220px;">Indikator Kinerja</th>
+                <th style="min-width: 160px;">Cakupan / Subjek</th>
+                <th style="text-align: right; min-width: 130px;">Target</th>
+                <th style="text-align: right; min-width: 130px;">Realisasi</th>
+                <th style="text-align: center; width: 100px;">Laporan</th>
+                <th style="min-width: 200px;">Progres Capaian</th>
+                <th style="width: 140px; text-align: center;">Status</th>
+                <th style="text-align: center; width: 110px;">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {collectiveRows.length > 0 ? (
+                collectiveRows.map((r) => {
+                  const meta = getStatusMeta(r.percent);
+                  const pctDisplay = r.percent != null ? Math.round(r.percent) : null;
+                  const barWidth = Math.min(Math.max(r.percent ?? 0, 0), 100);
+
+                  return (
+                    <tr>
+                      <td>
+                        <div class="font-bold text-dark">{r.name}</div>
+                        <div class="muted font-xs">{r.definition}</div>
+                      </td>
+                      <td>
+                        <span class={`badge ${r.scope === "company" ? "badge-primary" : "badge-neutral"}`} style="font-size:0.75rem;">
+                          {r.subject}
+                        </span>
+                      </td>
+                      <td style="text-align: right;" class="font-semibold">
+                        {formatVal(r.target, r.unit)}
+                      </td>
+                      <td style="text-align: right;" class="font-bold text-dark">
+                        {r.actual != null ? formatVal(r.actual, r.unit) : "—"}
+                      </td>
+                      <td style="text-align: center;">
+                        <span class="badge badge-neutral" title={`${r.sourcesCount} laporan aktivitas disetujui berkontribusi ke target ini`}>
+                          {r.sourcesCount} log
+                        </span>
+                      </td>
+                      <td>
+                        <div class="progress-cell">
+                          <div class="progress-bar-wrap">
+                            <div
+                              class="progress-bar-fill"
+                              style={`width: ${barWidth}%; background-color: ${meta.color};`}
+                            />
+                          </div>
+                          <span class="progress-pct font-bold" style={`color: ${meta.color};`}>
+                            {pctDisplay != null ? `${pctDisplay}%` : "—"}
+                          </span>
+                        </div>
+                      </td>
+                      <td style="text-align: center;">
+                        <span class={`badge ${meta.badgeClass}`} style="font-size: 0.75rem;">
+                          {meta.label}
+                        </span>
+                      </td>
+                      <td style="text-align: center;">
+                        <a
+                          href={`/hrd/kpi/achievements/${r.id}`}
+                          class="btn btn-secondary btn-sm"
+                          style="padding: 0.3rem 0.6rem; font-size: 0.75rem;"
+                          title="Lihat rincian aktivitas sumber"
+                        >
+                          Sumber &rarr;
+                        </a>
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colspan="8" style="text-align: center; padding: 3rem 1.5rem;" class="muted">
+                    <p style="font-size: 0.95rem; margin-bottom: 0.75rem;">
+                      Belum ada target bersama yang ditetapkan untuk periode <strong>{p.name}</strong>.
+                    </p>
+                    <a href="/hrd/kpi/targets" class="btn btn-primary btn-sm">
+                      + Tetapkan Target Bersama Sekarang
+                    </a>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  )}
+
+  <!-- ============================================================== -->
+  <!-- TAB 2: TARGET INDIVIDU (KHUSUS STAF PEMASARAN)                 -->
+  <!-- ============================================================== -->
+  {currentTab === "individu" && (
+    <div class="tab-panel active">
+      <!-- STATISTIK RINGKAS INDIVIDU -->
+      <div class="stat-grid" style="margin-bottom: 1.5rem;">
+        <div class="stat">
+          <div class="stat-label">Staf Ber-Target</div>
+          <div class="stat-value">{staffWithTargetIds.size} <span style="font-size: 1rem; color: #64748b; font-weight: normal;">/ {marketingStaff.length} Staf</span></div>
+          <div class="stat-note">Memiliki target perorangan</div>
+        </div>
+
+        <div class="stat">
+          <div class="stat-label">Rata-rata Capaian Individu</div>
+          <div class={`stat-value ${individualAvg >= 100 ? "text-success" : individualAvg >= 70 ? "text-primary" : ""}`}>
+            {individualAvg}%
+          </div>
+          <div class="stat-note">Periode {p.name}</div>
+        </div>
+
+        <div class="stat ok">
+          <div class="stat-label">Target Individu Tercapai</div>
+          <div class="stat-value">{individualAchieved} <span style="font-size: 1rem; color: #64748b; font-weight: normal;">/ {individualRowsAll.length}</span></div>
+          <div class="stat-note">Mencapai &ge;100% target</div>
+        </div>
+
+        <div class="stat">
+          <div class="stat-label">Total Target Khusus</div>
+          <div class="stat-value">{individualRowsAll.length}</div>
+          <div class="stat-note">Beban target individual</div>
+        </div>
+      </div>
+
+      <!-- FILTER SPESIFIK STAF -->
+      <div class="filter-staff-card">
+        <form method="get" class="filter-staff-form">
+          <input type="hidden" name="tab" value="individu" />
+          <input type="hidden" name="period" value={p.id} />
+          
+          <label for="filter-staff-select" class="font-bold font-xs" style="color: #475569; text-transform: uppercase;">
+            Filter Karyawan:
+          </label>
+          <select
+            id="filter-staff-select"
+            name="staff"
+            class="select select-sm"
+            style="min-width: 240px;"
+            onchange="this.form.submit()"
+          >
+            <option value="all" selected={selectedStaff === "all"}>-- Semua Staf Pemasaran ({individualRowsAll.length} target) --</option>
+            {marketingStaff.map((emp) => {
+              const count = individualRowsAll.filter((r) => r.employeeId === emp.id).length;
+              return (
+                <option value={emp.id} selected={selectedStaff === emp.id}>
+                  {emp.name} ({count} target)
+                </option>
+              );
+            })}
+          </select>
+          {selectedStaff !== "all" && (
+            <a
+              href={`/hrd/kpi/achievements?tab=individu&period=${p.id}`}
+              class="btn btn-secondary btn-sm"
+              style="padding: 0.35rem 0.75rem;"
+            >
+              Reset Filter
+            </a>
+          )}
+        </form>
+      </div>
+
+      <!-- TABEL TARGET INDIVIDU -->
+      <section class="card">
+        <div class="card-head">
+          <div>
+            <h2>Capaian Target Khusus Individu Karyawan</h2>
+            <p class="muted" style="margin: 0.2rem 0 0; font-size: 0.8125rem;">
+              Monitoring realisasi kinerja perorangan berdasarkan aktivitas lapangan yang disetujui pada periode <strong>{p.name}</strong>.
+            </p>
+          </div>
+          <span class="badge badge-info">{individualRows.length} Target Aktif</span>
+        </div>
+
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th style="min-width: 180px;">Nama Karyawan</th>
+                <th style="min-width: 200px;">Indikator Target Khusus</th>
+                <th style="text-align: right; min-width: 120px;">Target</th>
+                <th style="text-align: right; min-width: 120px;">Realisasi</th>
+                <th style="text-align: center; width: 100px;">Laporan</th>
+                <th style="min-width: 180px;">Progres Capaian</th>
+                <th style="width: 140px; text-align: center;">Status</th>
+                <th style="text-align: center; width: 110px;">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {individualRows.length > 0 ? (
+                individualRows.map((r) => {
+                  const meta = getStatusMeta(r.percent);
+                  const pctDisplay = r.percent != null ? Math.round(r.percent) : null;
+                  const barWidth = Math.min(Math.max(r.percent ?? 0, 0), 100);
+
+                  return (
+                    <tr>
+                      <td>
+                        <div class="font-bold text-dark">{r.employeeName}</div>
+                        <div class="muted font-xs">
+                          {r.employeeNip ? `NIP: ${r.employeeNip}` : ""} {r.employeePosition ? `· ${r.employeePosition}` : ""}
+                        </div>
+                      </td>
+                      <td>
+                        <div class="font-semibold text-dark">{r.name}</div>
+                        <div class="muted font-xs">{r.definition}</div>
+                      </td>
+                      <td style="text-align: right;" class="font-semibold">
+                        {formatVal(r.target, r.unit)}
+                      </td>
+                      <td style="text-align: right;" class="font-bold text-dark">
+                        {r.actual != null ? formatVal(r.actual, r.unit) : "—"}
+                      </td>
+                      <td style="text-align: center;">
+                        <span class="badge badge-neutral" title={`${r.sourcesCount} laporan aktivitas disetujui atas nama staf ini`}>
+                          {r.sourcesCount} log
+                        </span>
+                      </td>
+                      <td>
+                        <div class="progress-cell">
+                          <div class="progress-bar-wrap">
+                            <div
+                              class="progress-bar-fill"
+                              style={`width: ${barWidth}%; background-color: ${meta.color};`}
+                            />
+                          </div>
+                          <span class="progress-pct font-bold" style={`color: ${meta.color};`}>
+                            {pctDisplay != null ? `${pctDisplay}%` : "—"}
+                          </span>
+                        </div>
+                      </td>
+                      <td style="text-align: center;">
+                        <span class={`badge ${meta.badgeClass}`} style="font-size: 0.75rem;">
+                          {meta.label}
+                        </span>
+                      </td>
+                      <td style="text-align: center;">
+                        <a
+                          href={`/hrd/kpi/achievements/${r.id}`}
+                          class="btn btn-secondary btn-sm"
+                          style="padding: 0.3rem 0.6rem; font-size: 0.75rem;"
+                          title="Lihat rincian aktivitas sumber"
+                        >
+                          Sumber &rarr;
+                        </a>
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colspan="8" style="text-align: center; padding: 3rem 1.5rem;" class="muted">
+                    <p style="font-size: 0.95rem; margin-bottom: 0.75rem;">
+                      {selectedStaff !== "all"
+                        ? "Karyawan ini belum memiliki target individu yang ditetapkan pada periode ini."
+                        : `Belum ada target individu staf yang ditetapkan untuk periode ${p.name}.`}
+                    </p>
+                    <a href="/hrd/kpi/targets" class="btn btn-primary btn-sm">
+                      + Tetapkan Target Individu Baru
+                    </a>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- KOTAK INFORMASI STAF YANG BELUM MEMILIKI TARGET -->
+      {staffWithoutTargets.length > 0 && (
+        <div class="notice-unassigned-card">
+          <div class="notice-icon">
+            <Icon name="info" size={20} />
+          </div>
+          <div class="notice-body">
+            <h4 class="notice-title">Staf yang Belum Memiliki Target Individu Khusus ({staffWithoutTargets.length} Orang):</h4>
+            <div class="unassigned-tags">
+              {staffWithoutTargets.map((emp) => (
+                <span class="unassigned-pill">
+                  {emp.name} <small>({positionName(emp.positionId)})</small>
+                </span>
+              ))}
+            </div>
+            <p class="notice-desc">
+              Karyawan di atas tetap dinilai berdasarkan <strong>Target Bersama Divisi</strong>, namun belum dibebankan kuota angka perorangan khusus.
+            </p>
+          </div>
+          <div class="notice-btn">
+            <a href="/hrd/kpi/targets" class="btn btn-secondary btn-sm">
+              Beri Target &rarr;
+            </a>
+          </div>
+        </div>
+      )}
+    </div>
+  )}
 </DashboardLayout>
+
+<style>
+  .achieve-tabs-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #e2e8f0;
+    margin-bottom: 1.5rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .tabs-nav {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: -2px;
+  }
+
+  .tab-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #64748b;
+    border-bottom: 3px solid transparent;
+    text-decoration: none;
+    transition: all 0.15s ease;
+    border-radius: 6px 6px 0 0;
+  }
+
+  .tab-item:hover {
+    color: #004b87;
+    background-color: #f8fafc;
+  }
+
+  .tab-item.active {
+    color: #004b87;
+    border-bottom-color: #004b87;
+    background-color: #ffffff;
+    font-weight: 700;
+  }
+
+  .tab-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border-radius: 9999px;
+    background-color: #e2e8f0;
+    color: #475569;
+  }
+
+  .tab-item.active .tab-pill {
+    background-color: #e0f2fe;
+    color: #0369a1;
+  }
+
+  .tab-side-action {
+    margin-bottom: 0.5rem;
+  }
+
+  /* Progress Bar styling */
+  .progress-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .progress-bar-wrap {
+    flex: 1;
+    height: 8px;
+    background-color: #e2e8f0;
+    border-radius: 9999px;
+    overflow: hidden;
+    min-width: 80px;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    border-radius: 9999px;
+    transition: width 0.3s ease;
+  }
+
+  .progress-pct {
+    font-size: 0.8125rem;
+    min-width: 42px;
+    text-align: right;
+  }
+
+  /* Filter Staf Box */
+  .filter-staff-card {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: var(--radius-md, 8px);
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .filter-staff-form {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  /* Notice unassigned card */
+  .notice-unassigned-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    background-color: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: var(--radius-md, 8px);
+    padding: 1.25rem;
+    margin-top: 1.5rem;
+  }
+
+  .notice-icon {
+    color: #64748b;
+    margin-top: 0.15rem;
+  }
+
+  .notice-body {
+    flex: 1;
+  }
+
+  .notice-title {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #334155;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .unassigned-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .unassigned-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.6rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    color: #1e293b;
+  }
+
+  .unassigned-pill small {
+    color: #64748b;
+    font-size: 0.75rem;
+    font-weight: normal;
+  }
+
+  .notice-desc {
+    font-size: 0.8125rem;
+    color: #64748b;
+    margin: 0;
+  }
+
+  .notice-btn {
+    align-self: center;
+  }
+
+  .text-success { color: #10b981 !important; }
+  .text-primary { color: #0284c7 !important; }
+  .font-bold { font-weight: 700; }
+  .font-semibold { font-weight: 600; }
+  .font-xs { font-size: 0.75rem; }
+  .text-dark { color: #0f172a; }
+</style>

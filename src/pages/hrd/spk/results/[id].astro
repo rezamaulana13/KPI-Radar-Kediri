@@ -7,16 +7,33 @@ import { computeSaw } from "../../../../features/spk/saw";
 import { altName } from "../../../../features/spk/build-input";
 import { period, employeeName } from "../../../../lib/data/store";
 import { num, dateTimeID } from "../../../../lib/formatters";
+
 const s = getSnapshot(Astro.params.id!);
 if (!s) return new Response(null, { status: 404 });
 const res = computeSaw(s.criteria, s.alternatives.map((a) => ({ id: a.employeeId, values: a.values })));
 const f = (n: number) => num(n, 3);
+
+const predicateOf = (score: number) => {
+  if (score >= 0.85) return { label: "Sangat Baik", cls: "badge-approved" };
+  if (score >= 0.70) return { label: "Baik", cls: "badge-approved" };
+  if (score >= 0.55) return { label: "Cukup", cls: "badge-pending" };
+  return { label: "Kurang", cls: "badge-rejected" };
+};
 ---
 <DashboardLayout title={`Hasil ${s.id}`}>
-  <PageHeader title={`Hasil ${s.id}`} description={`${period(s.periodId)?.name} · disimpan ${dateTimeID(s.createdAt)} oleh ${employeeName(s.createdBy)}`} crumbs={[{ label: "HRD" }, { label: "SPK" }, { label: "Peringkat", href: "/hrd/spk/rankings" }]} />
+  <PageHeader title={`Hasil ${s.id}`} description={`${period(s.periodId)?.name} · disimpan ${dateTimeID(s.createdAt)} oleh ${employeeName(s.createdBy)}`} crumbs={[{ label: "HRD" }, { label: "SPK" }, { label: "Peringkat", href: "/hrd/spk/rankings" }]}>
+    <Fragment slot="actions">
+      <a href={`/api/export/excel?type=hrd&period=${s.periodId}`} class="btn btn-primary" download title="Unduh data snapshot versi ini ke format Excel">
+        📥 Unduh Excel
+      </a>
+      <button class="btn btn-secondary btn-print" onclick="window.print()">
+        🖨️ Cetak / Ekspor PDF
+      </button>
+    </Fragment>
+  </PageHeader>
   <Alert tone="info" title="Hasil ini direproduksi dari snapshot">Perhitungan di bawah memakai kriteria, bobot, dan nilai input yang tersimpan pada versi ini, sehingga tidak berubah meski bobot terbaru diganti.</Alert>
-  <section class="card mb-4"><div class="card-head"><h2>Peringkat</h2></div><div class="table-wrap"><table class="table"><thead><tr><th>Peringkat</th><th>Alternatif</th><th class="num">Nilai preferensi (V)</th></tr></thead>
-    <tbody>{res.ranking.map((r) => <tr><td class="strong">{r.rank}</td><td>{altName(r.id)}</td><td class="num">{f(r.score)}</td></tr>)}</tbody></table></div></section>
+  <section class="card mb-4"><div class="card-head"><h2>Peringkat Kinerja Karyawan</h2></div><div class="table-wrap"><table class="table"><thead><tr><th>Peringkat</th><th>Alternatif Karyawan</th><th class="num">Nilai preferensi (V)</th><th>Predikat Rekomendasi</th></tr></thead>
+    <tbody>{res.ranking.map((r) => <tr><td class="strong">#{r.rank}</td><td>{altName(r.id)}</td><td class="num">{f(r.score)}</td><td><span class={`badge ${predicateOf(r.score).cls}`}>{predicateOf(r.score).label}</span></td></tr>)}</tbody></table></div></section>
   <section class="card mb-4"><div class="card-head"><h2>Matriks keputusan dan normalisasi</h2></div><div class="table-wrap"><table class="table">
     <thead><tr><th>Alternatif</th>{s.criteria.map((c) => <th class="num">{c.code} ({num(c.weight * 100, 1)}%{c.direction === "cost" ? ", cost" : ""})</th>)}</tr></thead>
     <tbody>{s.alternatives.map((a, i) => <tr><td>{altName(a.employeeId)}</td>{a.values.map((v, j) => <td class="num">{num(v)} <span class="muted">→ {f(res.normalized[i][j])}</span></td>)}</tr>)}</tbody></table></div></section>

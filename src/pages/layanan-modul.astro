@@ -1,0 +1,661 @@
+---
+import PublicLayout from "../layouts/PublicLayout.astro";
+import Icon from "../components/ui/Icon.astro";
+import { ROLE_LABEL } from "../lib/formatters";
+
+const user = Astro.locals.user;
+---
+
+<PublicLayout
+  title="Layanan & Modul Operasional"
+  activeNav="layanan-modul"
+  description="Katalog layanan dan modul operasional Divisi Pemasaran Radar Kediri: Sirkulasi Oplah, Iklan Koran, Kemitraan Event, Verifikasi HRD, dan Evaluasi Kinerja Karyawan."
+>
+  <!-- Page Header Banner -->
+  <section class="page-hero">
+    <div class="page-hero-container">
+      <span class="badge" style="background:rgba(255,255,255,0.15);color:#e0f2fe;margin-bottom:1rem;display:inline-flex;">
+        LAYANAN &amp; MODUL OPERASIONAL
+      </span>
+      <h1>Modul Layanan Divisi Pemasaran Radar Kediri</h1>
+      <p>
+        Sistem dirancang khusus untuk memfasilitasi kebutuhan operasional Divisi Pemasaran &amp; Sirkulasi PT Kediri Intermedia Pers — mulai dari distribusi oplah sirkulasi, akuisisi mitra periklanan, hingga standarisasi evaluasi capaian kinerja bulanan.
+      </p>
+    </div>
+  </section>
+
+  <!-- Navigation Anchor Jump (Centered Filter / Tabs) -->
+  <div class="quick-nav-bar">
+    <div class="quick-nav-container">
+      <span class="quick-nav-label">
+        <Icon name="tag" size={14} />
+        <span>Pintasan Modul:</span>
+      </span>
+      <div class="quick-links">
+        <a href="#modul-karyawan">1. Pencatatan Aktivitas</a>
+        <a href="#modul-hrd">2. Verifikasi HRD</a>
+        <a href="#modul-evaluasi">3. Evaluasi Kinerja</a>
+        <a href="#modul-admin">4. Tata Kelola Sistem</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-container">
+    <!-- MODUL 1: KARYAWAN -->
+    <section class="module-section" id="modul-karyawan">
+      <div class="module-section-head">
+        <div class="module-section-icon icon-blue">
+          <Icon name="clipboard" size={28} />
+        </div>
+        <div>
+          <span class="badge badge-employee">Peran: Pengguna (Karyawan)</span>
+          <h2>1. Modul Pencatatan Progres &amp; Aktivitas Harian</h2>
+          <p class="module-lead">
+            Memfasilitasi staf marketing, eksekutif iklan, dan perwakilan sirkulasi dalam mendokumentasikan setiap kegiatan operasional di lapangan.
+          </p>
+        </div>
+      </div>
+
+      <div class="feature-card-grid">
+        <div class="feature-card">
+          <div class="feature-header">
+            <Icon name="news" size={20} />
+            <h4>Distribusi &amp; Oplah Koran Harian</h4>
+          </div>
+          <p>
+            Mencatat jumlah eksemplar surat kabar Radar Kediri yang disalurkan harian ke agen, loper, kios resmi, serta pelanggan tetap instansi Pemda, BUMN, perbankan, dan sekolah se-Kediri Raya.
+          </p>
+          <ul class="feature-list">
+            <li>Input jumlah eksemplar oplah &amp; retur harian</li>
+            <li>Pemilahan rayon (Kota Kediri, Nganjuk, Tulungagung, Blitar)</li>
+            <li>Lampiran bukti tanda terima agen/loper</li>
+          </ul>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-header">
+            <Icon name="users" size={20} />
+            <h4>Manajemen Klien &amp; Database Mitra</h4>
+          </div>
+          <p>
+            Pusat data mitra periklanan dan kemitraan sponsorship. Menyimpan kontak person (PIC), instansi swasta atau dinas pemerintahan, riwayat kerjasama, dan profil kebutuhan promosi.
+          </p>
+          <ul class="feature-list">
+            <li>Klasifikasi instansi (Pemerintah, BUMN, Swasta, UMKM)</li>
+            <li>Pencegahan duplikasi prospek antar eksekutif iklan</li>
+            <li>Riwayat interaksi &amp; preferensi paket iklan</li>
+          </ul>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-header">
+            <Icon name="briefcase" size={20} />
+            <h4>Penawaran Iklan &amp; Status Negosiasi</h4>
+          </div>
+          <p>
+            Pencatatan penawaran iklan cetak maupun digital: Iklan Display, Advertorial Halaman Penuh, Suplemen Khusus, Iklan Baris, hingga kampanye video portal radarkediri.jawapos.com.
+          </p>
+          <ul class="feature-list">
+            <li>Nominal penawaran harga &amp; diskon yang disetujui</li>
+            <li>Status pipeline: Proposal, Negosiasi, Deal, atau Loss</li>
+            <li>Perhitungan otomatis capaian target omzet divisi</li>
+          </ul>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-header">
+            <Icon name="handshake" size={20} />
+            <h4>Program, Event &amp; Barter Promo</h4>
+          </div>
+          <p>
+            Dokumentasi keterlibatan dalam event besar tahunan Radar Kediri (seperti Radar Kediri Awards, Festival Kopi, Fun Walk) serta perjanjian kerjasama barter promo perhotelan &amp; pariwisata.
+          </p>
+          <ul class="feature-list">
+            <li>Pencatatan jenis barter (Voucher kamar, fasilitas venue)</li>
+            <li>Pengelolaan tim dan partisipan program</li>
+            <li>Upload berkas MoU / perjanjian kerjasama</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="action-box">
+        <div>
+          <strong>Ingin mulai mencatat aktivitas kerja hari ini?</strong>
+          <span style="display:block;font-size:var(--text-xs);color:var(--color-muted);">
+            Karyawan wajib masuk terlebih dahulu untuk mengakses formulir input.
+          </span>
+        </div>
+        <a class="btn btn-primary btn-sm" href="/login?next=/employee/activities/new">
+          {user ? "Buka Formulir Aktivitas" : "Masuk untuk Mengisi Laporan"} &rarr;
+        </a>
+      </div>
+    </section>
+
+    <!-- MODUL 2: VERIFIKASI HRD -->
+    <section class="module-section" id="modul-hrd">
+      <div class="module-section-head">
+        <div class="module-section-icon icon-teal">
+          <Icon name="check" size={28} />
+        </div>
+        <div>
+          <span class="badge badge-hrd">Peran: Admin (HRD)</span>
+          <h2>2. Modul Verifikasi &amp; Validasi Bukti Lapangan</h2>
+          <p class="module-lead">
+            Mekanisme kendali mutu dan akuntabilitas data yang dijalankan oleh Bagian HRD &amp; Personalia sebelum data sah diakui dalam kalkulasi KPI.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid-2col">
+        <div class="info-panel">
+          <h3>Mekanisme Pemeriksaan Tiga Arah (3-Way Verification)</h3>
+          <p>
+            Untuk menjaga transparansi dan keakuratan laporan karyawan, HRD Radar Kediri melakukan verifikasi ketat melalui 3 parameter utama:
+          </p>
+          <div class="verification-step-item">
+            <div class="v-num">A</div>
+            <div>
+              <strong>Kesesuaian Bukti Fisik:</strong>
+              <p>Memeriksa bukti foto kegiatan lapangan, nota transaksi iklan, bukti setor bank, atau form konfirmasi langganan oplah.</p>
+            </div>
+          </div>
+          <div class="verification-step-item">
+            <div class="v-num">B</div>
+            <div>
+              <strong>Validasi Target Periode:</strong>
+              <p>Memastikan waktu pelaksanaan kegiatan berada dalam rentang tanggal periode penilaian berjalan (misal: November 2026).</p>
+            </div>
+          </div>
+          <div class="verification-step-item">
+            <div class="v-num">C</div>
+            <div>
+              <strong>Integritas &amp; Anti Self-Verification:</strong>
+              <p>Sistem memblokir secara ketat upaya verifikasi mandiri. Seorang verifikator tidak dapat menyetujui laporannya sendiri.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-panel">
+          <h3>Tiga Opsi Keputusan Verifikator</h3>
+          <div class="status-legend-item">
+            <span class="badge badge-approved">Disetujui (Approved)</span>
+            <p>Data dinyatakan valid 100%. Angka realisasi langsung diakumulasikan ke capaian target operasional dan rekapitulasi kinerja bulanan.</p>
+          </div>
+          <div class="status-legend-item">
+            <span class="badge badge-revision">Revisi (Revision)</span>
+            <p>Laporan dikembalikan ke akun karyawan dengan catatan catatan koreksi (misal: foto lampiran buram, nominal belum sesuai invoice).</p>
+          </div>
+          <div class="status-legend-item">
+            <span class="badge badge-rejected">Ditolak (Rejected)</span>
+            <p>Kegiatan tidak diakui karena duplikasi, laporan fiktif, atau di luar ketentuan operasional perusahaan. Angka bernilai 0.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODUL 3: EVALUASI KINERJA -->
+    <section class="module-section" id="modul-evaluasi">
+      <div class="module-section-head">
+        <div class="module-section-icon icon-amber">
+          <Icon name="chart" size={28} />
+        </div>
+        <div>
+          <span class="badge badge-hrd">Evaluasi &amp; Penilaian Kinerja</span>
+          <h2>3. Modul Evaluasi &amp; Rekapitulasi Kinerja Bulanan</h2>
+          <p class="module-lead">
+            Sistem evaluasi capaian target operasional pemasaran untuk menentukan performa kinerja karyawan secara adil, transparan, dan terukur.
+          </p>
+        </div>
+      </div>
+
+      <div class="saw-spec-box">
+        <h3>5 Indikator Penilaian Kinerja Pemasaran Terstandarisasi</h3>
+        <p>
+          Setiap karyawan dievaluasi berdasarkan capaian riil indikator kinerja operasional yang telah diverifikasi oleh HRD:
+        </p>
+
+        <div class="table-wrap" style="background:#fff;border-radius:var(--radius-sm);border:1px solid var(--color-border);margin-top:1rem;">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>No</th>
+                <th>Indikator Kinerja Pemasaran</th>
+                <th>Target &amp; Karakteristik</th>
+                <th>Bobot Evaluasi</th>
+                <th>Sumber Data Validasi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>1</strong></td>
+                <td>Pencapaian Oplah Sirkulasi Koran</td>
+                <td><span class="badge badge-approved">Target Maksimal</span></td>
+                <td><strong>25%</strong></td>
+                <td>Akumulasi eksemplar oplah terjual yang disetujui HRD</td>
+              </tr>
+              <tr>
+                <td><strong>2</strong></td>
+                <td>Realisasi Nilai Deal Iklan (Omzet)</td>
+                <td><span class="badge badge-approved">Target Maksimal</span></td>
+                <td><strong>30%</strong></td>
+                <td>Total nominal rupiah kontrak iklan yang berstatus Deal</td>
+              </tr>
+              <tr>
+                <td><strong>3</strong></td>
+                <td>Pertumbuhan Klien &amp; Mitra Baru</td>
+                <td><span class="badge badge-approved">Target Maksimal</span></td>
+                <td><strong>15%</strong></td>
+                <td>Jumlah pendaftaran mitra klien baru terverifikasi</td>
+              </tr>
+              <tr>
+                <td><strong>4</strong></td>
+                <td>Intensitas Kunjungan &amp; Prospek</td>
+                <td><span class="badge badge-approved">Target Maksimal</span></td>
+                <td><strong>15%</strong></td>
+                <td>Total log aktivitas kunjungan negosiasi &amp; follow-up</td>
+              </tr>
+              <tr>
+                <td><strong>5</strong></td>
+                <td>Efisiensi &amp; Pengendalian Retur Oplah</td>
+                <td><span class="badge badge-revision">Target Efisiensi</span></td>
+                <td><strong>15%</strong></td>
+                <td>Rasio koran tidak terjual dari total distribusi harian</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3"><strong>Total Bobot Evaluasi Kinerja</strong></td>
+                <td><strong>100%</strong></td>
+                <td><em>Standar penilaian berkala Divisi Pemasaran</em></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODUL 4: SUPER ADMIN -->
+    <section class="module-section" id="modul-admin">
+      <div class="module-section-head">
+        <div class="module-section-icon icon-purple">
+          <Icon name="shield" size={28} />
+        </div>
+        <div>
+          <span class="badge badge-admin">Peran: Super Admin</span>
+          <h2>4. Modul Manajemen Master Data &amp; Tata Kelola Sistem</h2>
+          <p class="module-lead">
+            Kendali penuh bagi administrator sistem teknologi informasi untuk mengelola referensi kepegawaian dan memastikan keamanan operasional.
+          </p>
+        </div>
+      </div>
+
+      <div class="feature-card-grid">
+        <div class="feature-card">
+          <div class="feature-header">
+            <Icon name="building" size={20} />
+            <h4>Struktur Jabatan &amp; Unit Pemasaran</h4>
+          </div>
+          <p>
+            Konfigurasi 5 posisi di Divisi Pemasaran: Manajer Pemasaran, Supervisor Sirkulasi, Eksekutif Marketing, Operasional Lapangan, dan Administrasi Iklan.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-header">
+            <Icon name="users" size={20} />
+            <h4>Penetapan Hak Akses &amp; Role Terpusat</h4>
+          </div>
+          <p>
+            Sistem registrasi publik otomatis membatasi user ke role <code>employee</code>. Super Admin memegang wewenang mempromosikan akun ke <code>admin</code> atau <code>hrd</code>.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-header">
+            <Icon name="calendar" size={20} />
+            <h4>Pengaturan Periode Evaluasi</h4>
+          </div>
+          <p>
+            Membuka dan menutup periode bulanan penilaian kinerja (Draft, Active, Closed) guna menjaga konsistensi data historis evaluasi.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-header">
+            <Icon name="shield" size={20} />
+            <h4>Audit Trail &amp; Keamanan Data</h4>
+          </div>
+          <p>
+            Setiap aksi penting (perubahan data, approval berkas, update status akun) terekam otomatis dalam tabel audit log beserta stempel waktu dan identitas pelaksana.
+          </p>
+        </div>
+      </div>
+    </section>
+  </div>
+</PublicLayout>
+
+<style>
+  .page-hero {
+    background: linear-gradient(135deg, var(--color-primary-900) 0%, #173d66 100%);
+    color: #ffffff;
+    padding: 4rem 1.5rem 3.5rem;
+    text-align: center;
+  }
+
+  .page-hero-container {
+    max-width: 52rem;
+    margin: 0 auto;
+  }
+
+  .page-hero h1 {
+    font-size: 2.5rem;
+    color: #ffffff;
+    margin: 0 0 1rem;
+    letter-spacing: -0.01em;
+  }
+
+  .page-hero p {
+    font-size: 1.1rem;
+    color: #cbd5e1;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  .quick-nav-bar {
+    background: #ffffff;
+    border-bottom: 1px solid var(--color-border);
+    position: sticky;
+    top: var(--public-nav-height);
+    z-index: 40;
+    padding: 0.85rem 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  }
+
+  .quick-nav-container {
+    max-width: 68rem;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+    text-align: center;
+  }
+
+  .quick-nav-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .quick-links {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .quick-links a {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.4rem 0.95rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    font-size: var(--text-xs);
+    font-weight: 650;
+    color: #1e3a8a;
+    text-decoration: none;
+    transition: all 0.15s ease;
+  }
+
+  .quick-links a:hover {
+    background: #eff6ff;
+    border-color: #93c5fd;
+    color: #1d4ed8;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(30, 58, 138, 0.08);
+  }
+
+  .content-container {
+    max-width: 80rem;
+    margin: 0 auto;
+    padding: 3.5rem 1.5rem 5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 4rem;
+  }
+
+  .module-section {
+    background: #ffffff;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 3rem;
+    scroll-margin-top: calc(var(--public-nav-height) + 3rem);
+  }
+
+  .module-section-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 2rem;
+  }
+
+  .module-section-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .icon-blue { background: #dbeafe; color: #1e40af; }
+  .icon-teal { background: #ccfbf1; color: #0f766e; }
+  .icon-amber { background: #fef3c7; color: #b45309; }
+  .icon-purple { background: #f3e8ff; color: #7e22ce; }
+
+  .module-section-head h2 {
+    font-size: 1.85rem;
+    color: var(--color-primary-900);
+    margin: 0.5rem 0 0.5rem;
+  }
+
+  .module-lead {
+    font-size: 1rem;
+    color: var(--color-muted);
+    margin: 0;
+    line-height: 1.6;
+    max-width: 52rem;
+  }
+
+  .feature-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .feature-card {
+    background: #f8fafc;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 1.75rem;
+  }
+
+  .feature-header {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin-bottom: 0.85rem;
+    color: var(--color-primary-900);
+  }
+
+  .feature-header h4 {
+    font-size: 1.1rem;
+    margin: 0;
+  }
+
+  .feature-card p {
+    font-size: var(--text-sm);
+    color: #475569;
+    line-height: 1.55;
+    margin-bottom: 1.25rem;
+  }
+
+  .feature-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+
+  .feature-list li {
+    font-size: var(--text-xs);
+    color: #334155;
+    position: relative;
+    padding-left: 1.25rem;
+  }
+
+  .feature-list li::before {
+    content: "•";
+    position: absolute;
+    left: 0.25rem;
+    color: var(--color-primary-700);
+    font-size: 1rem;
+    line-height: 1;
+  }
+
+  .action-box {
+    margin-top: 2rem;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: var(--radius-md);
+    padding: 1.25rem 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .grid-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+
+  .info-panel {
+    background: #f8fafc;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 2rem;
+  }
+
+  .info-panel h3 {
+    font-size: 1.25rem;
+    margin: 0 0 1rem;
+    color: var(--color-primary-900);
+  }
+
+  .info-panel p {
+    font-size: var(--text-sm);
+    color: #475569;
+    line-height: 1.6;
+  }
+
+  .verification-step-item {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.25rem;
+  }
+
+  .v-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--color-primary-900);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--text-xs);
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .verification-step-item strong {
+    font-size: var(--text-sm);
+    color: var(--color-primary-900);
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+
+  .verification-step-item p {
+    font-size: var(--text-xs);
+    margin: 0;
+    line-height: 1.45;
+  }
+
+  .status-legend-item {
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .status-legend-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .status-legend-item p {
+    font-size: var(--text-xs);
+    margin: 0.5rem 0 0;
+    line-height: 1.5;
+  }
+
+  .saw-spec-box {
+    background: #fdf8f6;
+    border: 1px solid #fed7aa;
+    border-radius: var(--radius-md);
+    padding: 2rem;
+  }
+
+  .saw-spec-box h3 {
+    color: #9a3412;
+    margin: 0 0 0.5rem;
+  }
+
+  .saw-spec-box p {
+    color: #7c2d12;
+    font-size: var(--text-sm);
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  @media (max-width: 768px) {
+    .module-section {
+      padding: 1.75rem 1.25rem;
+    }
+    .grid-2col {
+      grid-template-columns: 1fr;
+    }
+    .module-section-head {
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .page-hero h1 {
+      font-size: 2rem;
+    }
+  }
+</style>
+

@@ -4,13 +4,92 @@ import { activePeriod, notificationsFor } from "../../lib/data/store";
 import { ROLE_LABEL, initials } from "../../lib/formatters";
 const user = Astro.locals.user!;
 const p = activePeriod();
-const n = notificationsFor({ id: user.id, role: user.role }).length;
+const allNotifs = notificationsFor({ id: user.id, role: user.role });
+
+// Cek daftar ID notifikasi yang sudah dibaca & timestamp
+const readIdsCookie = Astro.cookies.get(`rk_read_ids_${user.id}`)?.value;
+let readIds: string[] = [];
+try {
+  readIds = readIdsCookie ? JSON.parse(readIdsCookie) : [];
+} catch {
+  readIds = [];
+}
+const lastReadCookie = Astro.cookies.get(`rk_notif_read_${user.id}`)?.value || Astro.cookies.get("rk_notif_read")?.value;
+const lastReadTimestamp = lastReadCookie ? Number(lastReadCookie) : 0;
+
+const isRead = (n: { id: string; at: string }) => {
+  if (readIds.includes(n.id)) return true;
+  if (lastReadTimestamp > 0 && new Date(n.at).getTime() <= lastReadTimestamp) return true;
+  return false;
+};
+
+const unreadNotifs = allNotifs.filter((n) => !isRead(n));
+const n = unreadNotifs.length;
 ---
 <header class="topbar">
   <label for="nav-toggle" class="icon-btn nav-open" aria-label="Buka menu" tabindex="0"><Icon name="menu" /></label>
-  <span class="period-pill" title="Periode penilaian aktif"><Icon name="calendar" size={16} /><span class="long">Periode:</span> {p.name}</span>
+  <span class="period-pill" title="Periode operasional aktif"><Icon name="calendar" size={16} /><span class="long">Periode:</span> {p.name}</span>
+  
+  <!-- Global Quick Search Bar -->
+  <form action="/hrd/reports" method="get" class="topbar-search-form">
+    <div class="topbar-search-wrap">
+      <Icon name="search" size={14} />
+      <input
+        type="search"
+        name="q"
+        placeholder="Cari aktivitas, karyawan, klien..."
+        class="topbar-search-input"
+        aria-label="Pencarian cepat"
+      />
+    </div>
+  </form>
+
   <span class="spacer"></span>
-  <a class="icon-btn" href="/notifications" aria-label={`Notifikasi, ${n} item`}><Icon name="bell" />{n > 0 && <span class="dot">{n}</span>}</a>
+  <a class="icon-btn" href="/notifications" aria-label={`Notifikasi, ${n} belum dibaca`} title={n > 0 ? `${n} notifikasi belum dibaca` : "Semua notifikasi sudah dibaca"}>
+    <Icon name="bell" />
+    {n > 0 && <span class="dot">{n}</span>}
+  </a>
   <a class="user-chip" href="/profile"><span class="avatar" aria-hidden="true">{initials(user.name)}</span><span class="user-meta">{user.name}<small>{ROLE_LABEL[user.role]}</small></span></a>
   <form method="post" action="/logout"><button class="icon-btn" aria-label="Keluar" title="Keluar"><Icon name="logout" /></button></form>
 </header>
+
+<style>
+  .topbar-search-form {
+    margin-left: 1rem;
+    display: flex;
+    align-items: center;
+  }
+  .topbar-search-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 9999px;
+    padding: 0.3rem 0.85rem;
+    color: #64748b;
+    transition: all 0.15s ease;
+  }
+  .topbar-search-wrap:focus-within {
+    background: #ffffff;
+    border-color: #0284c7;
+    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15);
+    color: #0f172a;
+  }
+  .topbar-search-input {
+    border: none;
+    background: transparent;
+    font-size: 0.8rem;
+    color: inherit;
+    outline: none;
+    width: 220px;
+  }
+  .topbar-search-input::placeholder {
+    color: #94a3b8;
+  }
+  @media (max-width: 768px) {
+    .topbar-search-form {
+      display: none;
+    }
+  }
+</style>

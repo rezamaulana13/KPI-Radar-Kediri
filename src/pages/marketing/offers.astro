@@ -1,15 +1,19 @@
 ---
 import DashboardLayout from "../../layouts/DashboardLayout.astro";
+import PublicLayout from "../../layouts/PublicLayout.astro";
 import ListPage from "../../components/ui/ListPage.astro";
 import { db, employeeName, client, offerOutcome, progressOf, visibleEmployeeIds } from "../../lib/data/store";
 const u = Astro.locals.user!;
 const ids = visibleEmployeeIds(u);
 const rows = db.offers.filter((o) => ids.includes(o.ownerId)).sort((a, b) => b.date.localeCompare(a.date)).map((o) => ({ ...o, clientName: client(o.clientId)?.name, owner: employeeName(o.ownerId), progress: progressOf(o.id).length, outcome: offerOutcome(o.id).status }));
+const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
 ---
-<DashboardLayout title="Penawaran">
-  <ListPage title="Penawaran" description="Penawaran/proposal beserta progress dan hasil akhirnya (Deal atau NO)." crumbs={[{ label: "Marketing" }]} rows={rows} searchKeys={["id", "clientName", "programName", "owner"]}
-    filters={[{ name: "outcome", label: "Hasil", options: [{ value: "open", label: "Berjalan" }, { value: "deal", label: "Deal" }, { value: "no", label: "NO" }] }]}
-    columns={[{ key: "id", label: "ID", type: "mono", href: (r) => `/marketing/offers/${r.id}` }, { key: "date", label: "Tanggal", type: "date" }, { key: "clientName", label: "Client" }, { key: "programName", label: "Paket" }, { key: "owner", label: "Pemilik" }, { key: "value", label: "Nilai", type: "rupiah" }, { key: "progress", label: "Progress", type: "number" }, { key: "outcome", label: "Hasil", type: "badge" }]}>
-    {u.role !== "hrd" && <a slot="actions" class="btn btn-primary" href="/employee/activities/new?type=offer">Tambah penawaran</a>}
-  </ListPage>
-</DashboardLayout>
+<Layout title="Penawaran Iklan">
+  <div class={u.role === "employee" ? "pub-page-container" : ""}>
+    <ListPage title="Penawaran &amp; Proposal Iklan" description="Penawaran/proposal beserta progress dan hasil akhirnya (Deal atau NO)." crumbs={[{ label: "Beranda", href: "/" }, { label: "Penawaran" }]} rows={rows} searchKeys={["id", "clientName", "programName", "owner"]}
+      filters={[{ name: "outcome", label: "Hasil", options: [{ value: "open", label: "Berjalan" }, { value: "deal", label: "Deal" }, { value: "no", label: "NO" }] }]}
+      columns={[{ key: "id", label: "ID", type: "mono", href: (r) => `/marketing/offers/${r.id}` }, { key: "date", label: "Tanggal", type: "date" }, { key: "clientName", label: "Client" }, { key: "programName", label: "Paket" }, { key: "owner", label: "Pemilik" }, { key: "value", label: "Nilai", type: "rupiah" }, { key: "progress", label: "Progress", type: "number" }, { key: "outcome", label: "Hasil", type: "badge" }]}>
+      {u.role !== "hrd" && <a slot="actions" class="btn btn-primary" href="/catat-aktivitas?type=offer">Tambah Penawaran</a>}
+    </ListPage>
+  </div>
+</Layout>

@@ -3,10 +3,52 @@ import { db } from "../../lib/data/store";
 import { selectedPeriod } from "../../lib/utils/period";
 const cur = selectedPeriod(Astro.url);
 const keep = [...Astro.url.searchParams.entries()].filter(([k]) => k !== "period" && k !== "page");
+
+// Urutkan periode secara kronologis descending (terbaru di paling atas, mundur ke bawah)
+const sortedPeriods = [...db.periods].sort((a, b) => b.start.localeCompare(a.start));
 ---
-<form method="get" class="row">
+<form method="get" class="period-filter-form">
   {keep.map(([k, v]) => <input type="hidden" name={k} value={v} />)}
-  <label class="label" for="period">Periode</label>
-  <select id="period" name="period" class="select" style="width:auto">{db.periods.map((p) => <option value={p.id} selected={p.id === cur.id}>{p.name}</option>)}</select>
-  <button class="btn btn-secondary btn-sm" type="submit">Tampilkan</button>
+  <label class="period-label" for="period-select">Periode:</label>
+  <select id="period-select" name="period" class="select period-select" onchange="this.form.submit()">
+    {sortedPeriods.map((p) => (
+      <option value={p.id} selected={p.id === cur.id}>
+        {p.name} {p.status === "active" ? "(Bulan Ini / Aktif)" : ""}
+      </option>
+    ))}
+  </select>
 </form>
+
+<style>
+  .period-filter-form {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .period-label {
+    font-size: var(--text-xs, 0.75rem);
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .period-select {
+    padding: 0.35rem 0.75rem;
+    font-size: var(--text-sm, 0.875rem);
+    font-weight: 600;
+    color: #0f172a;
+    background-color: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    border-radius: var(--radius-sm, 6px);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .period-select:hover {
+    border-color: #94a3b8;
+  }
+  .period-select:focus {
+    border-color: #0284c7;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15);
+  }
+</style>

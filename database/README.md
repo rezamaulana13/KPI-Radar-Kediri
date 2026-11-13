@@ -1,8 +1,16 @@
 # Database (Supabase / PostgreSQL)
 
-Jalankan berurutan `migrations/0001` sampai `0008` di SQL Editor, lalu `seeds/development_seed.sql`.
-Hubungkan akun Supabase Auth ke `profiles` (employee_id + role). Nama tabel adalah rancangan awal (PRD §9).
-
-Aplikasi saat ini membaca data lewat `src/lib/data/store.ts` (mode demo). Untuk memakai database,
-ganti fungsi di `store.ts` dan `features/kpi/achievements.ts` dengan query repository ke tabel di atas;
-UI, aturan verifikasi, skema validasi, dan SAW tidak perlu diubah.
+Cara termudah dan paling praktis untuk inisialisasi database Supabase:
+1. Buka **SQL Editor** di dashboard Supabase Anda.
+2. Salin dan jalankan seluruh isi file [`database/supabase_setup.sql`](./supabase_setup.sql).
+3. Skrip tersebut otomatis membuat:
+   - Tipe ENUM (`app_role`: admin, hrd, employee).
+   - Tabel profil dan kepegawaian (`profiles`, `employees`).
+   - Tabel organisasi dan periode (`divisions`, `positions`, `assessment_periods`).
+   - Tabel master KPI dan mapping (`kpi_categories`, `kpi_indicators`, `kpi_targets`, `kpi_activity_mappings`).
+   - Tabel operasional marketing (`clients`, `offers`, `programs`, `marketing_activities`).
+   - Tabel verifikasi & audit (`activity_verifications`, `audit_logs`, `assessment_results`).
+   - View realisasi capaian KPI otomatis (`v_kpi_achievements`).
+   - Trigger otomatisasi registrasi & Google OAuth (`handle_new_user`).
+   - Kebijakan keamanan data Row Level Security (RLS).
+   - Data master awal (Divisi, Jabatan, Indikator KPI, Periode, dan Target).

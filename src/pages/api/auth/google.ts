@@ -1,23 +1,13 @@
 import type { APIRoute } from "astro";
 import { createSupabaseServerClient, supabaseConfigured } from "../../../lib/supabase/server";
-import { DEMO_COOKIE } from "../../../lib/auth/get-current-user";
-import { db, addAudit } from "../../../lib/data/store";
 
 export const GET: APIRoute = async (ctx) => {
   const next = ctx.url.searchParams.get("next") ?? "/dashboard";
 
   if (!supabaseConfigured) {
-    // Mode demo: Otomatis masuk sebagai Pengguna (Karyawan) contoh
-    const demoUser = db.employees.find((e) => e.role === "employee" && e.active) ?? db.employees[1];
-    ctx.cookies.set(DEMO_COOKIE, demoUser.id, {
-      path: "/",
-      httpOnly: true,
-      sameSite: "lax",
-      secure: ctx.url.protocol === "https:",
-      maxAge: 60 * 60 * 8,
-    });
-    addAudit(demoUser.id, "auth.masuk_google", "profiles", demoUser.id, `Masuk dengan Google (mode demo sebagai ${demoUser.name}).`);
-    return ctx.redirect(next);
+    return ctx.redirect(
+      `/login?error=${encodeURIComponent("Login dengan Google memerlukan integrasi Supabase pada file .env. Saat ini silakan gunakan pendaftaran dan login melalui formulir email & kata sandi.")}`
+    );
   }
 
   const supabase = createSupabaseServerClient(ctx);
@@ -39,4 +29,3 @@ export const GET: APIRoute = async (ctx) => {
 
   return ctx.redirect(data.url);
 };
-

@@ -2,7 +2,7 @@ import type { APIRoute } from "astro";
 import { z } from "zod";
 import { DEMO_COOKIE } from "../../../lib/auth/get-current-user";
 import { db, addAudit } from "../../../lib/data/store";
-import { createSupabaseServerClient, supabaseConfigured } from "../../../lib/supabase/server";
+import { createSupabaseServerClient, createSupabaseAdminClient, supabaseConfigured } from "../../../lib/supabase/server";
 
 const registerSchema = z
   .object({
@@ -26,7 +26,9 @@ export const POST: APIRoute = async (ctx) => {
   };
 
   const back = (msg: string) =>
-    ctx.redirect(`/register?error=${encodeURIComponent(msg)}&name=${encodeURIComponent(raw.name)}&email=${encodeURIComponent(raw.email)}`);
+    ctx.redirect(
+      `/register?error=${encodeURIComponent(msg)}&name=${encodeURIComponent(raw.name)}&email=${encodeURIComponent(raw.email)}`
+    );
 
   const parsed = registerSchema.safeParse(raw);
   if (!parsed.success) {
@@ -35,11 +37,14 @@ export const POST: APIRoute = async (ctx) => {
   }
 
   const { name, email, password } = parsed.data;
+  // Semua pendaftaran otomatis memiliki peran default 'employee' (Pengguna Karyawan)
+  // Peran admin & hrd ditentukan langsung melalui database oleh pengelola sistem
+  const role = "employee" as const;
 
   if (!supabaseConfigured) {
-    // Mode demo: simpan ke memori dan otomatis masuk
+    // Mode lokal / demo: simpan ke memory store dengan password
     const exists = db.employees.some((e) => e.email.toLowerCase() === email);
-    if (exists) return back("Email tersebut sudah terdaftar. Silakan masuk.");
+    if (exists) return back("Email tersebut sudah terdaftar. Silakan gunakan email lain atau masuk.");
 
     const newId = `E${String(db.employees.length + 1).padStart(2, "0")}`;
     const newEmployee = {
@@ -47,7 +52,8 @@ export const POST: APIRoute = async (ctx) => {
       nip: `RK-${String(Date.now()).slice(-4)}`,
       name,
       email,
-      role: "employee" as const, // Otomatis role Pengguna (Karyawan)
+      role,
+      password, // disimpan untuk verifikasi login lokal
       divisionId: "DIV-MKT",
       positionId: "POS-EXM",
       supervisorId: null,
@@ -56,6 +62,8 @@ export const POST: APIRoute = async (ctx) => {
     };
     db.employees.push(newEmployee);
     addAudit(newEmployee.id, "auth.daftar", "profiles", newEmployee.id, `Pendaftaran akun karyawan baru: ${name}`);
+
+    // Otomatis login dengan sesi
     ctx.cookies.set(DEMO_COOKIE, newEmployee.id, {
       path: "/",
       httpOnly: true,
@@ -72,7 +80,7 @@ export const POST: APIRoute = async (ctx) => {
     email,
     password,
     options: {
-      data: { full_name: name },
+      data: { full_name: name, role: "employee" },
     },
   });
 
@@ -81,33 +89,50 @@ export const POST: APIRoute = async (ctx) => {
   }
 
   if (data.user) {
-    const employeeId = `E-${data.user.id.slice(0, 8)}`;
+    const adminClient = createSupabaseAdminClient();
+    const dbClient = adminClient || supabase;
+
+    // Auto-confirm user email so signInWithPassword works immediately without email verification gate
+    if (adminClient) {
+      try {
+        await adminClient.auth.admin.updateUserById(data.user.id, {
+          email_confirm: true,
+        });
+      } catch (err) {
+        console.warn("Auto-confirm notice:", err);
+      }
+    }
+
     const nip = `RK-${Math.floor(1000 + Math.random() * 9000)}`;
-    await supabase.from("employees").upsert(
-      {
-        id: employeeId,
-        nip,
-        name,
-        email,
-        division_id: "DIV-MKT",
-        position_id: "POS-EXM",
-        is_active: true,
-      },
-      { onConflict: "email" }
-    );
-
-    await supabase.from("profiles").upsert({
+    await dbClient.from("users").upsert({
       id: data.user.id,
-      employee_id: employeeId,
+      nip,
+      name,
+      email,
       role: "employee",
+      division_id: "DIV-MKT",
+      position_id: "POS-EXM",
       is_active: true,
-    });
+    }, { onConflict: "id" });
   }
 
+  // Jika session sudah didapat dari signUp, langsung ke Portal Landing Page Karyawan
   if (data.session) {
-    return ctx.redirect("/dashboard");
+    return ctx.redirect("/");
   }
 
-  return ctx.redirect("/login?success=" + encodeURIComponent("Pendaftaran berhasil! Akun Anda telah dibuat sebagai Pengguna (Karyawan). Silakan masuk."));
-};
+  // Jika session belum ada, otomatis lakukan sign in agar langsung masuk ke Portal Landing Page
+  try {
+    const { data: signInData } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (signInData?.session) {
+      return ctx.redirect("/");
+    }
+  } catch (err) {
+    console.warn("Auto sign-in error after register:", err);
+  }
 
+  return ctx.redirect("/");
+};

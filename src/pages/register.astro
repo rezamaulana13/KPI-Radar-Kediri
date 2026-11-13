@@ -1,7 +1,6 @@
 ---
 import AuthLayout from "../layouts/AuthLayout.astro";
 import Alert from "../components/ui/Alert.astro";
-import { supabaseConfigured } from "../lib/supabase/server";
 
 if (Astro.locals.user) return Astro.redirect("/dashboard");
 const error = Astro.url.searchParams.get("error");
@@ -19,12 +18,13 @@ const emailVal = Astro.url.searchParams.get("email") ?? "";
       <div>
         <h1>Daftar Akun Baru</h1>
         <p>
-          Pendaftaran mandiri otomatis terdaftar sebagai <strong>Pengguna (Karyawan)</strong> untuk mencatat aktivitas kerja harian dan memantau capaian target KPI.
+          Portal internal Radar Kediri untuk pencatatan aktivitas lapangan dan pemantauan kinerja berbasis KPI.
         </p>
-        <div style="background: rgba(255,255,255,0.08); border-left: 3px solid #64b5f6; padding: 0.75rem 1rem; border-radius: 4px; margin-top: 1.25rem;">
-          <p class="text-xs" style="color: #e3f2fd; margin: 0; line-height: 1.5;">
-            <strong>Informasi Peran:</strong><br />
-            Akun <strong>Super Admin</strong> dan <strong>Admin (HRD)</strong> memiliki akses administratif khusus dan hanya dapat ditentukan oleh Administrator sistem.
+        <div style="background: rgba(255,255,255,0.08); border-left: 3px solid #64b5f6; padding: 0.85rem 1rem; border-radius: 4px; margin-top: 1.5rem;">
+          <p class="text-xs" style="color: #e3f2fd; margin: 0; line-height: 1.6;">
+            <strong>Ketentuan Akun:</strong><br />
+            Semua akun baru yang didaftarkan secara mandiri otomatis berstatus sebagai <strong>Pengguna (Karyawan)</strong>.<br />
+            Penetapan peran <strong>Super Admin</strong> dan <strong>Admin (HRD)</strong> dilakukan langsung melalui database atau panel Administrator.
           </p>
         </div>
       </div>
@@ -36,14 +36,13 @@ const emailVal = Astro.url.searchParams.get("email") ?? "";
     <section class="auth-main">
       <div class="auth-card card">
         <div class="card-body">
-          <div style="margin-bottom: 1.5rem">
+          <div style="margin-bottom: 1.25rem">
             <h2 style="margin: 0 0 0.25rem">Pendaftaran Akun</h2>
             <p class="muted text-sm" style="margin: 0">Lengkapi formulir di bawah ini untuk membuat akun baru.</p>
           </div>
 
           {error && <Alert tone="danger" title="Pendaftaran gagal">{error}</Alert>}
 
-          {/* Tombol Google di bagian atas sebagai opsi cepat */}
           <a class="btn-google mb-3" href="/api/auth/google">
             <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -83,7 +82,7 @@ const emailVal = Astro.url.searchParams.get("email") ?? "";
                 autocomplete="email"
                 required
                 value={emailVal}
-                placeholder="nama@radarkediri.com"
+                placeholder="nama@email.com"
               />
             </div>
 

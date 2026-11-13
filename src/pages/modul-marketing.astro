@@ -1,0 +1,460 @@
+---
+import PublicLayout from "../layouts/PublicLayout.astro";
+import Icon from "../components/ui/Icon.astro";
+import { db, activePeriod } from "../lib/data/store";
+
+const user = Astro.locals.user;
+if (!user) {
+  return Astro.redirect("/login?next=/modul-marketing");
+}
+
+const p = activePeriod();
+const oplahTotal = db.activities
+  .filter((a) => a.type === "oplah" && a.status === "approved" && a.periodId === p.id)
+  .reduce((s, a) => s + (Number(a.qty) || 0), 0);
+
+const clientTotal = (db.clients ?? []).length;
+const offerTotal = (db.offers ?? []).length;
+const programTotal = (db.programs ?? []).length;
+const profilingTotal = (db.activities ?? []).filter((a) => a.type === "profiling").length;
+---
+
+<PublicLayout
+  title="Modul Operasional Marketing"
+  activeNav="modul-marketing"
+  description="Pusat instrumen kerja operasional pemasaran, oplah sirkulasi, penawaran iklan, dan event kemitraan Radar Kediri."
+>
+  <div class="pub-page-container">
+    <!-- Breadcrumb -->
+    <nav class="pub-breadcrumb" aria-label="Breadcrumb">
+      <a href="/">Beranda</a>
+      <span class="sep">/</span>
+      <span class="current">Modul Marketing</span>
+    </nav>
+
+    <!-- Header Halaman -->
+    <div class="pub-page-header">
+      <div class="header-main">
+        <span class="header-tag">INSTRUMEN KERJA PEMASARAN</span>
+        <h1>Modul Operasional Marketing</h1>
+        <p class="header-desc">
+          Pusat kendali dan instrumen lapangan tim pemasaran &amp; sirkulasi Jawa Pos Radar Kediri. Setiap aktivitas kerja pada modul-modul ini terintegrasi langsung dengan antrean verifikasi HRD dan perhitungan kinerja berkala.
+        </p>
+      </div>
+      <div class="header-actions">
+        <a href="/catat-aktivitas" class="btn btn-primary">
+          <Icon name="plus" size={16} />
+          <span>Catat Aktivitas Baru</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Grid 6 Kartu Modul Utama -->
+    <div class="modules-grid-3">
+      <!-- Card 1: Oplah Koran -->
+      <div class="module-big-card card">
+        <div class="card-top">
+          <div class="mod-icon icon-cyan">
+            <Icon name="news" size={26} />
+          </div>
+          <span class="mod-badge">Sirkulasi &amp; Distribusi</span>
+        </div>
+        <h3>Sirkulasi Oplah Koran</h3>
+        <p class="mod-desc">
+          Pendataan distribusi harian koran Radar Kediri kepada agen, loper, pengecer, dan langganan institusi di 7 wilayah edar selatan Jawa Timur.
+        </p>
+        <div class="mod-stat">
+          <span class="lbl">Realisasi Oplah Disetujui:</span>
+          <span class="val">{oplahTotal.toLocaleString("id-ID")} eks</span>
+        </div>
+        <div class="card-btn-group">
+          <a href="/marketing/oplah" class="btn btn-secondary btn-sm">
+            <span>Buka Data Oplah &rarr;</span>
+          </a>
+          <a href="/catat-aktivitas?type=oplah" class="btn btn-primary btn-sm">
+            <Icon name="plus" size={14} />
+            <span>Input Oplah</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Card 2: Klien & Mitra Baru -->
+      <div class="module-big-card card">
+        <div class="card-top">
+          <div class="mod-icon icon-blue">
+            <Icon name="building" size={26} />
+          </div>
+          <span class="mod-badge">Database Mitra</span>
+        </div>
+        <h3>Klien &amp; Mitra Bisnis</h3>
+        <p class="mod-desc">
+          Manajemen profil calon pemasang iklan dari dinas pemerintahan daerah (OPD), instansi BUMN/BUMD, korporasi swasta, hingga UMKM.
+        </p>
+        <div class="mod-stat">
+          <span class="lbl">Total Klien Terdaftar:</span>
+          <span class="val">{clientTotal} Instansi</span>
+        </div>
+        <div class="card-btn-group">
+          <a href="/marketing/clients" class="btn btn-secondary btn-sm">
+            <span>Database Klien &rarr;</span>
+          </a>
+          <a href="/catat-aktivitas?type=client" class="btn btn-primary btn-sm">
+            <Icon name="plus" size={14} />
+            <span>Tambah Klien</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Card 3: Penawaran Iklan -->
+      <div class="module-big-card card">
+        <div class="card-top">
+          <div class="mod-icon icon-purple">
+            <Icon name="file" size={26} />
+          </div>
+          <span class="mod-badge">Proposal &amp; Tarif</span>
+        </div>
+        <h3>Penawaran Iklan</h3>
+        <p class="mod-desc">
+          Penerbitan proposal penawaran tarif iklan cetak display, halaman advertorial liputan khusus, paket sponsor suplemen, dan rubrik tematik.
+        </p>
+        <div class="mod-stat">
+          <span class="lbl">Penawaran Aktif:</span>
+          <span class="val">{offerTotal} Berkas Proposal</span>
+        </div>
+        <div class="card-btn-group">
+          <a href="/marketing/offers" class="btn btn-secondary btn-sm">
+            <span>Daftar Proposal &rarr;</span>
+          </a>
+          <a href="/catat-aktivitas?type=offer" class="btn btn-primary btn-sm">
+            <Icon name="plus" size={14} />
+            <span>Buat Penawaran</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Card 4: Progres Kunjungan -->
+      <div class="module-big-card card">
+        <div class="card-top">
+          <div class="mod-icon icon-indigo">
+            <Icon name="clipboard" size={26} />
+          </div>
+          <span class="mod-badge">Follow-Up Lapangan</span>
+        </div>
+        <h3>Progres &amp; Kunjungan</h3>
+        <p class="mod-desc">
+          Pencatatan tahapan negosiasi prospek: pertemuan pertama, audiensi pimpinan, penyerahan mock-up layout iklan, hingga kesepakatan akhir (closing deal).
+        </p>
+        <div class="mod-stat">
+          <span class="lbl">Kontribusi Indikator:</span>
+          <span class="val">IND-04 (Deal Closing)</span>
+        </div>
+        <div class="card-btn-group">
+          <a href="/catat-aktivitas?type=progress" class="btn btn-secondary btn-sm" style="flex: 1; justify-content: center;">
+            <Icon name="plus" size={14} />
+            <span>Catat Progres Kunjungan</span>
+          </a>
+          <a href="/catat-aktivitas?type=outcome" class="btn btn-primary btn-sm" style="flex: 1; justify-content: center;">
+            <Icon name="check" size={14} />
+            <span>Closing Deal</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Card 5: Riset & Profiling -->
+      <div class="module-big-card card">
+        <div class="card-top">
+          <div class="mod-icon icon-amber">
+            <Icon name="search" size={26} />
+          </div>
+          <span class="mod-badge">Intelijen Pasar</span>
+        </div>
+        <h3>Riset &amp; Profiling Pasar</h3>
+        <p class="mod-desc">
+          Pemetaan agenda promosi tahunan klien, siklus anggaran belanja media pemda, analisis kompetitor media lain, dan potensi anggaran periklanan.
+        </p>
+        <div class="mod-stat">
+          <span class="lbl">Profil Riset Tersimpan:</span>
+          <span class="val">{profilingTotal} Dokumen</span>
+        </div>
+        <div class="card-btn-group">
+          <a href="/marketing/profiling" class="btn btn-secondary btn-sm">
+            <span>Buka Data Riset &rarr;</span>
+          </a>
+          <a href="/catat-aktivitas?type=profiling" class="btn btn-primary btn-sm">
+            <Icon name="plus" size={14} />
+            <span>Input Profiling</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Card 6: Program, Event & Barter -->
+      <div class="module-big-card card">
+        <div class="card-top">
+          <div class="mod-icon icon-teal">
+            <Icon name="target" size={26} />
+          </div>
+          <span class="mod-badge">Event &amp; Kemitraan</span>
+        </div>
+        <h3>Program &amp; Barter Promosi</h3>
+        <p class="mod-desc">
+          Pengelolaan inisiatif agenda khusus, expo UMKM, turnamen sekolah, jalan sehat HUT, dan skema barter publikasi dengan hotel, restoran, dan sponsor.
+        </p>
+        <div class="mod-stat">
+          <span class="lbl">Program Aktif:</span>
+          <span class="val">{programTotal} Kegiatan</span>
+        </div>
+        <div class="card-btn-group">
+          <a href="/marketing/programs" class="btn btn-secondary btn-sm">
+            <span>Daftar Program &rarr;</span>
+          </a>
+          <a href="/catat-aktivitas?type=program" class="btn btn-primary btn-sm">
+            <Icon name="plus" size={14} />
+            <span>Usulkan Program</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Banner Alur Integrasi -->
+    <div class="sop-integration-card card">
+      <div class="sop-content">
+        <span class="sop-tag">SOP TERINTEGRASI</span>
+        <h3>Bagaimana Aktivitas Modul Ini Dihitung ke Kinerja Anda?</h3>
+        <p>
+          Setiap aktivitas yang Anda masukkan melalui modul operasional di atas akan otomatis masuk ke antrean verifikasi Admin HRD. Setelah diverifikasi keabsahan bukti kerjanya, sistem secara otomatis mengakumulasikan nilai realisasi ke indikator target KPI pribadi Anda dan dihitung menggunakan metode <strong>Simple Additive Weighting (SAW)</strong> pada rapat evaluasi berkala.
+        </p>
+        <div class="sop-btns">
+          <a href="/alur-kerja" class="btn btn-primary btn-sm">
+            <span>Pelajari Alur Kerja &amp; Bobot SAW &rarr;</span>
+          </a>
+          <a href="/kinerja" class="btn btn-secondary btn-sm">
+            <span>Pantau Target Kinerja Saya &rarr;</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</PublicLayout>
+
+<style>
+  .pub-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: var(--text-xs);
+    color: var(--color-muted);
+    margin-bottom: 1.25rem;
+  }
+
+  .pub-breadcrumb a {
+    color: var(--color-primary-800);
+    text-decoration: none;
+    font-weight: 550;
+  }
+
+  .pub-breadcrumb a:hover {
+    text-decoration: underline;
+  }
+
+  .pub-breadcrumb .sep {
+    color: #cbd5e1;
+  }
+
+  .pub-breadcrumb .current {
+    color: #475569;
+    font-weight: 600;
+  }
+
+  .pub-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .header-tag {
+    display: inline-block;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    color: var(--color-primary-800);
+    background: var(--color-primary-100);
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+  }
+
+  .pub-page-header h1 {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--color-primary-900);
+    margin: 0 0 0.5rem;
+  }
+
+  .header-desc {
+    font-size: var(--text-sm);
+    color: #475569;
+    max-width: 48rem;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  /* Grid Modul */
+  .modules-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+  }
+
+  @media (max-width: 960px) {
+    .modules-grid-3 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 620px) {
+    .modules-grid-3 {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .module-big-card {
+    background: #ffffff;
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .module-big-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px -4px rgba(15, 23, 42, 0.08);
+  }
+
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+  }
+
+  .mod-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: var(--radius-sm);
+    display: grid;
+    place-items: center;
+  }
+
+  .icon-cyan { background: #e0f2fe; color: #0284c7; }
+  .icon-blue { background: #dbeafe; color: #2563eb; }
+  .icon-purple { background: #f3e8ff; color: #9333ea; }
+  .icon-indigo { background: #e0e7ff; color: #4f46e5; }
+  .icon-amber { background: #fef3c7; color: #d97706; }
+  .icon-teal { background: #ccfbf1; color: #0d9488; }
+
+  .mod-badge {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    color: #64748b;
+    background: #f1f5f9;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    letter-spacing: 0.03em;
+  }
+
+  .module-big-card h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--color-primary-900);
+  }
+
+  .mod-desc {
+    font-size: var(--text-xs);
+    color: #475569;
+    line-height: 1.6;
+    margin: 0 0 1.25rem;
+    flex-grow: 1;
+  }
+
+  .mod-stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.65rem 0.85rem;
+    background: #f8fafc;
+    border-radius: var(--radius-sm);
+    margin-bottom: 1.25rem;
+    font-size: var(--text-xs);
+  }
+
+  .mod-stat .lbl {
+    color: var(--color-muted);
+    font-weight: 550;
+  }
+
+  .mod-stat .val {
+    font-weight: 700;
+    color: var(--color-primary-900);
+  }
+
+  .card-btn-group {
+    display: flex;
+    gap: 0.6rem;
+  }
+
+  .card-btn-group .btn {
+    flex: 1;
+    justify-content: center;
+  }
+
+  /* SOP Integration Banner */
+  .sop-integration-card {
+    background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 2.25rem;
+  }
+
+  .sop-tag {
+    display: inline-block;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    color: var(--color-primary-800);
+    background: #ffffff;
+    border: 1px solid var(--color-border);
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.6rem;
+  }
+
+  .sop-content h3 {
+    margin: 0 0 0.6rem;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--color-primary-900);
+  }
+
+  .sop-content p {
+    margin: 0 0 1.5rem;
+    font-size: var(--text-sm);
+    color: #475569;
+    max-width: 54rem;
+    line-height: 1.65;
+  }
+
+  .sop-btns {
+    display: flex;
+    gap: 0.85rem;
+    flex-wrap: wrap;
+  }
+</style>
+

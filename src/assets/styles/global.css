@@ -124,3 +124,24 @@ legend { font-family: var(--font-display); font-weight: 650; color: var(--color-
 .tabs a { padding: .55rem var(--space-4); text-decoration: none; color: var(--color-muted); font-weight: 600; font-size: var(--text-sm); border-bottom: 3px solid transparent; white-space: nowrap; }
 .tabs a[aria-current="page"] { color: var(--color-primary-900); border-bottom-color: var(--color-primary-700); }
 .toast { position: fixed; right: var(--space-4); bottom: var(--space-4); z-index: 60; max-width: 24rem; }
+
+/* Wadah konten halaman yang memakai PublicLayout (Landing Page Style untuk Karyawan) */
+.pub-page-container {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 4.5rem;
+  min-height: calc(100vh - 4.25rem - 18rem);
+}
+
+@media print {
+  .pub-navbar, .pub-footer, .sidebar, .topbar, .btn:not(.btn-print), form, [data-no-print] {
+    display: none !important;
+  }
+  body, .main, .pub-page-container {
+    background: #fff !important;
+    color: #000 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+  }
+}

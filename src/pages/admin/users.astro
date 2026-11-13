@@ -1,12 +1,330 @@
 ---
 import DashboardLayout from "../../layouts/DashboardLayout.astro";
-import ListPage from "../../components/ui/ListPage.astro";
+import PageHeader from "../../components/layout/PageHeader.astro";
+import FilterBar from "../../components/ui/FilterBar.astro";
+import Alert from "../../components/ui/Alert.astro";
+import Badge from "../../components/ui/Badge.astro";
+import Icon from "../../components/ui/Icon.astro";
 import { db, divisionName } from "../../lib/data/store";
-import { ROLE_LABEL, ROLES_OPTIONS } from "../../lib/formatters";
-const rows = db.employees.map((e) => ({ ...e, roleLabel: ROLE_LABEL[e.role], division: divisionName(e.divisionId), status: e.active ? "active" : "closed" }));
+import { ROLE_LABEL, ROLES_OPTIONS, dateTimeID } from "../../lib/formatters";
+import { applyTable } from "../../lib/utils/table";
+
+const currentAdmin = Astro.locals.user!;
+if (currentAdmin.role !== "admin") {
+  return Astro.redirect("/403");
+}
+
+const url = Astro.url;
+const updatedName = url.searchParams.get("updated");
+const updatedStatus = url.searchParams.get("status");
+const updatedRole = url.searchParams.get("role");
+const error = url.searchParams.get("error");
+
+// Halaman Pengguna: Hanya menampilkan pengguna operasional (Karyawan & HRD). Akun Super Admin tidak ditampilkan di sini.
+const targetRows = db.employees.filter((e) => e.role !== "admin");
+
+const rawRows = targetRows.map((e) => ({
+  ...e,
+  roleLabel: ROLE_LABEL[e.role],
+  division: divisionName(e.divisionId),
+  status: e.active ? "active" : "closed",
+  isSelf: false,
+}));
+
+const filterDefs = [
+  {
+    name: "role",
+    label: "Peran",
+    options: [
+      { value: "employee", label: "Pengguna (Karyawan)" },
+      { value: "hrd", label: "Admin (HRD)" },
+    ],
+  },
+];
+
+const t = applyTable(rawRows, url, { searchKeys: ["name", "email", "nip"], filterKeys: ["role", "divisionId"], perPage: 15 });
 ---
-<DashboardLayout title="Pengguna">
-  <ListPage title="Pengguna" description="Akun yang dapat masuk ke aplikasi. Peran dibaca dari server, bukan dari browser." crumbs={[{ label: "Admin" }]}
-    rows={rows} searchKeys={["name", "email"]} filters={[{ name: "role", label: "Peran", options: ROLES_OPTIONS }, { name: "divisionId", label: "Divisi", options: [...new Set(db.employees.map((e) => e.divisionId))].map((v) => ({ value: v, label: divisionName(v) })) }]}
-    columns={[{ key: "name", label: "Nama", href: () => undefined }, { key: "email", label: "Email" }, { key: "roleLabel", label: "Peran" }, { key: "division", label: "Divisi" }, { key: "status", label: "Status", type: "badge" }, { key: "lastLogin", label: "Login terakhir", type: "datetime" }]} />
+
+<DashboardLayout title="Pengelolaan Akun Pengguna">
+  <PageHeader
+    title="Pengelolaan Pengguna"
+    description="Super Admin mengelola status akun (aktif/nonaktif) dan menetapkan peran operasional antara Admin (HRD) atau Karyawan."
+    crumbs={[{ label: "Admin" }, { label: "Pengguna" }]}
+  />
+
+  {updatedName && updatedStatus && (
+    <div class="alert-banner alert-banner-success">
+      <div class="alert-icon-wrap">
+        <Icon name="check" size={18} />
+      </div>
+      <div>
+        <strong>Status Pengguna Berhasil Diperbarui:</strong> Akun <strong>{updatedName}</strong> telah diubah statusnya menjadi <span class="status-pill status-pill-active">{updatedStatus.toUpperCase()}</span>.
+      </div>
+    </div>
+  )}
+
+  {updatedName && updatedRole && (
+    <div class="alert-banner alert-banner-success">
+      <div class="alert-icon-wrap">
+        <Icon name="check" size={18} />
+      </div>
+      <div>
+        <strong>Peran Pengguna Berhasil Diperbarui:</strong> Akun <strong>{updatedName}</strong> sekarang berperan sebagai <strong>{ROLE_LABEL[updatedRole as keyof typeof ROLE_LABEL] ?? updatedRole}</strong>.
+      </div>
+    </div>
+  )}
+
+  {error === "self_edit_forbidden" && (
+    <div class="alert-banner alert-banner-danger">
+      <div class="alert-icon-wrap">
+        <Icon name="shield" size={18} />
+      </div>
+      <div>
+        <strong>Aksi Dibatasi Sistem:</strong> Super Admin dilarang keras menonaktifkan atau mengubah peran akun Anda sendiri demi menjaga integritas akses sistem utama.
+      </div>
+    </div>
+  )}
+
+  <section class="card user-table-card">
+    <FilterBar filters={filterDefs} search={true} />
+
+    <div class="table-wrap" tabindex="0" role="region" aria-label="Tabel Pengguna">
+      <table class="table user-table">
+        <thead>
+          <tr>
+            <th style="min-width:180px;">Nama &amp; NIP</th>
+            <th>Email</th>
+            <th>Peran (Role)</th>
+            <th style="text-align:center;">Status Akun</th>
+            <th>Login Terakhir</th>
+            <th style="text-align:center;min-width:240px;">Kelola Akun</th>
+          </tr>
+        </thead>
+        <tbody>
+          {t.rows.map((r) => (
+            <tr>
+              <td>
+                <div class="name-cell">
+                  <span class="user-fullname">{r.name}</span>
+                </div>
+                <span class="mono text-xs muted">{r.nip}</span>
+              </td>
+              <td class="email-cell">{r.email}</td>
+              <td>
+                <span class={`badge ${r.role === "hrd" ? "badge-hrd" : "badge-employee"}`}>
+                  {r.roleLabel}
+                </span>
+              </td>
+              <td style="text-align:center;">
+                <Badge status={r.status} />
+              </td>
+              <td class="text-xs muted">{dateTimeID(r.lastLogin)}</td>
+              <td style="text-align:center;">
+                <div class="action-btn-group">
+                  <!-- Form Ubah Peran (Hanya Karyawan & HRD) -->
+                  <form method="post" action={`/api/admin/users/${r.id}`} class="inline-action-form">
+                    <input type="hidden" name="action" value="update_role" />
+                    <select
+                      name="role"
+                      class="compact-select"
+                      onchange="this.form.submit()"
+                      title="Ubah peran antara Karyawan atau Admin (HRD)"
+                    >
+                      <option value="employee" selected={r.role === "employee"}>Karyawan</option>
+                      <option value="hrd" selected={r.role === "hrd"}>Admin (HRD)</option>
+                    </select>
+                  </form>
+
+                  <!-- Form Toggle Status Aktif/Nonaktif -->
+                  <form method="post" action={`/api/admin/users/${r.id}`} class="inline-action-form">
+                    <input type="hidden" name="action" value="toggle_status" />
+                    {r.active ? (
+                      <button
+                        type="submit"
+                        class="btn-action-deactivate"
+                        onclick={`return confirm('Nonaktifkan akun ${r.name}? Pengguna tidak akan dapat login lagi.')`}
+                        title="Nonaktifkan akun pengguna ini"
+                      >
+                        Nonaktifkan
+                      </button>
+                    ) : (
+                      <button
+                        type="submit"
+                        class="btn-action-activate"
+                        title="Aktifkan kembali akun pengguna ini"
+                      >
+                        Aktifkan
+                      </button>
+                    )}
+                  </form>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
 </DashboardLayout>
+
+<style>
+  .alert-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.85rem 1.25rem;
+    border-radius: var(--radius-sm, 6px);
+    margin-bottom: 1.25rem;
+    font-size: var(--text-sm, 0.875rem);
+    line-height: 1.45;
+  }
+  .alert-banner-success {
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    color: #065f46;
+  }
+  .alert-banner-danger {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+  }
+  .alert-icon-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .status-pill {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+  .status-pill-active {
+    background: #dcfce7;
+    color: #15803d;
+  }
+
+  .user-table-card {
+    background: #ffffff;
+    border: 1px solid var(--color-border, #e2e8f0);
+    border-radius: var(--radius-sm, 6px);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+  }
+  .user-table th {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #475569;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0.75rem 1rem;
+    white-space: nowrap;
+  }
+  .user-table td {
+    padding: 0.85rem 1rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .row-self {
+    background: #f8fafc;
+  }
+  .name-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+  .user-fullname {
+    font-weight: 600;
+    color: #0f172a;
+    font-size: 0.9rem;
+  }
+  .self-tag {
+    background: #e0f2fe;
+    color: #0369a1;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 0.12rem 0.45rem;
+    border-radius: 9999px;
+    letter-spacing: 0.02em;
+  }
+  .email-cell {
+    color: #334155;
+    font-size: 0.875rem;
+  }
+
+  .action-btn-group {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  .inline-action-form {
+    margin: 0;
+    display: inline-flex;
+  }
+  .compact-select {
+    padding: 0.35rem 0.65rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #1e293b;
+    background-color: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .compact-select:hover {
+    border-color: #94a3b8;
+  }
+  .compact-select:focus {
+    border-color: #0284c7;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15);
+  }
+
+  .btn-action-deactivate {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #ffffff;
+    background: #dc2626;
+    border: 1px solid #dc2626;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .btn-action-deactivate:hover {
+    background: #b91c1c;
+    border-color: #b91c1c;
+  }
+
+  .btn-action-activate {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #ffffff;
+    background: #16a34a;
+    border: 1px solid #16a34a;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .btn-action-activate:hover {
+    background: #15803d;
+    border-color: #15803d;
+  }
+
+  .self-locked-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #64748b;
+    background: #f1f5f9;
+    padding: 0.25rem 0.65rem;
+    border-radius: 4px;
+    border: 1px dashed #cbd5e1;
+  }
+</style>

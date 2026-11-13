@@ -1,5 +1,6 @@
 ---
 import DashboardLayout from "../../../layouts/DashboardLayout.astro";
+import PublicLayout from "../../../layouts/PublicLayout.astro";
 import PageHeader from "../../../components/layout/PageHeader.astro";
 import Alert from "../../../components/ui/Alert.astro";
 import Badge from "../../../components/ui/Badge.astro";
@@ -19,12 +20,14 @@ const st = takeFormState(Astro.cookies, Astro.url);
 const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Jakarta" });
 const back = `/marketing/offers/${o.id}`;
 const created = Astro.url.searchParams.get("created");
+const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
 ---
-<DashboardLayout title={`Penawaran ${o.id}`}>
-  <PageHeader title={`Penawaran ${o.id}`} description={`${c.name} · ${o.programName}`} crumbs={[{ label: "Marketing" }, { label: "Penawaran", href: "/marketing/offers" }]} />
-  {created && <Alert tone="success" title={`${created} tersimpan`}>Menunggu verifikasi Supervisor sebelum dihitung ke KPI.</Alert>}
-  {st.error && <Alert tone="danger" title="Belum tersimpan">{st.error}</Alert>}
-  <div class="grid-3-1">
+<Layout title={`Penawaran ${o.id}`}>
+  <div class={u.role === "employee" ? "pub-page-container" : ""}>
+    <PageHeader title={`Penawaran ${o.id}`} description={`${c.name} · ${o.programName}`} crumbs={[{ label: "Beranda", href: "/" }, { label: "Penawaran Iklan", href: "/marketing/offers" }]} />
+    {created && <Alert tone="success" title={`${created} tersimpan`}>Menunggu verifikasi Supervisor sebelum dihitung ke KPI.</Alert>}
+    {st.error && <Alert tone="danger" title="Belum tersimpan">{st.error}</Alert>}
+    <div class="grid-3-1">
     <div class="stack">
       <section class="card"><div class="card-head"><h2>Ringkasan</h2><Badge status={out.status} /></div><div class="card-body"><dl class="kv">
         <dt>Client</dt><dd>{c.name} · {c.sector} · {c.city}</dd><dt>Kontak</dt><dd>{c.contact} ({c.phone})</dd>
@@ -70,8 +73,9 @@ const created = Astro.url.searchParams.get("created");
       {out.status !== "open" && <Alert tone="info" title="Penawaran punya hasil akhir aktif">Satu penawaran hanya boleh memiliki satu hasil akhir aktif.</Alert>}
     </div>
   </div>
+  </div>
   <script is:inline>
     const f = document.getElementById("oform");
     if (f) { const sync = () => { const no = f.querySelector("[name=outcome]").value === "no"; f.querySelectorAll("[data-no]").forEach((n) => { n.hidden = !no; n.querySelectorAll("select,textarea").forEach((i) => (i.disabled = !no)); }); }; f.addEventListener("change", sync); sync(); }
   </script>
-</DashboardLayout>
+</Layout>

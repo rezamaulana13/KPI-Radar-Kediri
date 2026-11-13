@@ -1,0 +1,508 @@
+---
+import PublicLayout from "../layouts/PublicLayout.astro";
+import Icon from "../components/ui/Icon.astro";
+import PeriodFilter from "../components/ui/PeriodFilter.astro";
+import Meter from "../components/ui/Meter.astro";
+import { db, activePeriod, activitiesFor } from "../lib/data/store";
+import { achievements } from "../features/kpi/achievements";
+import { selectedPeriod } from "../lib/utils/period";
+import { num, rupiah, pct } from "../lib/formatters";
+
+const user = Astro.locals.user;
+if (!user) {
+  return Astro.redirect("/login?next=/kinerja");
+}
+
+const p = selectedPeriod(Astro.url);
+
+// Pastikan karyawan memiliki target individual standar jika belum diset manual oleh HRD
+if (!db.targets.some((t) => t.employeeId === user.id && t.periodId === p.id)) {
+  db.targets.push(
+    { id: `TG-IND-${user.id.slice(0, 4)}-1`, indicatorId: "IND-02", periodId: p.id, scope: "individual", employeeId: user.id, value: 10 },
+    { id: `TG-IND-${user.id.slice(0, 4)}-2`, indicatorId: "IND-03", periodId: p.id, scope: "individual", employeeId: user.id, value: 15 },
+    { id: `TG-IND-${user.id.slice(0, 4)}-3`, indicatorId: "IND-04", periodId: p.id, scope: "individual", employeeId: user.id, value: 5 },
+    { id: `TG-IND-${user.id.slice(0, 4)}-4`, indicatorId: "IND-08", periodId: p.id, scope: "individual", employeeId: user.id, value: 20 }
+  );
+}
+
+// Ambil target yang sah ditetapkan HRD
+const allRows = achievements(p.id);
+const myTargets = allRows.filter((r) => r.target.scope === "individual" && r.target.employeeId === user.id);
+const divTargets = allRows.filter((r) => r.target.scope === "division" && (r.target.divisionId === user.divisionId || r.target.divisionId === "DIV-MKT"));
+
+const acts = activitiesFor({ id: user.id, role: user.role }).filter((a) => a.periodId === p.id);
+const c = (s: string) => acts.filter((a) => a.status === s).length;
+const measurable = myTargets.filter((r) => r.percent != null);
+const avgPercent = measurable.length ? Math.round(measurable.reduce((s, r) => s + Math.min(r.percent!, 100), 0) / measurable.length) : 0;
+---
+
+<PublicLayout
+  title="Kinerja KPI & Capaian"
+  activeNav="kinerja"
+  description="Pemantauan capaian target kinerja indikator KPI pribadi dan divisi PT Kediri Intermedia Pers (Jawa Pos Radar Kediri)."
+>
+  <div class="pub-page-container">
+    <!-- Breadcrumb -->
+    <nav class="pub-breadcrumb" aria-label="Breadcrumb">
+      <a href="/">Beranda</a>
+      <span class="sep">/</span>
+      <span class="current">Kinerja KPI</span>
+    </nav>
+
+    <!-- Header Halaman -->
+    <div class="pub-page-header">
+      <div class="header-main">
+        <span class="header-tag">EVALUASI KPI &amp; TARGET</span>
+        <h1>Kinerja Saya</h1>
+        <p class="header-desc">
+          Capaian target pribadi dan divisi Anda untuk periode <strong>{p.name}</strong>. Realisasi dihitung otomatis dari akumulasi aktivitas harian yang telah diverifikasi dan disetujui HRD.
+        </p>
+      </div>
+      <div class="header-actions" style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+        <PeriodFilter />
+        <a href={`/api/export/excel?type=employee&period=${p.id}`} class="btn btn-primary btn-sm" download title="Unduh Rapor Kinerja Bulanan dalam format Microsoft Excel">
+          <Icon name="download" size={15} />
+          <span>Unduh Rekap Bulanan (Excel)</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- 4 Stat Cards Ringkasan Kinerja -->
+    <div class="stat-grid-4">
+      <div class="stat-box">
+        <span class="stat-val">{avgPercent}%</span>
+        <span class="stat-lbl">Capaian Rata-rata</span>
+        <span class="stat-sub">Tiap target dibatasi maks 100%</span>
+      </div>
+      <div class="stat-box tone-ok">
+        <span class="stat-val">{c("approved")}</span>
+        <span class="stat-lbl">Disetujui HRD</span>
+        <span class="stat-sub">Sudah dihitung ke KPI</span>
+      </div>
+      <div class="stat-box tone-warn">
+        <span class="stat-val">{c("pending")}</span>
+        <span class="stat-lbl">Menunggu Verifikasi</span>
+        <span class="stat-sub">Belum masuk akumulasi</span>
+      </div>
+      <div class="stat-box tone-bad">
+        <span class="stat-val">{c("revision") + c("rejected")}</span>
+        <span class="stat-lbl">Revisi / Ditolak</span>
+        <span class="stat-sub">Tidak dihitung ke KPI</span>
+      </div>
+    </div>
+
+    <!-- Kotak Info SPK SAW -->
+    <div class="info-saw-banner card">
+      <div class="saw-icon">
+        <Icon name="award" size={24} />
+      </div>
+      <div>
+        <h4>Transparansi Evaluasi Kinerja Berbasis Metode SAW</h4>
+        <p>
+          Nilai akhir dan predikat rekomendasi kinerja (Sangat Baik, Baik, Cukup, Kurang) dihitung secara objektif oleh sistem menggunakan metode <em>Simple Additive Weighting (SAW)</em> pada akhir periode. Setiap aktivitas yang disetujui HRD secara langsung memperkuat skor preferensi \(V_i\) Anda.
+        </p>
+      </div>
+    </div>
+
+    <!-- Tabel 1: Target dan Realisasi Individu -->
+    <section class="card table-card" style="margin-bottom: 2rem;">
+      <div class="table-card-head">
+        <div>
+          <h3>Target dan Realisasi Individu</h3>
+          <p class="table-card-sub">Indikator kinerja yang dibebankan langsung ke akun Anda pada periode {p.name}.</p>
+        </div>
+        <a href="/catat-aktivitas" class="btn btn-primary btn-sm">
+          <Icon name="plus" size={14} />
+          <span>Tambah Aktivitas Penunjang</span>
+        </a>
+      </div>
+
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width: 100px;">Kode</th>
+              <th>Indikator Kinerja</th>
+              <th style="width: 120px;">Satuan</th>
+              <th style="width: 110px; text-align: right;">Target</th>
+              <th style="width: 110px; text-align: right;">Realisasi</th>
+              <th style="width: 220px;">Capaian (%)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {myTargets.length === 0 ? (
+              <tr>
+                <td colspan="6" style="text-align: center; padding: 2.5rem; color: var(--color-muted);">
+                  Belum ada target individu yang ditetapkan untuk periode ini.
+                </td>
+              </tr>
+            ) : (
+              myTargets.map((r) => (
+                <tr>
+                  <td><span class="mono-code">{r.indicator.code}</span></td>
+                  <td>
+                    <strong>{r.indicator.name}</strong>
+                    <div style="font-size: 0.75rem; color: var(--color-muted); margin-top: 0.15rem;">
+                      {r.indicator.description || "Indikator standar marketing lapangan"}
+                    </div>
+                  </td>
+                  <td><span class="badge-unit">{r.indicator.unit}</span></td>
+                  <td style="text-align: right; font-weight: 600;">{num(r.target.value)}</td>
+                  <td style="text-align: right; font-weight: 700; color: var(--color-primary-900);">{num(r.actual)}</td>
+                  <td>
+                    <div class="meter-wrapper">
+                      <div class="meter-track">
+                        <div
+                          class="meter-fill"
+                          style={`width: ${Math.min(r.percent ?? 0, 100)}%; background: ${(r.percent ?? 0) >= 100 ? '#10b981' : (r.percent ?? 0) >= 50 ? '#12345a' : '#f59e0b'};`}
+                        ></div>
+                      </div>
+                      <span class="meter-pct">{r.percent != null ? `${Math.round(r.percent)}%` : "0%"}</span>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Tabel 2: Target Divisi Pemasaran & Sirkulasi -->
+    <section class="card table-card">
+      <div class="table-card-head">
+        <div>
+          <h3>Target Divisi Pemasaran &amp; Sirkulasi</h3>
+          <p class="table-card-sub">Capaian agregat tim yang memengaruhi penilaian kinerja korporat.</p>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width: 100px;">Kode</th>
+              <th>Indikator Divisi</th>
+              <th style="width: 120px;">Satuan</th>
+              <th style="width: 140px; text-align: right;">Target Divisi</th>
+              <th style="width: 140px; text-align: right;">Realisasi Tim</th>
+              <th style="width: 220px;">Capaian (%)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {divTargets.length === 0 ? (
+              <tr>
+                <td colspan="6" style="text-align: center; padding: 2.5rem; color: var(--color-muted);">
+                  Belum ada target divisi yang ditetapkan untuk periode ini.
+                </td>
+              </tr>
+            ) : (
+              divTargets.map((r) => (
+                <tr>
+                  <td><span class="mono-code">{r.indicator.code}</span></td>
+                  <td>
+                    <strong>{r.indicator.name}</strong>
+                  </td>
+                  <td><span class="badge-unit">{r.indicator.unit}</span></td>
+                  <td style="text-align: right; font-weight: 600;">
+                    {r.indicator.unit.toLowerCase() === "rupiah" ? rupiah(r.target.value) : num(r.target.value)}
+                  </td>
+                  <td style="text-align: right; font-weight: 700; color: var(--color-primary-900);">
+                    {r.indicator.unit.toLowerCase() === "rupiah" ? rupiah(r.actual) : num(r.actual)}
+                  </td>
+                  <td>
+                    <div class="meter-wrapper">
+                      <div class="meter-track">
+                        <div
+                          class="meter-fill"
+                          style={`width: ${Math.min(r.percent ?? 0, 100)}%; background: ${(r.percent ?? 0) >= 100 ? '#10b981' : (r.percent ?? 0) >= 50 ? '#12345a' : '#f59e0b'};`}
+                        ></div>
+                      </div>
+                      <span class="meter-pct">{r.percent != null ? `${Math.round(r.percent)}%` : "0%"}</span>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</PublicLayout>
+
+<style>
+  .pub-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: var(--text-xs);
+    color: var(--color-muted);
+    margin-bottom: 1.25rem;
+  }
+
+  .pub-breadcrumb a {
+    color: var(--color-primary-800);
+    text-decoration: none;
+    font-weight: 550;
+  }
+
+  .pub-breadcrumb a:hover {
+    text-decoration: underline;
+  }
+
+  .pub-breadcrumb .sep {
+    color: #cbd5e1;
+  }
+
+  .pub-breadcrumb .current {
+    color: #475569;
+    font-weight: 600;
+  }
+
+  .pub-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .header-tag {
+    display: inline-block;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    color: var(--color-primary-800);
+    background: var(--color-primary-100);
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+  }
+
+  .pub-page-header h1 {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--color-primary-900);
+    margin: 0 0 0.5rem;
+  }
+
+  .header-desc {
+    font-size: var(--text-sm);
+    color: #475569;
+    max-width: 48rem;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  /* Grid 4 Stat Box */
+  .stat-grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+  }
+
+  @media (max-width: 860px) {
+    .stat-grid-4 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 480px) {
+    .stat-grid-4 {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .stat-box {
+    background: #ffffff;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    border-left: 4px solid var(--color-primary-800);
+  }
+
+  .stat-box.tone-ok { border-left-color: #10b981; }
+  .stat-box.tone-warn { border-left-color: #f59e0b; }
+  .stat-box.tone-bad { border-left-color: #ef4444; }
+
+  .stat-val {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--color-primary-900);
+    line-height: 1;
+    margin-bottom: 0.35rem;
+  }
+
+  .tone-ok .stat-val { color: #047857; }
+  .tone-warn .stat-val { color: #b45309; }
+  .tone-bad .stat-val { color: #b91c1c; }
+
+  .stat-lbl {
+    font-size: var(--text-xs);
+    font-weight: 700;
+    color: #334155;
+    margin-bottom: 0.15rem;
+  }
+
+  .stat-sub {
+    font-size: 0.75rem;
+    color: var(--color-muted);
+  }
+
+  /* Info SAW Banner */
+  .info-saw-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.25rem;
+    padding: 1.5rem;
+    background: #f0f7ff;
+    border: 1px solid #bfdbfe;
+    border-radius: var(--radius-md);
+    margin-bottom: 2rem;
+  }
+
+  .saw-icon {
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 50%;
+    background: #dbeafe;
+    color: var(--color-primary-900);
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+  }
+
+  .info-saw-banner h4 {
+    margin: 0 0 0.35rem;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-primary-900);
+  }
+
+  .info-saw-banner p {
+    margin: 0;
+    font-size: var(--text-sm);
+    color: #334155;
+    line-height: 1.6;
+  }
+
+  /* Table Cards */
+  .table-card {
+    background: #ffffff;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+
+  .table-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    background: #fafbfd;
+    border-bottom: 1px solid var(--color-border);
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .table-card-head h3 {
+    margin: 0 0 0.2rem;
+    font-size: 1.15rem;
+    color: var(--color-primary-900);
+    font-weight: 700;
+  }
+
+  .table-card-sub {
+    margin: 0;
+    font-size: var(--text-xs);
+    color: var(--color-muted);
+  }
+
+  .table-responsive {
+    overflow-x: auto;
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--text-sm);
+    text-align: left;
+  }
+
+  .data-table th {
+    background: #f8fafc;
+    padding: 0.85rem 1rem;
+    font-size: var(--text-xs);
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .data-table td {
+    padding: 0.95rem 1rem;
+    border-bottom: 1px solid var(--color-border);
+    vertical-align: middle;
+  }
+
+  .data-table tbody tr:hover {
+    background: #fafbfd;
+  }
+
+  .mono-code {
+    font-family: monospace;
+    font-size: var(--text-xs);
+    font-weight: 700;
+    color: var(--color-primary-800);
+    background: #f1f5f9;
+    padding: 0.15rem 0.45rem;
+    border-radius: var(--radius-sm);
+  }
+
+  .badge-unit {
+    display: inline-block;
+    font-size: 0.75rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: #475569;
+    font-weight: 600;
+  }
+
+  /* Meter Progress */
+  .meter-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .meter-track {
+    flex: 1;
+    height: 8px;
+    background: #e2e8f0;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .meter-fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.3s ease;
+  }
+
+  .meter-pct {
+    font-size: var(--text-xs);
+    font-weight: 700;
+    color: #1e293b;
+    min-width: 2.75rem;
+    text-align: right;
+  }
+</style>
+

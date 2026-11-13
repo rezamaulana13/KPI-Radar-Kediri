@@ -1,11 +1,170 @@
 ---
 import DashboardLayout from "../../layouts/DashboardLayout.astro";
-import ListPage from "../../components/ui/ListPage.astro";
-import { db, divisionName, positionName, employeeName, divisions } from "../../lib/data/store";
-const rows = db.employees.map((e) => ({ ...e, division: divisionName(e.divisionId), position: positionName(e.positionId), supervisor: e.supervisorId ? employeeName(e.supervisorId) : "—", status: e.active ? "active" : "closed" }));
+import PageHeader from "../../components/layout/PageHeader.astro";
+import FilterBar from "../../components/ui/FilterBar.astro";
+import Alert from "../../components/ui/Alert.astro";
+import Badge from "../../components/ui/Badge.astro";
+import Icon from "../../components/ui/Icon.astro";
+import { db, divisionName, positionName, employeeName, positions } from "../../lib/data/store";
+import { applyTable } from "../../lib/utils/table";
+
+const currentAdmin = Astro.locals.user!;
+if (currentAdmin.role !== "admin" && currentAdmin.role !== "hrd") {
+  return Astro.redirect("/403");
+}
+
+const url = Astro.url;
+const savedName = url.searchParams.get("saved");
+const error = url.searchParams.get("error");
+
+// Daftar seluruh karyawan dari database (termasuk Super Admin untuk keutuhan struktur organisasi kantor)
+const rawRows = db.employees.map((e) => ({
+  ...e,
+  division: "Divisi Pemasaran & Sirkulasi",
+  position: positionName(e.positionId),
+  supervisor: e.supervisorId ? employeeName(e.supervisorId) : "—",
+  status: e.active ? "active" : "closed",
+}));
+
+const filterDefs = [
+  { name: "positionId", label: "Jabatan", options: positions.map((p) => ({ value: p.id, label: p.name })) },
+];
+
+const t = applyTable(rawRows, url, { searchKeys: ["name", "nip"], filterKeys: ["positionId"], perPage: 15 });
 ---
-<DashboardLayout title="Karyawan">
-  <ListPage title="Karyawan" description="Data kepegawaian, divisi, jabatan, dan relasi Supervisor." crumbs={[{ label: "Admin" }]}
-    rows={rows} searchKeys={["name", "nip"]} filters={[{ name: "divisionId", label: "Divisi", options: divisions.map((d) => ({ value: d.id, label: d.name })) }]}
-    columns={[{ key: "nip", label: "NIP", type: "mono" }, { key: "name", label: "Nama" }, { key: "division", label: "Divisi" }, { key: "position", label: "Jabatan" }, { key: "supervisor", label: "Supervisor" }, { key: "status", label: "Status", type: "badge" }]} />
+
+<DashboardLayout title="Data Personel Divisi Pemasaran">
+  <PageHeader
+    title="Data Personel Divisi Pemasaran"
+    description="Basis data kepegawaian seluruh personel Divisi Pemasaran & Sirkulasi Radar Kediri, struktur jabatan fungsional, dan relasi atasan langsung."
+    crumbs={[{ label: "Master Data" }, { label: "Data Personel" }]}
+  />
+
+  {savedName && (
+    <div class="alert-banner alert-banner-success">
+      <Icon name="check" size={18} />
+      <div>
+        <strong>Struktur Personel Diperbarui:</strong> Jabatan dan relasi kerja untuk <strong>{savedName}</strong> berhasil disimpan.
+      </div>
+    </div>
+  )}
+
+  {error === "invalid_input" && (
+    <div class="alert-banner alert-banner-danger">
+      <Icon name="logout" size={18} />
+      <div>
+        <strong>Gagal Menyimpan:</strong> Pastikan data jabatan yang dipilih valid.
+      </div>
+    </div>
+  )}
+
+  <section class="card personel-card">
+    <FilterBar filters={filterDefs} search={true} />
+
+    <div class="table-wrap" tabindex="0">
+      <table class="table">
+        <thead>
+          <tr>
+            <th style="min-width:140px;">NIP</th>
+            <th style="min-width:180px;">Nama Personel</th>
+            <th>Divisi Tunggal</th>
+            <th style="min-width:220px;">Jabatan Fungsional</th>
+            <th>Atasan Langsung</th>
+            <th style="text-align:center;">Status</th>
+            <th style="text-align:center;min-width:180px;">Ubah Jabatan</th>
+          </tr>
+        </thead>
+        <tbody>
+          {t.rows.map((r) => (
+            <tr>
+              <td class="mono font-bold" style="color:#0f172a;">{r.nip}</td>
+              <td>
+                <div style="font-weight:600;color:#0f172a;">{r.name}</div>
+                <span class="text-xs muted">{r.email}</span>
+              </td>
+              <td>
+                <span class="badge badge-info" style="font-size:0.75rem;">Divisi Pemasaran &amp; Sirkulasi</span>
+              </td>
+              <td>
+                <span style="font-weight:500;color:#1e293b;">{r.position}</span>
+              </td>
+              <td class="text-xs">{r.supervisor}</td>
+              <td style="text-align:center;">
+                <Badge status={r.status} />
+              </td>
+              <td style="text-align:center;">
+                <!-- Form Ubah Jabatan Langsung -->
+                <form method="post" action="/api/admin/employees/update" class="pos-form">
+                  <input type="hidden" name="employeeId" value={r.id} />
+                  <select
+                    name="positionId"
+                    class="compact-select"
+                    onchange="this.form.submit()"
+                    title="Ubah jabatan fungsional personel ini"
+                  >
+                    {positions.map((p) => (
+                      <option value={p.id} selected={p.id === r.positionId}>
+                        {p.name}
+                      </option>
+                    ))}
+                  </select>
+                </form>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
 </DashboardLayout>
+
+<style>
+  .personel-card {
+    background: #ffffff;
+    border: 1px solid var(--color-border, #e2e8f0);
+    border-radius: var(--radius-sm, 6px);
+  }
+  .pos-form {
+    margin: 0;
+    display: inline-flex;
+  }
+  .compact-select {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #1e293b;
+    background-color: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .compact-select:hover {
+    border-color: #94a3b8;
+  }
+  .compact-select:focus {
+    border-color: #0284c7;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15);
+  }
+  .alert-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.85rem 1.25rem;
+    border-radius: var(--radius-sm, 6px);
+    margin-bottom: 1.25rem;
+    font-size: var(--text-sm, 0.875rem);
+    line-height: 1.45;
+  }
+  .alert-banner-success {
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    color: #065f46;
+  }
+  .alert-banner-danger {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+  }
+</style>

@@ -1,15 +1,19 @@
 ---
 import DashboardLayout from "../../layouts/DashboardLayout.astro";
+import PublicLayout from "../../layouts/PublicLayout.astro";
 import ListPage from "../../components/ui/ListPage.astro";
 import { db, employeeName, client, visibleEmployeeIds } from "../../lib/data/store";
 const u = Astro.locals.user!;
 const ids = visibleEmployeeIds(u);
 const rows = db.programs.filter((p) => ids.includes(p.ownerId)).map((p) => ({ ...p, owner: employeeName(p.ownerId), kindLabel: p.kind === "barter" ? "Barter" : "Program", participants: p.participantClientIds.map((c) => client(c)?.name).join(", ") || "—" }));
+const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
 ---
-<DashboardLayout title="Program/Barter">
-  <ListPage title="Program/Barter" description="Program kerja sama dan barter dengan client." crumbs={[{ label: "Marketing" }]} rows={rows} searchKeys={["name", "participants"]}
-    filters={[{ name: "kind", label: "Jenis", options: [{ value: "program", label: "Program" }, { value: "barter", label: "Barter" }] }]}
-    columns={[{ key: "name", label: "Nama" }, { key: "kindLabel", label: "Jenis" }, { key: "start", label: "Mulai", type: "date" }, { key: "end", label: "Selesai", type: "date" }, { key: "participants", label: "Peserta" }, { key: "value", label: "Nilai", type: "rupiah" }, { key: "status", label: "Status", type: "badge" }]}>
-    {u.role !== "hrd" && <a slot="actions" class="btn btn-primary" href="/employee/activities/new?type=program">Catat program</a>}
-  </ListPage>
-</DashboardLayout>
+<Layout title="Program & Barter Kerjasama">
+  <div class={u.role === "employee" ? "pub-page-container" : ""}>
+    <ListPage title="Program &amp; Barter" description="Program kerja sama sponsorship dan barter publikasi dengan client." crumbs={[{ label: "Beranda", href: "/" }, { label: "Program" }]} rows={rows} searchKeys={["name", "participants"]}
+      filters={[{ name: "kind", label: "Jenis", options: [{ value: "program", label: "Program" }, { value: "barter", label: "Barter" }] }]}
+      columns={[{ key: "name", label: "Nama" }, { key: "kindLabel", label: "Jenis" }, { key: "start", label: "Mulai", type: "date" }, { key: "end", label: "Selesai", type: "date" }, { key: "participants", label: "Peserta" }, { key: "value", label: "Nilai", type: "rupiah" }, { key: "status", label: "Status", type: "badge" }]}>
+      {u.role !== "hrd" && <a slot="actions" class="btn btn-primary" href="/catat-aktivitas?type=program">Catat Program</a>}
+    </ListPage>
+  </div>
+</Layout>

@@ -1,20 +1,5 @@
 ---
-import DashboardLayout from "../../../layouts/DashboardLayout.astro";
-import ListPage from "../../../components/ui/ListPage.astro";
-import Alert from "../../../components/ui/Alert.astro";
-import { activitiesFor, employeeName } from "../../../lib/data/store";
-import { TYPE_LABEL, STATUS_LABEL } from "../../../lib/formatters";
-const u = Astro.locals.user!;
-const mine = activitiesFor({ id: u.id, role: u.role }).filter((a) => a.ownerId === u.id || a.createdBy === u.id);
-const rows = mine.map((a) => ({ ...a, owner: employeeName(a.ownerId), typeLabel: TYPE_LABEL[a.type] }));
 const created = Astro.url.searchParams.get("created");
+const redirectUrl = created ? `/aktivitas-saya?created=${created}` : "/aktivitas-saya";
+return Astro.redirect(redirectUrl);
 ---
-<DashboardLayout title="Aktivitas Saya">
-  <ListPage title="Aktivitas Saya" description="Aktivitas yang Anda miliki atau catat, beserta status verifikasinya." crumbs={[{ label: "Aktivitas" }]} rows={rows} searchKeys={["id", "description"]}
-    filters={[{ name: "status", label: "Status", options: ["pending", "approved", "rejected", "revision"].map((value) => ({ value, label: STATUS_LABEL[value] })) }, { name: "type", label: "Jenis", options: Object.entries(TYPE_LABEL).map(([value, label]) => ({ value, label })) }]}
-    columns={[{ key: "id", label: "ID", type: "mono", href: (r) => `/employee/activities/${r.id}` }, { key: "date", label: "Tanggal", type: "date" }, { key: "typeLabel", label: "Jenis" }, { key: "owner", label: "Pemilik" }, { key: "description", label: "Deskripsi" }, { key: "status", label: "Status", type: "badge" }]}
-    emptyTitle="Belum ada aktivitas" emptyHint="Mulai dengan mencatat aktivitas pertama Anda.">
-    <a slot="actions" class="btn btn-primary" href="/employee/activities/new">Tambah aktivitas</a>
-    {created && <Alert slot="before" tone="success" title={`${created} tersimpan`}>Aktivitas berstatus menunggu verifikasi HRD.</Alert>}
-  </ListPage>
-</DashboardLayout>

@@ -2,6 +2,7 @@ import type { APIRoute } from "astro";
 import { z } from "zod";
 import { verifyActivity } from "../../../lib/data/store";
 import { requireRole } from "../../../lib/auth/require-auth";
+import { syncVerifyActivity } from "../../../lib/supabase/sync";
 
 const body = z.object({ status: z.enum(["approved", "rejected", "revision"]), note: z.string().max(1000).default("") });
 
@@ -16,5 +17,9 @@ export const POST: APIRoute = async ({ request, params, locals, redirect, cookie
   if (!parsed.success) return flash("Pilih salah satu keputusan verifikasi.");
   const res = verifyActivity(auth.user, params.id!, parsed.data.status, parsed.data.note);
   if (!res.ok) return flash(res.error, res.fields);
+
+  // Simpan ke Supabase Database
+  await syncVerifyActivity(params.id!, parsed.data.status, auth.user.id, parsed.data.note);
+
   return redirect(`/hrd/verifications?done=${params.id}&as=${parsed.data.status}`);
 };

@@ -4,36 +4,159 @@ import PageHeader from "../components/layout/PageHeader.astro";
 import StatCard from "../components/dashboard/StatCard.astro";
 import DataTable from "../components/ui/DataTable.astro";
 import Alert from "../components/ui/Alert.astro";
-import { db, activePeriod, divisions, positions, activitiesFor, teamOf, employeeName, divisionName, activity, historyOf } from "../lib/data/store";
+import Badge from "../components/ui/Badge.astro";
+import Meter from "../components/ui/Meter.astro";
+import Icon from "../components/ui/Icon.astro";
+import { db, activePeriod, divisions, positions, activitiesFor, teamOf, employeeName, divisionName, activity, historyOf, employee } from "../lib/data/store";
 import { achievements, achievementSummary } from "../features/kpi/achievements";
-import { rupiah, num, TYPE_LABEL } from "../lib/formatters";
+import { rupiah, num, pct, dateID, TYPE_LABEL, STATUS_LABEL, initials } from "../lib/formatters";
 import { canVerify } from "../features/verification/rules";
 
 const user = Astro.locals.user!;
+// Karyawan menggunakan Portal Landing Page tanpa sidebar admin
+if (user.role === "employee") {
+  return Astro.redirect("/");
+}
+
 const p = activePeriod();
+
+// Pastikan karyawan memiliki target individual standar jika belum diset oleh HRD
+if (user.role === "employee" && !db.targets.some((t) => t.employeeId === user.id && t.periodId === p.id)) {
+  db.targets.push(
+    { id: `TG-IND-${user.id.slice(0, 4)}-1`, indicatorId: "IND-02", periodId: p.id, scope: "individual", employeeId: user.id, value: 10 },
+    { id: `TG-IND-${user.id.slice(0, 4)}-2`, indicatorId: "IND-03", periodId: p.id, scope: "individual", employeeId: user.id, value: 15 },
+    { id: `TG-IND-${user.id.slice(0, 4)}-3`, indicatorId: "IND-04", periodId: p.id, scope: "individual", employeeId: user.id, value: 5 },
+    { id: `TG-IND-${user.id.slice(0, 4)}-4`, indicatorId: "IND-08", periodId: p.id, scope: "individual", employeeId: user.id, value: 20 }
+  );
+}
+
 const sum = achievementSummary(p.id);
 const rows = achievements(p.id);
-const titles: Record<string, string> = { admin: "Dashboard Super Admin", hrd: "Dashboard Admin (HRD)", employee: "Dashboard Saya" };
+const titles: Record<string, string> = {
+  admin: "Dashboard Super Admin",
+  hrd: "Dashboard Admin (HRD)",
+  employee: "Portal CMS Karyawan",
+};
 const mine = activitiesFor({ id: user.id, role: user.role }).filter((a) => a.periodId === p.id);
 const count = (list: typeof mine, s: string) => list.filter((a) => a.status === s).length;
 const waiting = user.role === "hrd" || user.role === "admin" ? db.activities.filter((a) => a.status === "pending" && canVerify(user, a, db.employees).ok) : [];
 const myTargets = rows.filter((r) => r.target.employeeId === user.id);
 const divRows = rows.filter((r) => r.target.scope !== "individual");
 const subjectName = (r: (typeof rows)[number]) => r.target.scope === "company" ? "Perusahaan" : r.target.scope === "division" ? divisionName(r.target.divisionId) : employeeName(r.target.employeeId);
+
+// Data khusus peran Employee untuk tampilan CMS
+const emp = db.employees.find((e) => e.id === user.id) || employee(user.id);
+const posName = positions.find((pos) => pos.id === emp?.positionId)?.name ?? "Eksekutif Marketing";
+const divName = divisionName(user.divisionId) || "Divisi Pemasaran & Sirkulasi";
+const nip = emp?.nip || `RK-${user.id.slice(0, 4).toUpperCase()}`;
+
+// Urutan log aktivitas terbaru milik karyawan
+const recentActivities = [...mine].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 6);
+
+// Target acuan kerja (target individu jika ada, atau target divisi Marketing)
+const marketingDivTargets = divRows.filter((r) => r.target.divisionId === user.divisionId || r.target.divisionId === "DIV-MKT");
+const displayTargets = myTargets.length > 0 ? myTargets : marketingDivTargets;
+
+// Approval rate
+const approvalRate = mine.length > 0 ? Math.round((count(mine, "approved") / mine.length) * 100) : 0;
 ---
 <DashboardLayout title={titles[user.role]}>
-  <PageHeader title={titles[user.role]} description={`${p.name}. Halo, ${user.name.split(" ")[0]}.`} crumbs={[]} />
+  <PageHeader title={titles[user.role]} description={`${p.name}. Halo, ${user.name.split(" ")[0]}.`} crumbs={[]}>
+    <Fragment slot="actions">
+      {user.role === "admin" && (
+        <a href={`/api/export/excel?type=admin&period=${p.id}`} class="btn btn-primary" download title="Unduh Laporan Eksekutif Korporat Bulanan (Excel)">
+          <Icon name="download" size={16} />
+          <span>Unduh Laporan Korporat (Excel)</span>
+        </a>
+      )}
+      {user.role === "hrd" && (
+        <a href={`/api/export/excel?type=hrd&period=${p.id}`} class="btn btn-primary" download title="Unduh Rekapitulasi Manajemen HRD Bulanan (Excel)">
+          <Icon name="download" size={16} />
+          <span>Unduh Rekap HRD (Excel)</span>
+        </a>
+      )}
+    </Fragment>
+  </PageHeader>
 
   {user.role === "admin" && (<>
     {user.mode === "demo" && <Alert tone="info" title="Mode demo">Data berasal dari contoh di memori server dan akan kembali seperti semula saat server dimulai ulang.</Alert>}
+    
+    <!-- Stat Grid Eksekutif Super Admin -->
     <div class="stat-grid">
-      <StatCard label="Pengguna aktif" value={db.employees.filter((e) => e.active).length} />
-      <StatCard label="Divisi" value={divisions.length} />
-      <StatCard label="Jabatan" value={positions.length} />
-      <StatCard label="Catatan audit" value={db.auditLogs.length} note="Perubahan penting terekam" />
+      <StatCard label="Pengguna aktif" value={db.employees.filter((e) => e.active).length} note={`${db.employees.length} total akun terdaftar`} />
+      <StatCard label="Aktivitas divisi" value={db.activities.length} note={`${db.activities.filter(a => a.status === 'approved').length} disetujui HRD`} />
+      <StatCard label="Menunggu verifikasi" value={db.activities.filter(a => a.status === 'pending').length} tone={db.activities.filter(a => a.status === 'pending').length ? "warn" : "ok"} note="Butuh approval" />
+      <StatCard label="Catatan audit log" value={db.auditLogs.length} note="Jejak sistem terekam aman" />
     </div>
-    <section class="card"><div class="card-head"><h2>Aktivitas sistem terbaru</h2><a href="/admin/audit-logs">Lihat semua</a></div>
-      <DataTable caption="Audit terbaru" columns={[{ key: "at", label: "Waktu", type: "datetime" }, { key: "actor", label: "Pelaku" }, { key: "action", label: "Aksi" }, { key: "detail", label: "Keterangan" }]} rows={db.auditLogs.slice(0, 6).map((l) => ({ ...l, actor: employeeName(l.actorId) }))} /></section>
+
+    <div class="grid-3-1" style="margin-top: 1.5rem;">
+      <!-- Kolom Kiri: Aktivitas Sistem & Audit Trail -->
+      <section class="card">
+        <div class="card-head">
+          <h2>Aktivitas Sistem &amp; Audit Trail Terbaru</h2>
+          <a href="/admin/audit-logs">Buka Semua Log &rarr;</a>
+        </div>
+        <DataTable
+          caption="Audit terbaru"
+          columns={[
+            { key: "at", label: "Waktu", type: "datetime" },
+            { key: "actor", label: "Pelaku" },
+            { key: "action", label: "Aksi", type: "mono" },
+            { key: "detail", label: "Keterangan Operasional" }
+          ]}
+          rows={db.auditLogs.slice(0, 8).map((l) => ({ ...l, actor: employeeName(l.actorId) }))}
+          emptyTitle="Belum ada catatan audit"
+          emptyHint="Setiap aktivitas perubahan penting akan terekam otomatis di sini."
+        />
+      </section>
+
+      <!-- Kolom Kanan: Ringkasan Master Data & Pintasan Aksi Cepat -->
+      <div class="stack">
+        <section class="card" style="background: #f8fafc; border-color: #e2e8f0;">
+          <div class="card-head">
+            <h3 style="font-size:0.95rem;margin:0;font-weight:700;">Status Operasional Divisi</h3>
+          </div>
+          <div class="card-body" style="font-size:var(--text-sm);">
+            <div style="display:flex;justify-content:space-between;padding:0.4rem 0;border-bottom:1px solid #e2e8f0;">
+              <span class="muted">Divisi Aktif:</span>
+              <strong>Divisi Pemasaran &amp; Sirkulasi</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:0.4rem 0;border-bottom:1px solid #e2e8f0;">
+              <span class="muted">Total Mitra Klien:</span>
+              <strong>{db.clients.length} Klien Terdaftar</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:0.4rem 0;border-bottom:1px solid #e2e8f0;">
+              <span class="muted">Total Penawaran:</span>
+              <strong>{db.offers.length} Berkas Proposal</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:0.4rem 0;">
+              <span class="muted">Periode Aktif:</span>
+              <span class="badge badge-approved">{p.name}</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-head">
+            <h3 style="font-size:0.95rem;margin:0;font-weight:700;">Aksi Cepat Super Admin</h3>
+          </div>
+          <div class="card-body stack" style="gap:0.5rem;">
+            <a href="/admin/users" class="btn btn-secondary" style="width:100%;justify-content:flex-start;">
+              <Icon name="users" size={16} />
+              <span>Kelola Status Pengguna &rarr;</span>
+            </a>
+            <a href="/hrd/verifications" class="btn btn-secondary" style="width:100%;justify-content:flex-start;">
+              <Icon name="check" size={16} />
+              <span>Pantau Verifikasi Lapangan &rarr;</span>
+            </a>
+            <a href="/admin/settings" class="btn btn-secondary" style="width:100%;justify-content:flex-start;">
+              <Icon name="settings" size={16} />
+              <span>Konfigurasi Aplikasi &rarr;</span>
+            </a>
+          </div>
+        </section>
+      </div>
+    </div>
   </>)}
 
   {user.role === "hrd" && (<>
@@ -54,15 +177,454 @@ const subjectName = (r: (typeof rows)[number]) => r.target.scope === "company" ?
   </>)}
 
   {user.role === "employee" && (<>
-    <div class="stat-grid">
-      <StatCard label="Aktivitas periode ini" value={mine.length} />
-      <StatCard label="Disetujui" value={count(mine, "approved")} tone="ok" />
-      <StatCard label="Menunggu verifikasi" value={count(mine, "pending")} tone="warn" />
-      <StatCard label="Perlu revisi / ditolak" value={count(mine, "revision") + count(mine, "rejected")} tone={count(mine, "revision") + count(mine, "rejected") ? "bad" : "ok"} />
+    <!-- CMS Banner: Profil Karyawan & Status Portal -->
+    <div class="cms-banner">
+      <div class="cms-banner-user">
+        <div class="cms-avatar" aria-hidden="true">{initials(user.name)}</div>
+        <div>
+          <h2 class="cms-banner-title">Selamat datang, {user.name}</h2>
+          <div class="cms-banner-chips">
+            <span class="cms-chip active-pill">🟢 Akun Terhubung</span>
+            <span class="cms-chip">NIP: {nip}</span>
+            <span class="cms-chip">{posName}</span>
+            <span class="cms-chip">{divName}</span>
+            <span class="cms-chip">📅 {p.name}</span>
+          </div>
+        </div>
+      </div>
+      <div class="cms-banner-actions">
+        <a href="/employee/activities/new" class="btn btn-primary" style="background: #2563eb; border-color: #3b82f6;">
+          <Icon name="plus" size={18} /> Catat Aktivitas Baru
+        </a>
+      </div>
     </div>
-    {count(mine, "revision") > 0 && <Alert tone="warning" title="Ada aktivitas yang perlu diperbaiki">Buka <a href="/employee/activities?status=revision">daftar revisi</a>, perbaiki, lalu ajukan kembali.</Alert>}
-    <section class="card"><div class="card-head"><h2>Target saya</h2><a href="/employee/performance">Rincian kinerja</a></div>
-      <DataTable caption="Target saya" columns={[{ key: "name", label: "Indikator" }, { key: "target", label: "Target", type: "number" }, { key: "actual", label: "Realisasi", type: "number" }, { key: "percent", label: "Capaian", type: "meter" }]} rows={myTargets.map((r) => ({ name: r.indicator.name, target: r.target.value, actual: r.actual, percent: r.percent }))} emptyTitle="Belum ada target" emptyHint="HRD belum menetapkan target individu untuk periode ini." /></section>
-    <div class="row mt-4"><a class="btn btn-primary" href="/employee/activities/new">Tambah aktivitas</a><a class="btn btn-secondary" href="/employee/activities">Lihat aktivitas saya</a></div>
+
+    <!-- Alert status jika ada revisi atau akun baru -->
+    {count(mine, "revision") > 0 && (
+      <Alert tone="warning" title="Perhatian: Anda memiliki aktivitas yang perlu diperbaiki!">
+        Verifikator memberikan catatan revisi pada aktivitas Anda. Segera buka <a href="/employee/activities?status=revision" style="font-weight: 700; text-decoration: underline;">Daftar Revisi Aktivitas</a>, perbaiki data atau bukti pendukung, lalu ajukan kembali.
+      </Alert>
+    )}
+
+    {mine.length === 0 && (
+      <Alert tone="info" title="Portal CMS Karyawan Siap Digunakan">
+        Halo {user.name.split(" ")[0]}! Akun Anda telah berhasil diaktifkan. Gunakan menu <strong>Pusat Kendali CMS</strong> di bawah ini untuk mencatat kegiatan harian, sirkulasi oplah koran, atau penawaran klien baru.
+      </Alert>
+    )}
+
+    <!-- CMS Action Hub (Pusat Kendali Aksi Cepat) -->
+    <div class="cms-section-head">
+      <div>
+        <h2 style="font-size: 1.15rem; font-weight: 700; margin: 0;">Pusat Kendali CMS Karyawan</h2>
+        <p class="muted text-xs" style="margin: 0.15rem 0 0;">Pintasan cepat untuk input pekerjaan harian, kelola klien, dan pantau kinerja.</p>
+      </div>
+      <a href="/employee/activities" class="btn btn-secondary btn-sm">Lihat Semua Aktivitas ({mine.length})</a>
+    </div>
+
+    <div class="cms-hub-grid">
+      <!-- Card 1: Input Aktivitas Harian -->
+      <a class="cms-hub-card" href="/employee/activities/new">
+        <div class="cms-hub-top">
+          <div class="cms-hub-icon blue"><Icon name="clipboard" size={24} /></div>
+          <div>
+            <h3 class="cms-hub-title">Catat Aktivitas</h3>
+            <p class="cms-hub-desc">Input kegiatan kerja, follow-up, meeting klien, dan laporan harian.</p>
+          </div>
+        </div>
+        <span class="cms-hub-btn">+ Buka Form Input <Icon name="arrow" size={14} /></span>
+      </a>
+
+      <!-- Card 2: Input Oplah Koran -->
+      <a class="cms-hub-card" href="/marketing/oplah">
+        <div class="cms-hub-top">
+          <div class="cms-hub-icon teal"><Icon name="news" size={24} /></div>
+          <div>
+            <h3 class="cms-hub-title">Oplah Koran</h3>
+            <p class="cms-hub-desc">Rekapitulasi sirkulasi dan distribusi cetak dari agen, loper, dan pelanggan.</p>
+          </div>
+        </div>
+        <span class="cms-hub-btn">Kelola Oplah <Icon name="arrow" size={14} /></span>
+      </a>
+
+      <!-- Card 3: Database Klien -->
+      <a class="cms-hub-card" href="/marketing/clients">
+        <div class="cms-hub-top">
+          <div class="cms-hub-icon purple"><Icon name="building" size={24} /></div>
+          <div>
+            <h3 class="cms-hub-title">Database Klien</h3>
+            <p class="cms-hub-desc">Kelola direktori kontak mitra, instansi pemerintah, dan perusahaan swasta.</p>
+          </div>
+        </div>
+        <span class="cms-hub-btn">Buka Data Klien <Icon name="arrow" size={14} /></span>
+      </a>
+
+      <!-- Card 4: Penawaran & Iklan -->
+      <a class="cms-hub-card" href="/marketing/offers">
+        <div class="cms-hub-top">
+          <div class="cms-hub-icon amber"><Icon name="file" size={24} /></div>
+          <div>
+            <h3 class="cms-hub-title">Penawaran Iklan</h3>
+            <p class="cms-hub-desc">Pengajuan proposal tarif iklan cetak, advertorial, display, dan media kit.</p>
+          </div>
+        </div>
+        <span class="cms-hub-btn">Buat Penawaran <Icon name="arrow" size={14} /></span>
+      </a>
+
+      <!-- Card 5: Program & Barter -->
+      <a class="cms-hub-card" href="/marketing/programs">
+        <div class="cms-hub-top">
+          <div class="cms-hub-icon indigo"><Icon name="handshake" size={24} /></div>
+          <div>
+            <h3 class="cms-hub-title">Program & Barter</h3>
+            <p class="cms-hub-desc">Kelola kerjasama event sponsorship, media partner, dan barter publikasi.</p>
+          </div>
+        </div>
+        <span class="cms-hub-btn">Kelola Program <Icon name="arrow" size={14} /></span>
+      </a>
+
+      <!-- Card 6: Capaian Kinerja & KPI -->
+      <a class="cms-hub-card" href="/employee/performance">
+        <div class="cms-hub-top">
+          <div class="cms-hub-icon green"><Icon name="chart" size={24} /></div>
+          <div>
+            <h3 class="cms-hub-title">Kinerja & KPI</h3>
+            <p class="cms-hub-desc">Evaluasi skor capaian target individu dan progres penilaian kinerja.</p>
+          </div>
+        </div>
+        <span class="cms-hub-btn">Rincian Kinerja <Icon name="arrow" size={14} /></span>
+      </a>
+    </div>
+
+    <!-- Metrik Statistik CMS -->
+    <div class="stat-grid">
+      <StatCard label="Total Aktivitas Periode Ini" value={mine.length} note="Semua kegiatan yang dicatat" />
+      <StatCard label="Disetujui (Approved)" value={count(mine, "approved")} tone="ok" note={mine.length > 0 ? `${approvalRate}% rasio persetujuan` : "Poin resmi masuk KPI"} />
+      <StatCard label="Menunggu Verifikasi" value={count(mine, "pending")} tone={count(mine, "pending") > 0 ? "warn" : "ok"} note="Sedang diperiksa verifikator" />
+      <StatCard label="Perlu Revisi / Ditolak" value={count(mine, "revision") + count(mine, "rejected")} tone={count(mine, "revision") + count(mine, "rejected") > 0 ? "bad" : "ok"} note={`${count(mine, "revision")} revisi, ${count(mine, "rejected")} ditolak`} />
+    </div>
+
+    <!-- CMS Main Workspace (2 Kolom: Feed Aktivitas & Target KPI) -->
+    <div class="cms-main-grid">
+      <!-- Kolom Kiri: Feed Aktivitas Terkini -->
+      <section class="card">
+        <div class="card-head">
+          <div>
+            <h2>Log Aktivitas Terkini Saya</h2>
+            <p class="muted text-xs" style="margin: 0;">Histori catatan aktivitas dan status verifikasinya</p>
+          </div>
+          <a href="/employee/activities" class="btn btn-secondary btn-sm">Buka Semua →</a>
+        </div>
+        
+        {recentActivities.length === 0 ? (
+          <div class="empty" style="padding: var(--space-6) var(--space-4);">
+            <div style="width: 3rem; height: 3rem; border-radius: 50%; background: var(--color-primary-100); color: var(--color-primary-700); display: grid; place-items: center; margin: 0 auto var(--space-3);">
+              <Icon name="clipboard" size={24} />
+            </div>
+            <h3>Belum ada aktivitas yang dicatat</h3>
+            <p class="muted text-sm" style="max-width: 38ch; margin: 0 auto var(--space-4);">
+              Mulai input aktivitas kerja atau sirkulasi harian Anda agar dapat diverifikasi oleh Supervisor dan HRD.
+            </p>
+            <a href="/employee/activities/new" class="btn btn-primary">+ Catat Aktivitas Pertama</a>
+          </div>
+        ) : (
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th scope="col">ID / Tanggal</th>
+                  <th scope="col">Jenis</th>
+                  <th scope="col">Keterangan Aktivitas</th>
+                  <th scope="col">Status</th>
+                  <th scope="col" style="text-align: right;">Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentActivities.map((a) => (
+                  <tr>
+                    <td>
+                      <a href={`/employee/activities/${a.id}`} class="mono" style="font-weight: 600; font-size: var(--text-xs);">{a.id}</a>
+                      <div class="muted text-xs">{dateID(a.date)}</div>
+                    </td>
+                    <td>
+                      <span class="badge badge-neutral" style="font-size: 0.75rem;">{TYPE_LABEL[a.type] ?? a.type}</span>
+                    </td>
+                    <td style="max-width: 24rem;">
+                      <div style="font-weight: 500; font-size: var(--text-sm);">{a.description}</div>
+                      {a.qty && <span class="muted text-xs">Jumlah: {num(a.qty)} eksemplar</span>}
+                      {a.value && <span class="muted text-xs">Nilai: {rupiah(a.value)}</span>}
+                    </td>
+                    <td>
+                      <Badge status={a.status} />
+                    </td>
+                    <td style="text-align: right; white-space: nowrap;">
+                      <a href={`/employee/activities/${a.id}`} class="btn btn-ghost btn-sm">Detail</a>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      <!-- Kolom Kanan: Target KPI & Standar Operasional -->
+      <div style="display: flex; flex-direction: column; gap: var(--space-5);">
+        <!-- Target KPI & Capaian -->
+        <section class="card">
+          <div class="card-head">
+            <div>
+              <h2>Target &amp; Capaian Kinerja</h2>
+              <p class="muted text-xs" style="margin: 0;">{myTargets.length > 0 ? "Target Individu Karyawan" : "Target Divisi Marketing (Acuan Bersama)"}</p>
+            </div>
+            <a href="/employee/performance" class="btn btn-secondary btn-sm">Rapor Lengkap</a>
+          </div>
+          <div class="card-body" style="padding-top: var(--space-2); padding-bottom: var(--space-3);">
+            {displayTargets.length === 0 ? (
+              <p class="muted text-sm" style="text-align: center; padding: var(--space-4) 0;">
+                Belum ada target yang ditetapkan untuk periode ini.
+              </p>
+            ) : (
+              displayTargets.slice(0, 4).map((r) => (
+                <div class="target-item">
+                  <div class="target-header">
+                    <span>{r.indicator.name}</span>
+                    <span class="mono text-xs font-bold" style="color: var(--color-primary-900);">
+                      {num(r.actual)} / {num(r.target.value)} {r.indicator.unit}
+                    </span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: var(--space-3);">
+                    <div style="flex: 1;"><Meter value={r.percent} /></div>
+                    <span class="mono text-xs" style="font-weight: 600; min-width: 3.2rem; text-align: right;">
+                      {r.percent != null ? `${num(r.percent, 0)}%` : "—"}
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </section>
+
+        <!-- Panduan & Standar Operasional Karyawan -->
+        <section class="card">
+          <div class="card-head">
+            <h2>Panduan Verifikasi &amp; SOP</h2>
+          </div>
+          <div class="card-body" style="font-size: var(--text-xs); line-height: 1.5;">
+            <div class="sop-step">
+              <span class="sop-num">1</span>
+              <div>
+                <strong>Catat Tepat Waktu</strong>
+                <p class="muted" style="margin: 0.15rem 0 0;">Input aktivitas kerja harian maksimal H+1 setelah pelaksanaan kegiatan.</p>
+              </div>
+            </div>
+            <div class="sop-step">
+              <span class="sop-num">2</span>
+              <div>
+                <strong>Lampirkan Bukti Valid</strong>
+                <p class="muted" style="margin: 0.15rem 0 0;">Pastikan data eksemplar oplah, surat penawaran, atau nota klien terisi jelas.</p>
+              </div>
+            </div>
+            <div class="sop-step">
+              <span class="sop-num">3</span>
+              <div>
+                <strong>Pantau Antrean Verifikasi</strong>
+                <p class="muted" style="margin: 0.15rem 0 0;">Supervisor dan HRD akan memvalidasi aktivitas untuk dimasukkan ke perhitungan KPI.</p>
+              </div>
+            </div>
+            <div class="sop-step" style="margin-bottom: 0;">
+              <span class="sop-num">4</span>
+              <div>
+                <strong>Perhitungan Akhir SPK SAW</strong>
+                <p class="muted" style="margin: 0.15rem 0 0;">Skor akhir dihitung secara objektif menggunakan metode Simple Additive Weighting.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
   </>)}
 </DashboardLayout>
+
+<style>
+  .cms-banner {
+    background: linear-gradient(135deg, #0e2844 0%, #174574 100%);
+    border-radius: var(--radius-md);
+    color: #fff;
+    padding: var(--space-5);
+    margin-bottom: var(--space-5);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+    box-shadow: 0 4px 16px rgba(14, 40, 68, 0.14);
+  }
+  .cms-banner-user {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+  }
+  .cms-avatar {
+    width: 3.8rem;
+    height: 3.8rem;
+    border-radius: 50%;
+    background: #1d4ed8;
+    color: #fff;
+    display: grid;
+    place-items: center;
+    font-size: 1.45rem;
+    font-weight: 700;
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.22);
+    flex-shrink: 0;
+  }
+  .cms-banner-title {
+    color: #fff;
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+  }
+  .cms-banner-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    align-items: center;
+  }
+  .cms-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.2rem 0.65rem;
+    background: rgba(255, 255, 255, 0.16);
+    border-radius: 999px;
+    font-size: var(--text-xs);
+    color: #e2eaf4;
+  }
+  .cms-chip.active-pill {
+    background: #059669;
+    color: #fff;
+    font-weight: 600;
+  }
+  .cms-section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: var(--space-3);
+    gap: var(--space-3);
+    flex-wrap: wrap;
+  }
+  .cms-hub-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-4);
+    margin-bottom: var(--space-5);
+  }
+  .cms-hub-card {
+    background: #fff;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    text-decoration: none;
+    color: inherit;
+    min-height: 8.5rem;
+  }
+  .cms-hub-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(18, 52, 90, 0.08);
+    border-color: var(--color-primary-700);
+  }
+  .cms-hub-top {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+  }
+  .cms-hub-icon {
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--radius-sm);
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+  }
+  .cms-hub-icon.blue { background: #eff6ff; color: #1d4ed8; }
+  .cms-hub-icon.green { background: #ecfdf5; color: #047857; }
+  .cms-hub-icon.purple { background: #f5f3ff; color: #6d28d9; }
+  .cms-hub-icon.amber { background: #fffbeb; color: #b45309; }
+  .cms-hub-icon.teal { background: #f0fdfa; color: #0f766e; }
+  .cms-hub-icon.indigo { background: #eef2ff; color: #4338ca; }
+  .cms-hub-title {
+    font-size: var(--text-base);
+    font-weight: 700;
+    color: var(--color-primary-900);
+    margin: 0 0 0.2rem;
+  }
+  .cms-hub-desc {
+    font-size: var(--text-xs);
+    color: var(--color-muted);
+    margin: 0;
+    line-height: 1.4;
+  }
+  .cms-hub-btn {
+    align-self: flex-start;
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--color-primary-700);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .cms-hub-card:hover .cms-hub-btn {
+    color: var(--color-primary-900);
+    text-decoration: underline;
+  }
+  .cms-main-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.65fr) minmax(0, 1.15fr);
+    gap: var(--space-5);
+  }
+  @media (max-width: 980px) {
+    .cms-main-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .target-item {
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid #edf1f5;
+  }
+  .target-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+  .target-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+  }
+  .sop-step {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+    font-size: var(--text-xs);
+    color: var(--color-text);
+  }
+  .sop-num {
+    width: 1.35rem;
+    height: 1.35rem;
+    border-radius: 50%;
+    background: var(--color-primary-100);
+    color: var(--color-primary-900);
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+  }
+</style>

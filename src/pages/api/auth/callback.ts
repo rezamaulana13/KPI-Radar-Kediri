@@ -21,33 +21,32 @@ export const GET: APIRoute = async (ctx) => {
   }
 
   const user = data.user;
-  // Periksa apakah profile sudah ada
-  const { data: profile } = await supabase.from("profiles").select("id, employee_id, role, is_active").eq("id", user.id).maybeSingle();
+  // Periksa apakah user sudah ada di tabel users
+  const { data: userRow } = await supabase.from("users").select("id, role, is_active").eq("id", user.id).maybeSingle();
 
-  if (!profile) {
-    // Pengguna mendaftar pertama kali lewat Google OAuth -> otomatis berikan role 'employee' (Pengguna Karyawan)
+  if (!userRow) {
+    // Pengguna mendaftar pertama kali lewat Google OAuth -> simpan ke tabel users dengan role 'employee'
     const fullName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split("@")[0] || "Pengguna";
-    const employeeId = `E-${user.id.slice(0, 8)}`;
     const nip = `RK-${Math.floor(1000 + Math.random() * 9000)}`;
 
-    await supabase.from("employees").upsert({
-      id: employeeId,
+    await supabase.from("users").upsert({
+      id: user.id,
       nip,
       name: fullName,
       email: user.email ?? "",
+      role: "employee",
       division_id: "DIV-MKT",
       position_id: "POS-EXM",
       is_active: true,
-    }, { onConflict: "email" });
-
-    await supabase.from("profiles").insert({
-      id: user.id,
-      employee_id: employeeId,
-      role: "employee",
-      is_active: true,
-    });
+    }, { onConflict: "id" });
   }
 
-  return ctx.redirect(next);
+  // Arahkan tujuan sesuai peran pengguna
+  const isEmployee = (userRow?.role ?? "employee") === "employee";
+  const dest = isEmployee
+    ? (next && next !== "/dashboard" ? next : "/")
+    : (next && next !== "/" ? next : "/dashboard");
+
+  return ctx.redirect(dest);
 };
 

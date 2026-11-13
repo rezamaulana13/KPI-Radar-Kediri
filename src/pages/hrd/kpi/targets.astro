@@ -1,20 +1,340 @@
 ---
 import DashboardLayout from "../../../layouts/DashboardLayout.astro";
-import ListPage from "../../../components/ui/ListPage.astro";
+import PageHeader from "../../../components/layout/PageHeader.astro";
 import PeriodFilter from "../../../components/ui/PeriodFilter.astro";
-import { db, indicator, divisionName, employeeName } from "../../../lib/data/store";
+import Alert from "../../../components/ui/Alert.astro";
+import Badge from "../../../components/ui/Badge.astro";
+import Icon from "../../../components/ui/Icon.astro";
+import { db, indicator, indicators, divisionName, employeeName } from "../../../lib/data/store";
 import { selectedPeriod } from "../../../lib/utils/period";
-import { SCOPE_LABEL, num } from "../../../lib/formatters";
+import { SCOPE_LABEL, num, rupiah } from "../../../lib/formatters";
+
 const p = selectedPeriod(Astro.url);
-const rows = db.targets.filter((t) => t.periodId === p.id).map((t) => ({
-  ...t, scopeLabel: SCOPE_LABEL[t.scope], indicatorName: indicator(t.indicatorId)?.name, unit: indicator(t.indicatorId)?.unit,
-  subject: t.scope === "company" ? "Seluruh perusahaan" : t.scope === "division" ? divisionName(t.divisionId) : employeeName(t.employeeId),
-}));
+const savedInd = Astro.url.searchParams.get("saved");
+const savedVal = Astro.url.searchParams.get("val");
+const savedFor = Astro.url.searchParams.get("for");
+const deletedInd = Astro.url.searchParams.get("deleted");
+const error = Astro.url.searchParams.get("error");
+
+// Ambil target khusus periode aktif
+const targets = db.targets.filter((t) => t.periodId === p.id);
+
+// Siapkan daftar indikator pemasaran yang relevan
+const marketingIndicators = indicators.filter((i) => i.active);
+
+// Staf pemasaran yang bisa diberikan target individual
+const staffEmployees = db.employees.filter((e) => e.role === "employee");
+
+const rows = targets.map((t) => {
+  const ind = indicator(t.indicatorId);
+  return {
+    ...t,
+    scopeLabel: t.scope === "individual" ? "Individu" : t.scope === "division" ? "Bersama (Divisi)" : "Perusahaan",
+    indicatorName: ind?.name ?? t.indicatorId,
+    unit: ind?.unit ?? "",
+    subject: t.scope === "company" ? "Seluruh Perusahaan" : t.scope === "division" ? "Target Bersama Divisi Pemasaran" : employeeName(t.employeeId),
+    employeeNameText: t.employeeId ? employeeName(t.employeeId) : "",
+  };
+});
 ---
-<DashboardLayout title="Target KPI">
-  <ListPage title="Target KPI" description={`Target ${p.name} menurut indikator dan cakupan. Satu indikator hanya punya satu target per cakupan dan periode.`} crumbs={[{ label: "HRD" }, { label: "KPI" }]} rows={rows} searchKeys={["indicatorName", "subject"]}
-    filters={[{ name: "scope", label: "Cakupan", options: Object.entries(SCOPE_LABEL).map(([value, label]) => ({ value, label })) }]}
-    columns={[{ key: "indicatorName", label: "Indikator" }, { key: "scopeLabel", label: "Cakupan" }, { key: "subject", label: "Subjek" }, { key: "value", label: "Target", type: "number" }, { key: "unit", label: "Satuan" }]}>
-    <PeriodFilter slot="actions" />
-  </ListPage>
+
+<DashboardLayout title="Target Operasional Pemasaran">
+  <PageHeader
+    title="Target Operasional Divisi Pemasaran"
+    description={`Penetapan angka Target Bersama Divisi maupun Target Khusus Individu Staf untuk periode ${p.name}. HRD dan Super Admin memiliki kendali penuh menetapkan target.`}
+    crumbs={[{ label: "HRD" }, { label: "Target Operasional" }]}
+  >
+    <Fragment slot="actions">
+      <PeriodFilter />
+    </Fragment>
+  </PageHeader>
+
+  {savedInd && savedVal && (
+    <div class="alert-banner alert-banner-success">
+      <Icon name="check" size={18} />
+      <div>
+        <strong>Target Berhasil Ditetapkan:</strong> Target untuk <strong>{savedInd}</strong> ({savedFor}) pada periode {p.name} kini bernilai <strong>{num(Number(savedVal))}</strong>.
+      </div>
+    </div>
+  )}
+
+  {deletedInd && (
+    <div class="alert-banner alert-banner-success">
+      <Icon name="check" size={18} />
+      <div>
+        <strong>Target Dihapus:</strong> Target untuk <strong>{deletedInd}</strong> berhasil dihapus dari periode {p.name}.
+      </div>
+    </div>
+  )}
+
+  {error === "missing_employee" && (
+    <div class="alert-banner alert-banner-danger">
+      <Icon name="logout" size={18} />
+      <div>
+        <strong>Gagal Menyimpan:</strong> Untuk Target Individu, Anda wajib memilih salah satu staf pemasaran.
+      </div>
+    </div>
+  )}
+
+  {error === "invalid_input" && (
+    <div class="alert-banner alert-banner-danger">
+      <Icon name="logout" size={18} />
+      <div>
+        <strong>Gagal Menyimpan Target:</strong> Pastikan nilai target berupa angka positif yang valid.
+      </div>
+    </div>
+  )}
+
+  <div class="grid-3-1" style="margin-top: 1.25rem;">
+    <!-- Kolom Kiri: Tabel Target yang Sedang Berlaku -->
+    <section class="card">
+      <div class="card-head">
+        <h2>Daftar Target Aktif — Periode {p.name}</h2>
+        <span class="badge badge-info">{rows.length} Target Ditetapkan</span>
+      </div>
+
+      <div class="table-wrap" tabindex="0">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Indikator Operasional</th>
+              <th>Tipe Target</th>
+              <th>Subjek Penerima</th>
+              <th style="text-align:right;">Nilai Target</th>
+              <th>Satuan</th>
+              <th style="text-align:center;">Aksi Cepat</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr>
+                <td>
+                  <strong>{r.indicatorName}</strong>
+                </td>
+                <td>
+                  <span class={`badge ${r.scope === "individual" ? "badge-individual" : "badge-approved"}`}>
+                    {r.scopeLabel}
+                  </span>
+                </td>
+                <td>
+                  <span style={r.scope === "individual" ? "font-weight:600;color:#0369a1;" : "color:#334155;"}>
+                    {r.subject}
+                  </span>
+                </td>
+                <td style="text-align:right;font-weight:700;color:#0f172a;">
+                  {r.unit === "Rp" ? rupiah(r.value) : num(r.value)}
+                </td>
+                <td><span class="text-xs muted">{r.unit}</span></td>
+                <td style="text-align:center;">
+                  <div style="display:flex;align-items:center;justify-content:center;gap:0.4rem;">
+                    <button
+                      type="button"
+                      class="btn btn-secondary"
+                      style="padding:0.25rem 0.55rem;font-size:0.75rem;"
+                      onclick={`window.fillEditTarget('${r.id}', '${r.indicatorId}', '${r.value}', '${r.scope}', '${r.employeeId ?? ""}')`}
+                      title="Ubah angka target ini"
+                    >
+                      Ubah
+                    </button>
+                    <!-- Form Hapus Target -->
+                    <form method="post" action="/api/hrd/targets/delete" style="margin:0;display:inline-flex;">
+                      <input type="hidden" name="targetId" value={r.id} />
+                      <input type="hidden" name="periodId" value={p.id} />
+                      <button
+                        type="submit"
+                        class="btn btn-danger"
+                        style="padding:0.25rem 0.55rem;font-size:0.75rem;"
+                        onclick={`return confirm('Yakin ingin menghapus target ${r.indicatorName} (${r.subject})?')`}
+                        title="Hapus target ini dari sistem"
+                      >
+                        Hapus
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            ))}
+            {rows.length === 0 && (
+              <tr>
+                <td colspan="6" style="text-align:center;padding:2rem;" class="muted">
+                  Belum ada target yang ditetapkan untuk periode {p.name}. Gunakan formulir di sebelah kanan untuk menetapkan target baru.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Kolom Kanan: Form Penentuan Target Bersama vs Individu -->
+    <section class="card" style="height:fit-content;background:#f8fafc;border-color:#cbd5e1;">
+      <div class="card-head" style="border-bottom-color:#e2e8f0;">
+        <h3 style="font-size:1rem;margin:0;font-weight:700;display:flex;align-items:center;gap:0.4rem;">
+          <Icon name="flag" size={17} />
+          <span>Atur Target Pemasaran</span>
+        </h3>
+      </div>
+      <div class="card-body">
+        <p class="text-xs muted" style="margin-top:0;">
+          Tentukan apakah target berlaku untuk <strong>Kolektif Divisi</strong> atau dibebankan ke <strong>Individu Staf</strong>.
+        </p>
+
+        <form method="post" action="/api/hrd/targets/save" id="target-form" style="display:flex;flex-direction:column;gap:0.85rem;">
+          <input type="hidden" name="periodId" value={p.id} />
+          <input type="hidden" name="targetId" id="target-id-input" value="" />
+
+          <!-- TIPE TARGET: BERSAMA VS INDIVIDU -->
+          <div>
+            <label class="form-label font-bold" for="target-scope-select" style="font-size:0.8rem;margin-bottom:0.25rem;">
+              TIPE TARGET:
+            </label>
+            <select
+              name="scope"
+              id="target-scope-select"
+              class="select"
+              required
+              style="width:100%;font-size:0.85rem;font-weight:600;"
+              onchange="window.handleScopeChange(this.value)"
+            >
+              <option value="division">Target Bersama (Kolektif Divisi Pemasaran)</option>
+              <option value="individual">Target Individu (Khusus Staf Tertentu)</option>
+            </select>
+          </div>
+
+          <!-- PILIH STAF JIKA TARGET INDIVIDU -->
+          <div id="employee-picker-wrap" style="display:none;background:#eff6ff;padding:0.6rem;border-radius:4px;border:1px solid #bfdbfe;">
+            <label class="form-label font-bold" for="target-employee" style="font-size:0.8rem;margin-bottom:0.25rem;color:#1e40af;">
+              PILIH STAF PEMASARAN:
+            </label>
+            <select name="employeeId" id="target-employee" class="select" style="width:100%;font-size:0.85rem;">
+              <option value="">-- Pilih Staf Pemasaran --</option>
+              {staffEmployees.map((e) => (
+                <option value={e.id}>
+                  {e.name} ({e.nip})
+                </option>
+              ))}
+            </select>
+            <span class="hint text-xs" style="color:#2563eb;margin-top:0.2rem;">
+              Target ini akan muncul di kartu "Target Individu Saya" staf bersangkutan.
+            </span>
+          </div>
+
+          <!-- PILIH INDIKATOR -->
+          <div>
+            <label class="form-label font-bold" for="target-indicator" style="font-size:0.8rem;margin-bottom:0.25rem;">
+              PILIH INDIKATOR KERJA:
+            </label>
+            <select name="indicatorId" id="target-indicator" class="select" required style="width:100%;font-size:0.85rem;">
+              {marketingIndicators.map((i) => (
+                <option value={i.id}>
+                  {i.name} ({i.unit})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <!-- INPUT NILAI TARGET -->
+          <div>
+            <label class="form-label font-bold" for="target-value" style="font-size:0.8rem;margin-bottom:0.25rem;">
+              ANGKA NILAI TARGET:
+            </label>
+            <input
+              type="number"
+              id="target-value"
+              name="value"
+              class="input"
+              placeholder="Contoh: 10 atau 500"
+              min="1"
+              step="any"
+              required
+              style="width:100%;font-size:0.9rem;"
+            />
+            <span class="hint text-xs" style="margin-top:0.25rem;">
+              Untuk target nominal Rupiah (Deal Iklan), masukkan angka murni tanpa titik.
+            </span>
+          </div>
+
+          <div style="margin-top:0.5rem;">
+            <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;font-weight:600;">
+              <Icon name="check" size={16} />
+              <span>Simpan Target Pemasaran</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+  </div>
 </DashboardLayout>
+
+<script is:inline>
+  window.handleScopeChange = function(scopeVal) {
+    var picker = document.getElementById("employee-picker-wrap");
+    var empSelect = document.getElementById("target-employee");
+    if (scopeVal === "individual") {
+      if (picker) picker.style.display = "block";
+      if (empSelect) empSelect.required = true;
+    } else {
+      if (picker) picker.style.display = "none";
+      if (empSelect) {
+        empSelect.required = false;
+        empSelect.value = "";
+      }
+    }
+  };
+
+  window.fillEditTarget = function(targetId, indId, val, scope, empId) {
+    var idInput = document.getElementById("target-id-input");
+    var sel = document.getElementById("target-indicator");
+    var valInput = document.getElementById("target-value");
+    var scopeSelect = document.getElementById("target-scope-select");
+    var empSelect = document.getElementById("target-employee");
+    var submitBtn = document.querySelector("#target-form button[type=submit] span");
+    
+    if (idInput) {
+      idInput.value = targetId || "";
+    }
+    if (scopeSelect) {
+      scopeSelect.value = scope === "individual" ? "individual" : "division";
+      window.handleScopeChange(scopeSelect.value);
+    }
+    if (empSelect && empId) {
+      empSelect.value = empId;
+    }
+    if (sel) sel.value = indId;
+    if (valInput) {
+      valInput.value = val;
+      valInput.focus();
+    }
+    if (submitBtn) {
+      submitBtn.innerText = "Perbarui Nilai Target";
+    }
+  };
+</script>
+
+<style>
+  .badge-individual {
+    background: #e0f2fe;
+    color: #0369a1;
+    font-weight: 600;
+  }
+  .alert-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.85rem 1.25rem;
+    border-radius: var(--radius-sm, 6px);
+    margin-bottom: 1.25rem;
+    font-size: var(--text-sm, 0.875rem);
+    line-height: 1.45;
+  }
+  .alert-banner-success {
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    color: #065f46;
+  }
+  .alert-banner-danger {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+  }
+</style>

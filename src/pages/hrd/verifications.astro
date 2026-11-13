@@ -13,13 +13,15 @@ const rows = db.activities.filter((a) => a.status === "pending").sort((a, b) => 
 });
 const done = Astro.url.searchParams.get("done");
 const as = Astro.url.searchParams.get("as");
+const deleted = Astro.url.searchParams.get("deleted");
 ---
-<DashboardLayout title="Verifikasi Aktivitas">
-  <ListPage title="Verifikasi Aktivitas" description="Aktivitas karyawan yang menunggu keputusan HRD. Hanya aktivitas yang disetujui yang masuk realisasi KPI." crumbs={[{ label: "HRD" }]} rows={rows} searchKeys={["owner", "description", "id"]}
-    filters={[{ name: "type", label: "Jenis", options: Object.entries(TYPE_LABEL).map(([value, label]) => ({ value, label })) }]}
-    columns={[{ key: "id", label: "ID", type: "mono", href: (r) => r.action === "Periksa" ? `/hrd/verifications/${r.id}` : undefined }, { key: "date", label: "Tanggal", type: "date" }, { key: "typeLabel", label: "Jenis" }, { key: "owner", label: "Pemilik" }, { key: "creator", label: "Pencatat" }, { key: "description", label: "Deskripsi" }, { key: "note", label: "Status pemeriksaan" }]}
-    emptyTitle="Antrean kosong" emptyHint="Tidak ada aktivitas karyawan yang menunggu verifikasi.">
-    {done && <Alert slot="before" tone="success" title={`${done} ${as ? STATUS_LABEL[as]?.toLowerCase() ?? as : "diproses"}`}>Keputusan tersimpan dan tercatat di riwayat verifikasi.</Alert>}
+<DashboardLayout title="Antrean Verifikasi Berkas">
+  <ListPage title="Antrean Verifikasi Berkas Lapangan" description="Daftar laporan kerja dan bukti nota yang diajukan oleh staf pemasaran & sirkulasi. Periksa bukti fisik lalu tentukan apakah disetujui (Deal), diminta revisi, atau ditolak." crumbs={[{ label: "HRD" }, { label: "Antrean Verifikasi" }]} rows={rows} searchKeys={["owner", "description", "id"]}
+    filters={[{ name: "type", label: "Jenis Aktivitas", options: Object.entries(TYPE_LABEL).map(([value, label]) => ({ value, label })) }]}
+    columns={[{ key: "id", label: "ID Berkas", type: "mono", href: (r) => r.action === "Periksa" ? `/hrd/verifications/${r.id}` : undefined }, { key: "date", label: "Tanggal", type: "date" }, { key: "typeLabel", label: "Jenis Kegiatan" }, { key: "owner", label: "Staf Pemasaran" }, { key: "description", label: "Rincian Kegiatan" }, { key: "note", label: "Status Verifikasi" }]}
+    emptyTitle="Antrean Bersih / Kosong" emptyHint="Tidak ada laporan kegiatan yang menunggu verifikasi saat ini. Semua berkas telah diperiksa.">
+    {done && <Alert slot="before" tone="success" title={`Aktivitas ${done} Berhasil Diproses`}>Keputusan verifikasi telah tersimpan dan tercatat di riwayat operasional serta database.</Alert>}
+    {deleted && <Alert slot="before" tone="success" title="Laporan Berhasil Dihapus">Laporan aktivitas {deleted} telah berhasil dihapus secara permanen dari antrean dan database Supabase.</Alert>}
   </ListPage>
 </DashboardLayout>
 

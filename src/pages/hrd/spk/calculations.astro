@@ -2,6 +2,7 @@
 import DashboardLayout from "../../../layouts/DashboardLayout.astro";
 import PageHeader from "../../../components/layout/PageHeader.astro";
 import PeriodFilter from "../../../components/ui/PeriodFilter.astro";
+import Icon from "../../../components/ui/Icon.astro";
 import Alert from "../../../components/ui/Alert.astro";
 import { db } from "../../../lib/data/store";
 import { selectedPeriod } from "../../../lib/utils/period";
@@ -15,10 +16,23 @@ const w = validateWeights(criteria.map((c) => c.weight));
 const res = computeSaw(criteria, alts);
 const saved = Astro.url.searchParams.get("saved");
 const f = (n: number) => num(n, 3);
+
+const predicateOf = (score: number) => {
+  if (score >= 0.85) return { label: "Sangat Baik", cls: "badge-approved" };
+  if (score >= 0.70) return { label: "Baik", cls: "badge-approved" };
+  if (score >= 0.55) return { label: "Cukup", cls: "badge-pending" };
+  return { label: "Kurang", cls: "badge-rejected" };
+};
 ---
 <DashboardLayout title="Perhitungan SAW">
   <PageHeader title="Perhitungan SAW" description={`Rincian perhitungan ${p.name}: matriks keputusan, normalisasi, nilai preferensi, dan peringkat.`} crumbs={[{ label: "HRD" }, { label: "SPK" }]}>
-    <Fragment slot="actions"><PeriodFilter /></Fragment>
+    <Fragment slot="actions">
+      <PeriodFilter />
+      <a href={`/api/export/excel?type=hrd&period=${p.id}`} class="btn btn-primary" download title="Unduh Rekapitulasi Manajemen HRD & SPK SAW dalam format Excel">
+        <Icon name="download" size={16} />
+        <span>Unduh Rekap HRD (Excel)</span>
+      </a>
+    </Fragment>
   </PageHeader>
   {saved && <Alert tone="success" title="Hasil disimpan">Versi hasil tersimpan dan dapat dibuka dari halaman <a href="/hrd/spk/rankings">Peringkat</a>.</Alert>}
   <Alert tone="warning" title="Rekomendasi pendukung keputusan">Bobot dan kriteria masih contoh. Hasil ini bukan keputusan bonus, promosi, atau sanksi. Nilai nol ditangani dengan aturan asumsi yang perlu divalidasi.</Alert>
@@ -34,8 +48,8 @@ const f = (n: number) => num(n, 3);
     <tbody>{alts.map((a, i) => <tr><td>{altName(a.id)}</td>{res.normalized[i].map((v) => <td class="num">{f(v)}</td>)}</tr>)}</tbody></table></div></section>
 
   <section class="card mb-4"><div class="card-head"><h2>3. Nilai preferensi dan peringkat</h2><span class="muted text-sm">V = Σ (bobot × R)</span></div><div class="table-wrap"><table class="table">
-    <thead><tr><th>Peringkat</th><th>Alternatif</th><th class="num">Nilai preferensi (V)</th><th>Predikat</th></tr></thead>
-    <tbody>{res.ranking.map((r) => <tr><td class="strong">{r.rank}</td><td>{altName(r.id)}</td><td class="num">{f(r.score)}</td><td class="muted">Menunggu pengesahan rentang</td></tr>)}</tbody></table></div></section>
+    <thead><tr><th>Peringkat</th><th>Alternatif Karyawan</th><th class="num">Nilai preferensi (V)</th><th>Predikat Rekomendasi</th></tr></thead>
+    <tbody>{res.ranking.map((r) => <tr><td class="strong">#{r.rank}</td><td>{altName(r.id)}</td><td class="num">{f(r.score)}</td><td><span class={`badge ${predicateOf(r.score).cls}`}>{predicateOf(r.score).label}</span></td></tr>)}</tbody></table></div></section>
 
   <form method="post" action="/api/spk/calculations" class="row"><input type="hidden" name="period" value={p.id} /><button class="btn btn-primary" disabled={!w.ok || p.status === "draft"}>Simpan sebagai versi hasil</button><span class="muted text-sm">Menyimpan kriteria, bobot, dan nilai input agar hasil dapat direproduksi.</span></form>
 </DashboardLayout>

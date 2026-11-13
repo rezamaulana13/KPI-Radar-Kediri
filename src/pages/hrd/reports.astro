@@ -5,24 +5,37 @@ import PeriodFilter from "../../components/ui/PeriodFilter.astro";
 import { db, divisionName, divisions } from "../../lib/data/store";
 import { achievements } from "../../features/kpi/achievements";
 import { selectedPeriod } from "../../lib/utils/period";
-import { TYPE_LABEL } from "../../lib/formatters";
 const p = selectedPeriod(Astro.url);
 const acts = db.activities.filter((a) => a.periodId === p.id);
 const ach = achievements(p.id);
-const rows = db.employees.filter((e) => acts.some((a) => a.ownerId === e.id) || ach.some((r) => r.target.employeeId === e.id)).map((e) => {
+// Filter: Hanya tampilkan staf pemasaran (role employee), Super Admin dan HRD tidak masuk tabel penilaian kerja lapangan
+const employeeStaff = db.employees.filter((e) => e.role === "employee");
+
+const rows = employeeStaff.map((e) => {
   const mine = acts.filter((a) => a.ownerId === e.id);
   const c = (s: string) => mine.filter((a) => a.status === s).length;
   const pr = ach.filter((r) => r.target.employeeId === e.id && r.percent != null);
-  return { id: e.id, name: e.name, divisionId: e.divisionId, division: divisionName(e.divisionId), total: mine.length, approved: c("approved"), pending: c("pending"), revision: c("revision"), rejected: c("rejected"), avg: pr.length ? pr.reduce((s, r) => s + Math.min(r.percent!, 100), 0) / pr.length : null };
+  return {
+    id: e.id,
+    name: e.name,
+    divisionId: e.divisionId,
+    division: "Divisi Pemasaran & Sirkulasi",
+    total: mine.length,
+    approved: c("approved"),
+    pending: c("pending"),
+    revision: c("revision"),
+    rejected: c("rejected"),
+    avg: pr.length ? pr.reduce((s, r) => s + Math.min(r.percent!, 100), 0) / pr.length : 0,
+  };
 });
-const byType = Object.keys(TYPE_LABEL).map((t) => ({ type: TYPE_LABEL[t], total: acts.filter((a) => a.type === t).length, approved: acts.filter((a) => a.type === t && a.status === "approved").length }));
 ---
-<DashboardLayout title="Laporan">
-  <ListPage title="Laporan" description={`Rekap aktivitas dan capaian per karyawan, ${p.name}.`} crumbs={[{ label: "HRD" }]} rows={rows} searchKeys={["name"]}
-    filters={[{ name: "divisionId", label: "Divisi", options: divisions.map((d) => ({ value: d.id, label: d.name })) }]}
-    columns={[{ key: "name", label: "Karyawan" }, { key: "division", label: "Divisi" }, { key: "total", label: "Aktivitas", type: "number" }, { key: "approved", label: "Disetujui", type: "number" }, { key: "pending", label: "Menunggu", type: "number" }, { key: "revision", label: "Revisi", type: "number" }, { key: "rejected", label: "Ditolak", type: "number" }, { key: "avg", label: "Capaian rata-rata", type: "meter" }]}>
-    <Fragment slot="actions"><PeriodFilter /><a class="btn btn-secondary" href={`/hrd/reports/export.csv?period=${p.id}`}>Unduh CSV</a></Fragment>
-    <section slot="after" class="card mt-4"><div class="card-head"><h2>Rekap menurut jenis aktivitas</h2></div>
-      <div class="table-wrap"><table class="table"><thead><tr><th>Jenis</th><th class="num">Total</th><th class="num">Disetujui</th></tr></thead><tbody>{byType.map((t) => <tr><td>{t.type}</td><td class="num">{t.total}</td><td class="num">{t.approved}</td></tr>)}</tbody></table></div></section>
+<DashboardLayout title="Rekapitulasi Laporan Bulanan">
+  <ListPage title="Rekapitulasi Kinerja Divisi Pemasaran" description={`Rekapitulasi pengajuan aktivitas lapangan oleh staf marketing, verifikasi HRD (Disetujui/Revisi/Ditolak), dan persentase capaian target untuk periode ${p.name}.`} crumbs={[{ label: "HRD" }, { label: "Laporan Bulanan" }]} rows={rows} searchKeys={["name"]}
+    columns={[{ key: "name", label: "Staf Pemasaran" }, { key: "division", label: "Divisi" }, { key: "total", label: "Total Diajukan", type: "number" }, { key: "pending", label: "Menunggu HRD", type: "number" }, { key: "approved", label: "Disetujui (Diterima)", type: "number" }, { key: "revision", label: "Perlu Revisi", type: "number" }, { key: "rejected", label: "Ditolak", type: "number" }, { key: "avg", label: "Capaian Rata-Rata", type: "meter" }]}>
+    <Fragment slot="actions">
+      <PeriodFilter />
+      <a class="btn btn-primary" href={`/api/export/excel?type=hrd&period=${p.id}`} download title="Unduh Rekapitulasi Operasional Lengkap (Excel .xlsx)">Unduh Excel (.xlsx)</a>
+      <a class="btn btn-secondary" href={`/hrd/reports/export.csv?period=${p.id}`}>Unduh CSV</a>
+    </Fragment>
   </ListPage>
 </DashboardLayout>
