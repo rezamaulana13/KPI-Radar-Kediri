@@ -4,7 +4,6 @@ import PageHeader from "../../../components/layout/PageHeader.astro";
 import Alert from "../../../components/ui/Alert.astro";
 import Badge from "../../../components/ui/Badge.astro";
 import FormError from "../../../components/ui/FormError.astro";
-import ConfirmDialog from "../../../components/ui/ConfirmDialog.astro";
 import ActivityDetail from "../../../components/ui/ActivityDetail.astro";
 import Icon from "../../../components/ui/Icon.astro";
 import { activity, db, historyOf, employeeName, mappings, indicators } from "../../../lib/data/store";
@@ -104,6 +103,7 @@ const projections = matchingMappings
           </div>
           <div class="card-body">
             <form method="post" action={`/api/verifications/${a.id}`} id="vform">
+              <input type="hidden" name="status" id="vstatus" value="approved" />
               <div class="field">
                 <label for="note">Catatan Pemeriksaan / Alasan</label>
                 <textarea
@@ -121,10 +121,8 @@ const projections = matchingMappings
                 <button
                   class="btn btn-primary"
                   style="width:100%;justify-content:center;background:#16a34a;border-color:#16a34a;font-weight:700;"
-                  name="status"
-                  value="approved"
-                  type="button"
-                  data-confirm-open="dlg-approve"
+                  type="submit"
+                  onclick="document.getElementById('vstatus').value = 'approved'; return confirm('Apakah Anda yakin ingin MENYETUJUI laporan ini? Realisasi volume / nilai akan langsung masuk ke capaian KPI.');"
                 >
                   <Icon name="check" size={16} />
                   <span>{a.type === "offer" ? "Setujui (Deal Iklan Sah)" : a.type === "oplah" ? "Setujui Sirkulasi Oplah" : "Setujui Laporan (Valid)"}</span>
@@ -133,9 +131,8 @@ const projections = matchingMappings
                 <button
                   class="btn btn-warn"
                   style="width:100%;justify-content:center;font-weight:700;"
-                  name="status"
-                  value="revision"
                   type="submit"
+                  onclick="const n = document.getElementById('note').value.trim(); if(!n) { alert('Harap isi Catatan Pemeriksaan terlebih dahulu untuk memberi tahu staf bagian mana yang harus diperbaiki.'); document.getElementById('note').focus(); return false; } document.getElementById('vstatus').value = 'revision'; return confirm('Kirim permintaan revisi perbaikan ke staf pelapor?');"
                 >
                   <Icon name="pencil" size={16} />
                   <span>Minta Perbaikan / Revisi Bukti</span>
@@ -144,10 +141,8 @@ const projections = matchingMappings
                 <button
                   class="btn btn-danger"
                   style="width:100%;justify-content:center;font-weight:700;"
-                  name="status"
-                  value="rejected"
-                  type="button"
-                  data-confirm-open="dlg-reject"
+                  type="submit"
+                  onclick="const n = document.getElementById('note').value.trim(); if(!n) { alert('Harap isi Catatan Pemeriksaan / Alasan penolakan terlebih dahulu.'); document.getElementById('note').focus(); return false; } document.getElementById('vstatus').value = 'rejected'; return confirm('Apakah Anda yakin ingin MENOLAK laporan ini? Laporan yang ditolak tidak akan dihitung ke akumulasi KPI.');"
                 >
                   <Icon name="logout" size={16} />
                   <span>{a.type === "offer" ? "Tolak (Penawaran Batal / NO)" : "Tolak Laporan (Tidak Sah)"}</span>
@@ -201,32 +196,4 @@ const projections = matchingMappings
       </section>
     </div>
   </div>
-
-  <ConfirmDialog id="dlg-approve" title="Setujui laporan ini?" confirmLabel="Ya, Setujui">
-    <p class="mb-0">
-      Laporan ini akan disahkan. Realisasi volume atau nilai transaksi komersial akan langsung dihitung ke indikator KPI staf dan divisi.
-    </p>
-  </ConfirmDialog>
-
-  <ConfirmDialog id="dlg-reject" title="Tolak laporan ini?" confirmLabel="Ya, Tolak" danger>
-    <p class="mb-0">
-      Laporan yang ditolak tidak akan dihitung ke akumulasi KPI. Pastikan Anda telah menuliskan catatan alasan pemeriksaan pada kotak di samping.
-    </p>
-  </ConfirmDialog>
-
-  <script is:inline>
-    const form = document.getElementById("vform");
-    ["approve", "reject"].forEach((k) => {
-      const d = document.getElementById("dlg-" + k);
-      if (!d || !form) return;
-      d.addEventListener("confirm", () => {
-        const h = document.createElement("input");
-        h.type = "hidden";
-        h.name = "status";
-        h.value = k === "approve" ? "approved" : "rejected";
-        form.appendChild(h);
-        form.submit();
-      });
-    });
-  </script>
 </DashboardLayout>
