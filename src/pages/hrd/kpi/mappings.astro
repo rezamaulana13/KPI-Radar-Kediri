@@ -6,9 +6,9 @@ import { mappings, indicator } from "../../../lib/data/store";
 import { TYPE_LABEL } from "../../../lib/formatters";
 const rows = mappings.map((m) => ({ ...m, typeLabel: TYPE_LABEL[m.activityType] + (m.outcome ? ` (${m.outcome === "deal" ? "Deal" : "NO"})` : ""), indicatorName: indicator(m.indicatorId)?.name, rule: m.field === "count" ? "Hitung 1 per aktivitas" : m.field === "qty" ? "Jumlahkan eksemplar" : "Jumlahkan nilai (Rp)" }));
 ---
-<DashboardLayout title="Mapping Aktivitas">
-  <ListPage title="Mapping Aktivitas ke KPI" description="Aturan yang mengubah aktivitas disetujui menjadi realisasi indikator." crumbs={[{ label: "HRD" }, { label: "KPI" }]} rows={rows}
-    columns={[{ key: "typeLabel", label: "Jenis aktivitas" }, { key: "indicatorName", label: "Indikator tujuan" }, { key: "rule", label: "Cara menghitung" }, { key: "note", label: "Catatan" }]}>
-    <Alert slot="before" tone="info" title="Aktivitas tanpa mapping tidak dihitung">Aktivitas yang belum disetujui, ditolak, atau tidak punya mapping tidak akan menambah realisasi. Hasil NO belum dipetakan ke KPI mana pun.</Alert>
+<DashboardLayout title="Pemetaan Aktivitas ke KPI">
+  <ListPage title="Pemetaan Aktivitas ke KPI" description="Aturan otomatisasi yang mengonversi aktivitas lapangan disetujui menjadi realisasi capaian indikator KPI." crumbs={[{ label: "Admin Pemasaran" }, { label: "Pemetaan KPI" }]} rows={rows}
+    columns={[{ key: "typeLabel", label: "Jenis Aktivitas" }, { key: "indicatorName", label: "Indikator Tujuan" }, { key: "rule", label: "Metode Akumulasi" }, { key: "note", label: "Aturan Bisnis" }]}>
+    <Alert slot="before" tone="info" title="Otomatisasi Akumulasi On-Demand">Hanya aktivitas dengan status Disetujui (Approved) yang dihitung. Oplah secara otomatis menghitung eksemplar terjual bersih (Kirim dikurangi Retur), serta memisahkan omzet kas tunai dari nilai barter komersial.</Alert>
   </ListPage>
 </DashboardLayout>

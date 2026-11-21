@@ -99,6 +99,17 @@ export async function syncSaveActivity(a: T.Activity): Promise<boolean> {
       outcome: a.outcome ?? null,
       reason_category: a.reasonCategory ?? null,
       reason: a.reason ?? null,
+      return_qty: a.returnQty ?? null,
+      sold_qty: a.soldQty ?? null,
+      return_condition: a.returnCondition ?? null,
+      edition_name: a.editionName ?? null,
+      partnership_type: a.partnershipType ?? null,
+      barter_type: a.barterType ?? null,
+      cash_value: a.cashValue ?? null,
+      barter_value: a.barterValue ?? null,
+      barter_desc: a.barterDesc ?? null,
+      realization_status: a.realizationStatus ?? null,
+      proof_url: a.proofUrl ?? null,
       created_at: a.createdAt ?? new Date().toISOString(),
     };
 
@@ -319,6 +330,17 @@ export async function hydrateFromSupabase(): Promise<void> {
         outcome: a.outcome,
         reasonCategory: a.reason_category,
         reason: a.reason,
+        returnQty: a.return_qty != null ? Number(a.return_qty) : undefined,
+        soldQty: a.sold_qty != null ? Number(a.sold_qty) : undefined,
+        returnCondition: a.return_condition,
+        editionName: a.edition_name,
+        partnershipType: a.partnership_type,
+        barterType: a.barter_type,
+        cashValue: a.cash_value != null ? Number(a.cash_value) : undefined,
+        barterValue: a.barter_value != null ? Number(a.barter_value) : undefined,
+        barterDesc: a.barter_desc,
+        realizationStatus: a.realization_status,
+        proofUrl: a.proof_url,
         createdAt: a.created_at,
       }));
     }
@@ -341,4 +363,36 @@ export async function hydrateFromSupabase(): Promise<void> {
   } catch (err) {
     console.error("[Supabase Sync] Exception saat hydration:", err);
   }
+}
+
+// 7. SINKRONISASI UPDATE USER (STATUS / PERAN) OLEH SUPER ADMIN
+export async function syncUpdateUser(
+  userId: string,
+  data: { role?: T.Role; active?: boolean }
+): Promise<boolean> {
+  const supabase = createSupabaseAdminClient();
+  if (!supabase || !isValidUUID(userId)) return false;
+
+  try {
+    const patch: Record<string, any> = {};
+    if (data.role) patch.role = data.role;
+    if (data.active !== undefined) patch.is_active = data.active;
+
+    const { error } = await supabase.from("users").update(patch).eq("id", userId);
+    if (error) {
+      console.error("[Supabase Sync] Gagal update pengguna di Supabase:", error.message);
+      return false;
+    }
+    console.log(`[Supabase Sync] Pengguna ${userId} berhasil diperbarui di Supabase.`);
+    return true;
+  } catch (err) {
+    console.error("[Supabase Sync] Exception saat update user:", err);
+    return false;
+  }
+}
+
+// 8. PAKSA MUAT ULANG DATA DARI SUPABASE (RE-HYDRATE)
+export async function forceRehydrate(): Promise<void> {
+  hasHydrated = false;
+  await hydrateFromSupabase();
 }

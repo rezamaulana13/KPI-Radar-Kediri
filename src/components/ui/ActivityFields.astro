@@ -38,24 +38,40 @@ const isNoActive = activeType === "outcome" && v("outcome") === "no";
   style={!isBlockActive("oplah") ? "display: none;" : "display: block;"}
 >
   <div class="dynamic-block-header">
-    <div class="block-title">Rincian Sirkulasi Oplah Koran</div>
-    <div class="block-kpi-tag">Indikator: IND-01 (Perolehan Oplah Koran)</div>
+    <div class="block-title">Rincian Sirkulasi Oplah &amp; Retur Koran</div>
+    <div class="block-kpi-tag">Indikator: IND-01 (Eksemplar Bersih Terjual Masuk KPI)</div>
   </div>
+
   <div class="dynamic-grid-3">
     <div class="form-group">
-      <label class="form-label" for="f-source">Sumber Oplah <span class="req">*</span></label>
+      <label class="form-label" for="f-editionName">Edisi Koran</label>
+      <input
+        class="form-control"
+        id="f-editionName"
+        name="editionName"
+        type="text"
+        placeholder="Contoh: Edisi Harian Radar Kediri"
+        value={v("editionName")}
+        disabled={!isBlockActive("oplah")}
+      />
+      <span class="form-hint">Nama atau nomor edisi terbit</span>
+      <FormError message={errors.editionName} />
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="f-source">Kanal Distribusi <span class="req">*</span></label>
       <select class="form-control" id="f-source" name="source" disabled={!isBlockActive("oplah")}>
-        <option value="">-- Pilih Sumber Oplah --</option>
+        <option value="">-- Pilih Kanal Distribusi --</option>
         {oplahSources.map((s) => (
           <option value={s} selected={v("source") === s}>{s}</option>
         ))}
       </select>
-      <span class="form-hint">Kategori jalur distribusi koran</span>
+      <span class="form-hint">Jalur peredaran / agen sasaran</span>
       <FormError message={errors.source} />
     </div>
 
     <div class="form-group">
-      <label class="form-label" for="f-sourceName">Nama Agen / Loper / Pembaca <span class="req">*</span></label>
+      <label class="form-label" for="f-sourceName">Nama Agen / Mitra Penerima <span class="req">*</span></label>
       <input
         class="form-control"
         id="f-sourceName"
@@ -68,9 +84,11 @@ const isNoActive = activeType === "outcome" && v("outcome") === "no";
       <span class="form-hint">Nama entitas penerima koran</span>
       <FormError message={errors.sourceName} />
     </div>
+  </div>
 
+  <div class="dynamic-grid-3" style="margin-top: 1rem;">
     <div class="form-group">
-      <label class="form-label" for="f-qty">Jumlah Eksemplar <span class="req">*</span></label>
+      <label class="form-label" for="f-qty">Eksemplar Dikirim <span class="req">*</span></label>
       <input
         class="form-control"
         id="f-qty"
@@ -82,11 +100,85 @@ const isNoActive = activeType === "outcome" && v("outcome") === "no";
         value={v("qty")}
         disabled={!isBlockActive("oplah")}
       />
-      <span class="form-hint">Total eksemplar koran terkirim</span>
+      <span class="form-hint">Total koran yang didistribusikan</span>
       <FormError message={errors.qty} />
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="f-returnQty">Eksemplar Retur</label>
+      <input
+        class="form-control"
+        id="f-returnQty"
+        name="returnQty"
+        type="number"
+        min="0"
+        step="1"
+        placeholder="0 jika tidak ada retur"
+        value={v("returnQty") || "0"}
+        disabled={!isBlockActive("oplah")}
+      />
+      <span class="form-hint">Koran kembali tidak laku</span>
+      <FormError message={errors.returnQty} />
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="f-returnCondition">Kondisi Retur</label>
+      <select class="form-control" id="f-returnCondition" name="returnCondition" disabled={!isBlockActive("oplah")}>
+        <option value="layak_stok" selected={v("returnCondition") !== "rusak"}>Layak Stok Gudang</option>
+        <option value="rusak" selected={v("returnCondition") === "rusak"}>Rusak / Afkir</option>
+      </select>
+      <span class="form-hint">Kelayakan koran retur untuk arsip</span>
+      <FormError message={errors.returnCondition} />
+    </div>
+  </div>
+
+  <!-- Box Rekonsiliasi Otomatis (Live Preview Terjual) -->
+  <div class="oplah-reconcile-card" id="oplah-reconcile-card" style="margin-top: 1rem; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 0.75rem 1rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+    <div>
+      <span style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: #166534; letter-spacing: 0.05em;">Hasil Rekonsiliasi Sirkulasi:</span>
+      <div style="font-size: 0.9375rem; font-weight: 700; color: #14532d;" id="oplah-calc-text">
+        Eksemplar Terjual (Laku): <span id="oplah-sold-val">0</span> eksemplar (<span id="oplah-sold-pct">100%</span>)
+      </div>
+    </div>
+    <div style="font-size: 0.8125rem; color: #15803d; font-weight: 500;" id="oplah-return-note">
+      Retur: <span id="oplah-return-pct">0%</span>
     </div>
   </div>
 </div>
+
+<script>
+  function setupOplahCalc() {
+    const qtyInput = document.getElementById("f-qty") as HTMLInputElement | null;
+    const returnInput = document.getElementById("f-returnQty") as HTMLInputElement | null;
+    const soldVal = document.getElementById("oplah-sold-val");
+    const soldPct = document.getElementById("oplah-sold-pct");
+    const returnPct = document.getElementById("oplah-return-pct");
+
+    function recalc() {
+      if (!qtyInput || !returnInput || !soldVal || !soldPct || !returnPct) return;
+      const q = Math.max(0, parseInt(qtyInput.value) || 0);
+      const r = Math.max(0, parseInt(returnInput.value) || 0);
+      const sold = Math.max(0, q - r);
+      soldVal.textContent = sold.toLocaleString("id-ID");
+      if (q > 0) {
+        const sPercent = Math.round((sold / q) * 100);
+        const rPercent = Math.round((r / q) * 100);
+        soldPct.textContent = `${sPercent}%`;
+        returnPct.textContent = `${rPercent}% (${r.toLocaleString("id-ID")} eks)`;
+      } else {
+        soldPct.textContent = "100%";
+        returnPct.textContent = "0%";
+      }
+    }
+
+    if (qtyInput) qtyInput.addEventListener("input", recalc);
+    if (returnInput) returnInput.addEventListener("input", recalc);
+    recalc();
+  }
+
+  document.addEventListener("DOMContentLoaded", setupOplahCalc);
+  setupOplahCalc();
+</script>
 
 <!-- 2. KLIEN BARU -->
 <div
@@ -185,8 +277,8 @@ const isNoActive = activeType === "outcome" && v("outcome") === "no";
   style={!isBlockActive("offer") ? "display: none;" : "display: block;"}
 >
   <div class="dynamic-block-header">
-    <div class="block-title">Rincian Proposal Penawaran Iklan</div>
-    <div class="block-kpi-tag">Indikator: IND-03 (Penawaran Dikirim)</div>
+    <div class="block-title">Rincian Proposal Kerja Sama &amp; Iklan</div>
+    <div class="block-kpi-tag">Indikator: IND-03 (Penawaran Dikirim) &amp; IND-05 (Omzet)</div>
   </div>
   <div class="dynamic-grid-2">
     <div class="form-group full-col">
@@ -204,13 +296,13 @@ const isNoActive = activeType === "outcome" && v("outcome") === "no";
     </div>
 
     <div class="form-group">
-      <label class="form-label" for="f-offer-program">Nama Paket Penawaran <span class="req">*</span></label>
+      <label class="form-label" for="f-offer-program">Nama Paket / Program Iklan <span class="req">*</span></label>
       <input
         class="form-control"
         id="f-offer-program"
         name="programName"
         type="text"
-        placeholder="Contoh: Paket Advertorial Liputan Program Pemkot 1 Hal FC"
+        placeholder="Contoh: Paket Advertorial Liputan Pemkot 1 Hal FC"
         value={v("programName")}
         disabled={!isBlockActive("offer")}
       />
@@ -219,23 +311,150 @@ const isNoActive = activeType === "outcome" && v("outcome") === "no";
     </div>
 
     <div class="form-group">
-      <label class="form-label" for="f-offer-value">Nilai Penawaran (Rp) <span class="req">*</span></label>
+      <label class="form-label" for="f-partnership-type">Jenis Kerja Sama <span class="req">*</span></label>
+      <select class="form-control" id="f-partnership-type" name="partnershipType" disabled={!isBlockActive("offer")}>
+        <option value="tunai" selected={v("partnershipType") === "tunai" || !v("partnershipType")}>Tunai (Uang Kas Penuh)</option>
+        <option value="barter" selected={v("partnershipType") === "barter"}>Barter (Barang / Jasa Penuh)</option>
+        <option value="hybrid" selected={v("partnershipType") === "hybrid"}>Hybrid (Kombinasi Tunai + Barter)</option>
+      </select>
+      <span class="form-hint">Model kesepakatan komersial dengan klien</span>
+      <FormError message={errors.partnershipType} />
+    </div>
+
+    <!-- Porsi Tunai (Kas) -->
+    <div class="form-group" id="wrap-cash-val">
+      <label class="form-label" for="f-cash-value">Porsi Nilai Tunai / Kas (Rp) <span class="req">*</span></label>
       <input
         class="form-control"
-        id="f-offer-value"
-        name="value"
+        id="f-cash-value"
+        name="cashValue"
         type="number"
-        min="1"
+        min="0"
         step="1000"
-        placeholder="Contoh: 15000000"
-        value={v("value")}
+        placeholder="Contoh: 10000000"
+        value={v("cashValue") || (v("partnershipType") !== "barter" ? v("value") : "0")}
         disabled={!isBlockActive("offer")}
       />
-      <span class="form-hint">Nominal proposal dalam Rupiah (tanpa titik)</span>
-      <FormError message={errors.value} />
+      <span class="form-hint">Uang kas nyata yang dibayarkan pengiklan</span>
+      <FormError message={errors.cashValue} />
+    </div>
+
+    <!-- Porsi Barter -->
+    <div class="form-group" id="wrap-barter-val">
+      <label class="form-label" for="f-barter-value">Porsi Nilai Barter (Rp)</label>
+      <input
+        class="form-control"
+        id="f-barter-value"
+        name="barterValue"
+        type="number"
+        min="0"
+        step="1000"
+        placeholder="0 jika murni tunai"
+        value={v("barterValue") || (v("partnershipType") === "barter" ? v("value") : "0")}
+        disabled={!isBlockActive("offer")}
+      />
+      <span class="form-hint">Estimasi nilai wajar produk/jasa yang dibarter</span>
+      <FormError message={errors.barterValue} />
+    </div>
+
+    <!-- Rincian Barter (Muncul jika Barter atau Hybrid) -->
+    <div class="form-group full-col" id="wrap-barter-desc">
+      <div style="display: grid; grid-template-columns: 180px 1fr; gap: 0.75rem;">
+        <div>
+          <label class="form-label" for="f-barter-type">Bentuk Barter</label>
+          <select class="form-control" id="f-barter-type" name="barterType" disabled={!isBlockActive("offer")}>
+            <option value="barang" selected={v("barterType") !== "jasa"}>Barter Barang / Produk</option>
+            <option value="jasa" selected={v("barterType") === "jasa"}>Barter Jasa / Layanan</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label" for="f-barter-desc">Rincian Barang / Layanan Barter</label>
+          <input
+            class="form-control"
+            id="f-barter-desc"
+            name="barterDesc"
+            type="text"
+            placeholder="Contoh: 5 Voucher Menginap Hotel Grand Surya @ Rp500.000"
+            value={v("barterDesc")}
+            disabled={!isBlockActive("offer")}
+          />
+        </div>
+      </div>
+      <span class="form-hint">Wajib diisi jika ada porsi barter untuk keperluan rekonsiliasi</span>
+      <FormError message={errors.barterDesc} />
+    </div>
+
+    <input type="hidden" id="f-offer-value" name="value" value={v("value") || "0"} />
+  </div>
+
+  <!-- Live Card Total Komersial & Pemisahan Arus -->
+  <div style="margin-top: 1rem; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 0.75rem 1rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+    <div>
+      <span style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: #1e40af; letter-spacing: 0.05em;">Total Nilai Komersial:</span>
+      <div style="font-size: 1.05rem; font-weight: 700; color: #1e3a8a;" id="offer-total-display">
+        Rp 0
+      </div>
+    </div>
+    <div style="font-size: 0.8125rem; color: #1d4ed8; font-weight: 500;" id="offer-breakdown-note">
+      Kas Tunai: Rp 0 (0%) · Barter: Rp 0 (0%)
     </div>
   </div>
 </div>
+
+<script>
+  function setupOfferCalc() {
+    const typeSelect = document.getElementById("f-partnership-type") as HTMLSelectElement | null;
+    const cashInput = document.getElementById("f-cash-value") as HTMLInputElement | null;
+    const barterInput = document.getElementById("f-barter-value") as HTMLInputElement | null;
+    const hiddenValue = document.getElementById("f-offer-value") as HTMLInputElement | null;
+    const totalDisplay = document.getElementById("offer-total-display");
+    const breakdownNote = document.getElementById("offer-breakdown-note");
+    const wrapBarterDesc = document.getElementById("wrap-barter-desc");
+    const wrapCashVal = document.getElementById("wrap-cash-val");
+    const wrapBarterVal = document.getElementById("wrap-barter-val");
+
+    function updateVisibility() {
+      if (!typeSelect) return;
+      const t = typeSelect.value;
+      if (wrapBarterDesc) {
+        wrapBarterDesc.style.display = t === "tunai" ? "none" : "block";
+      }
+      if (wrapBarterVal) {
+        wrapBarterVal.style.display = t === "tunai" ? "none" : "block";
+      }
+      if (wrapCashVal) {
+        wrapCashVal.style.display = t === "barter" ? "none" : "block";
+      }
+      if (t === "tunai" && barterInput) barterInput.value = "0";
+      if (t === "barter" && cashInput) cashInput.value = "0";
+      recalcOffer();
+    }
+
+    function recalcOffer() {
+      if (!cashInput || !barterInput || !totalDisplay || !breakdownNote) return;
+      const c = Math.max(0, parseInt(cashInput.value) || 0);
+      const b = Math.max(0, parseInt(barterInput.value) || 0);
+      const total = c + b;
+      if (hiddenValue) hiddenValue.value = String(total);
+      totalDisplay.textContent = `Rp ${total.toLocaleString("id-ID")}`;
+      if (total > 0) {
+        const cPct = Math.round((c / total) * 100);
+        const bPct = Math.round((b / total) * 100);
+        breakdownNote.textContent = `Kas Tunai: Rp ${c.toLocaleString("id-ID")} (${cPct}%) · Barter: Rp ${b.toLocaleString("id-ID")} (${bPct}%)`;
+      } else {
+        breakdownNote.textContent = `Kas Tunai: Rp 0 (0%) · Barter: Rp 0 (0%)`;
+      }
+    }
+
+    if (typeSelect) typeSelect.addEventListener("change", updateVisibility);
+    if (cashInput) cashInput.addEventListener("input", recalcOffer);
+    if (barterInput) barterInput.addEventListener("input", recalcOffer);
+    updateVisibility();
+  }
+
+  document.addEventListener("DOMContentLoaded", setupOfferCalc);
+  setupOfferCalc();
+</script>
 
 <!-- 4. PROGRES KUNJUNGAN -->
 <div

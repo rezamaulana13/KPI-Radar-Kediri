@@ -4,6 +4,8 @@ import PageHeader from "../../../components/layout/PageHeader.astro";
 import Alert from "../../../components/ui/Alert.astro";
 import FormError from "../../../components/ui/FormError.astro";
 import { db } from "../../../lib/data/store";
+import { ENABLE_SPK } from "../../../lib/config";
+if (!ENABLE_SPK) return Astro.redirect("/hrd/kpi/achievements");
 const sp = Astro.url.searchParams;
 const err = sp.get("error"); const saved = sp.get("saved");
 ---

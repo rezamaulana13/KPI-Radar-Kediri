@@ -5,22 +5,99 @@ import DataTable from "../../../../components/ui/DataTable.astro";
 import Alert from "../../../../components/ui/Alert.astro";
 import { achievements, contribution } from "../../../../features/kpi/achievements";
 import { db, divisionName, employeeName } from "../../../../lib/data/store";
-import { num, pct, SCOPE_LABEL, TYPE_LABEL } from "../../../../lib/formatters";
+import { num, pct, rupiah, SCOPE_LABEL, TYPE_LABEL } from "../../../../lib/formatters";
+
 const t = db.targets.find((x) => x.id === Astro.params.id);
 if (!t) return new Response(null, { status: 404 });
+
 const r = achievements(t.periodId).find((x) => x.target.id === t.id)!;
-const subject = t.scope === "company" ? "Seluruh perusahaan" : t.scope === "division" ? divisionName(t.divisionId) : employeeName(t.employeeId);
-const rows = r.sources.map((a) => ({ ...a, owner: employeeName(a.ownerId), typeLabel: TYPE_LABEL[a.type], contrib: contribution(a, r.indicator.id) }));
+const subject = t.scope === "company" ? "Seluruh perusahaan" : t.scope === "division" ? (divisionName(t.divisionId) || "Divisi Pemasaran & Sirkulasi") : (employeeName(t.employeeId) || "Staf Pemasaran");
+
+const isCurrency = r.indicator.unit === "Rp" || r.indicator.unit.toLowerCase().includes("rupiah");
+const formatVal = (v: number | null | undefined) => {
+  if (v == null) return "—";
+  return isCurrency ? rupiah(v) : `${num(v)} ${r.indicator.unit}`;
+};
+
+const rows = r.sources.map((a) => {
+  const contrib = contribution(a, r.indicator.id);
+  let contribText = formatVal(contrib);
+  if (a.type === "outcome" && a.outcome === "deal") {
+    if (r.indicator.id === "IND-05") {
+      contribText = `Kas: ${rupiah(a.cashValue != null ? a.cashValue : (a.value || 0))}`;
+    } else if (r.indicator.id === "IND-07") {
+      contribText = `Barter: ${rupiah(a.barterValue != null ? a.barterValue : 0)}`;
+    }
+  } else if (a.type === "oplah") {
+    contribText = `${num(a.soldQty ?? a.qty)} eks terjual (Kirim: ${num(a.qty)}, Retur: ${num(a.returnQty ?? 0)})`;
+  }
+
+  return {
+    ...a,
+    owner: employeeName(a.ownerId),
+    typeLabel: TYPE_LABEL[a.type] || a.type,
+    contribText,
+  };
+});
 ---
+
 <DashboardLayout title={`Sumber ${r.indicator.name}`}>
-  <PageHeader title={r.indicator.name} description={`${SCOPE_LABEL[t.scope]} · ${subject}`} crumbs={[{ label: "HRD" }, { label: "Realisasi KPI", href: "/hrd/kpi/achievements" }]} />
-  <div class="stat-grid">
-    <div class="stat"><div class="stat-label">Target</div><div class="stat-value">{num(t.value)}</div><div class="stat-note">{r.indicator.unit}</div></div>
-    <div class="stat ok"><div class="stat-label">Realisasi</div><div class="stat-value">{r.actual == null ? "—" : num(r.actual)}</div><div class="stat-note">{r.sources.length} aktivitas disetujui</div></div>
-    <div class="stat"><div class="stat-label">Capaian</div><div class="stat-value">{pct(r.percent)}</div></div>
+  <PageHeader
+    title={r.indicator.name}
+    description={`${SCOPE_LABEL[t.scope]} · ${subject} · ${r.indicator.definition}`}
+    crumbs={[
+      { label: "Admin Pemasaran" },
+      { label: "Realisasi KPI", href: "/hrd/kpi/achievements" },
+      { label: r.indicator.code }
+    ]}
+  />
+
+  <div class="stat-grid" style="margin-bottom: 1.5rem;">
+    <div class="stat">
+      <div class="stat-label">Target Ditetapkan</div>
+      <div class="stat-value">{formatVal(t.value)}</div>
+      <div class="stat-note">Satuan: {r.indicator.unit}</div>
+    </div>
+    <div class="stat ok">
+      <div class="stat-label">Realisasi Lapangan</div>
+      <div class="stat-value">{r.actual == null ? "—" : formatVal(r.actual)}</div>
+      <div class="stat-note">{r.sources.length} aktivitas terverifikasi HRD</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Capaian Progres</div>
+      <div class="stat-value">{pct(r.percent)}</div>
+      <div class="stat-note">{r.percent != null && r.percent >= 100 ? "Target Terpenuhi" : "Sedang Berjalan"}</div>
+    </div>
   </div>
-  {!r.mapped && <Alert tone="warning" title="Indikator ini tidak punya mapping aktivitas">Realisasi tidak dihitung otomatis dan perlu diisi manual oleh HRD.</Alert>}
-  <section class="card"><div class="card-head"><h2>Aktivitas sumber</h2></div>
-    <DataTable caption="Aktivitas sumber" columns={[{ key: "id", label: "ID", type: "mono" }, { key: "date", label: "Tanggal", type: "date" }, { key: "typeLabel", label: "Jenis" }, { key: "owner", label: "Pemilik" }, { key: "description", label: "Deskripsi" }, { key: "contrib", label: "Kontribusi", type: "number" }]} rows={rows} emptyTitle="Belum ada aktivitas sumber" emptyHint="Belum ada aktivitas disetujui yang cocok dengan cakupan target ini." />
+
+  {!r.mapped && (
+    <Alert tone="warning" title="Indikator ini tidak punya mapping otomatis">
+      Realisasi tidak dihitung otomatis dari log aktivitas harian dan perlu diisi manual oleh verifikator.
+    </Alert>
+  )}
+
+  <section class="card">
+    <div class="card-head">
+      <div>
+        <h2 style="font-size: 1.15rem; margin: 0 0 0.2rem;">Rincian Log Aktivitas Sumber Realisasi</h2>
+        <p class="muted font-xs" style="margin: 0;">Setiap aktivitas di bawah ini telah disetujui verifikator dan mengakumulasi capaian target.</p>
+      </div>
+      <span class="badge badge-info">{rows.length} Aktivitas Berkontribusi</span>
+    </div>
+
+    <DataTable
+      caption="Aktivitas sumber"
+      columns={[
+        { key: "id", label: "ID Log", type: "mono" },
+        { key: "date", label: "Tanggal", type: "date" },
+        { key: "typeLabel", label: "Kategori" },
+        { key: "owner", label: "Pelaksana" },
+        { key: "description", label: "Deskripsi Kegiatan" },
+        { key: "contribText", label: "Kontribusi Terhadap KPI" }
+      ]}
+      rows={rows}
+      emptyTitle="Belum ada aktivitas sumber"
+      emptyHint="Belum ada aktivitas disetujui yang cocok dengan cakupan target ini pada periode aktif."
+    />
   </section>
 </DashboardLayout>

@@ -1,6 +1,8 @@
 export type Role = "admin" | "hrd" | "employee";
 export type ActivityStatus = "pending" | "approved" | "rejected" | "revision";
 export type ActivityType = "oplah" | "client" | "program" | "profiling" | "offer" | "progress" | "outcome";
+export type PartnershipType = "tunai" | "barter" | "hybrid";
+export type BarterType = "barang" | "jasa";
 export type KpiScope = "company" | "division" | "individual";
 export type Measure = "sum" | "count";
 export type Direction = "benefit" | "cost";
@@ -29,10 +31,17 @@ export interface Activity {
   description: string; status: ActivityStatus; clientId?: string; offerId?: string; programId?: string;
   qty?: number; value?: number; source?: string; sourceName?: string; progressType?: string;
   outcome?: "deal" | "no"; reasonCategory?: string; reason?: string; potential?: string; evidence?: string;
+  returnQty?: number; soldQty?: number; returnCondition?: "layak_stok" | "rusak"; editionName?: string;
+  partnershipType?: PartnershipType; cashValue?: number; barterValue?: number; barterType?: BarterType;
+  barterDesc?: string; realizationStatus?: "rencana" | "sebagian" | "selesai"; proofUrl?: string;
   createdAt?: string;
 }
 export interface Verification { id: string; activityId: string; status: ActivityStatus; by: string; at: string; note: string }
-export interface Offer { id: string; clientId: string; programName: string; ownerId: string; date: string; value: number; periodId: string; note: string }
+export interface Offer {
+  id: string; clientId: string; programName: string; ownerId: string; date: string; value: number; periodId: string; note: string;
+  partnershipType?: PartnershipType; cashValue?: number; barterValue?: number; barterType?: BarterType;
+  barterDesc?: string; realizationStatus?: "rencana" | "sebagian" | "selesai"; proofUrl?: string;
+}
 export interface Program { id: string; name: string; kind: "program" | "barter"; start: string; end: string; ownerId: string; participantClientIds: string[]; value: number; status: "rencana" | "berjalan" | "selesai" }
 export interface AuditLog { id: string; at: string; actorId: string; action: string; entity: string; entityId: string; detail: string }
 export interface SpkCriterion { id: string; indicatorId?: string; code: string; name: string; direction: Direction; weight: number; source: string }

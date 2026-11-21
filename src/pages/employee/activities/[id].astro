@@ -29,10 +29,48 @@ const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
       <section class="card"><div class="card-head"><h2>Data aktivitas</h2><Badge status={a.status} /></div><div class="card-body">
         <ActivityDetail activity={a} />
         {editable && (
-          <form method="post" action={`/api/activities/${a.id}`} class="mt-4"><fieldset><legend>Perbaiki dan ajukan kembali</legend>
-            <div class="field"><label for="description">Deskripsi</label><textarea class="textarea" id="description" name="description">{st.values.description ?? a.description}</textarea><FormError message={st.fields.description} /></div>
-            {a.type === "oplah" && <div class="field"><label for="qty">Jumlah (eksemplar)</label><input class="input" id="qty" name="qty" type="number" min="1" value={st.values.qty ?? a.qty} /></div>}
-          </fieldset><button class="btn btn-primary" type="submit">Ajukan kembali</button></form>
+          <form method="post" action={`/api/activities/${a.id}`} class="mt-4">
+            <fieldset>
+              <legend>Perbaiki dan Ajukan Kembali</legend>
+              <div class="field">
+                <label for="description">Deskripsi Pekerjaan</label>
+                <textarea class="textarea" id="description" name="description">{st.values.description ?? a.description}</textarea>
+                <FormError message={st.fields.description} />
+              </div>
+
+              {a.type === "oplah" && (
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:0.75rem;">
+                  <div class="field">
+                    <label for="qty">Eksemplar Dikirim</label>
+                    <input class="input" id="qty" name="qty" type="number" min="1" value={st.values.qty ?? a.qty} />
+                  </div>
+                  <div class="field">
+                    <label for="returnQty">Eksemplar Retur</label>
+                    <input class="input" id="returnQty" name="returnQty" type="number" min="0" value={st.values.returnQty ?? a.returnQty ?? 0} />
+                  </div>
+                </div>
+              )}
+
+              {(a.type === "offer" || a.type === "outcome") && (
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:0.75rem;">
+                  <div class="field">
+                    <label for="cashValue">Porsi Kas Tunai (Rp)</label>
+                    <input class="input" id="cashValue" name="cashValue" type="number" min="0" value={st.values.cashValue ?? a.cashValue ?? 0} />
+                  </div>
+                  <div class="field">
+                    <label for="barterValue">Nilai Barter (Rp)</label>
+                    <input class="input" id="barterValue" name="barterValue" type="number" min="0" value={st.values.barterValue ?? a.barterValue ?? 0} />
+                  </div>
+                </div>
+              )}
+
+              <div class="field">
+                <label for="proofUrl">Link Bukti Perbaikan / Nota / Foto (Opsional)</label>
+                <input class="input" id="proofUrl" name="proofUrl" type="url" placeholder="https://..." value={st.values.proofUrl ?? a.proofUrl ?? ""} />
+              </div>
+            </fieldset>
+            <button class="btn btn-primary" type="submit" style="margin-top:0.75rem;">Ajukan Kembali ke HRD</button>
+          </form>
         )}
         {a.status === "pending" && (
           <form method="post" action="/api/activities/delete" class="mt-4" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan dan menghapus laporan yang belum diperiksa ini?');">

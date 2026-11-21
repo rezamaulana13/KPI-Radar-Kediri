@@ -20,86 +20,213 @@ const check = canVerify(u, a, db.employees);
 const st = takeFormState(Astro.cookies, Astro.url);
 const hist = historyOf(a.id);
 
-// Proyeksi kontribusi aktivitas ke indikator KPI
-const m = mappings.find((x) => x.activityType === a.type && (!x.outcome || x.outcome === a.outcome));
-const ind = m ? indicators.find((i) => i.id === m.indicatorId) : null;
-const projVal = ind ? contribution(a, ind.id) : null;
+// Proyeksi seluruh kontribusi aktivitas ke indikator KPI (bisa lebih dari satu, misal: kas tunai + barter + deal count)
+const matchingMappings = mappings.filter((x) => x.activityType === a.type && (!x.outcome || x.outcome === a.outcome));
+const projections = matchingMappings
+  .map((m) => {
+    const ind = indicators.find((i) => i.id === m.indicatorId);
+    const val = ind ? contribution(a, ind.id) : null;
+    return { m, ind, val };
+  })
+  .filter((p) => p.ind && p.val !== null && p.val > 0);
 ---
-<DashboardLayout title={`Verifikasi ${a.id}`}>
-  <PageHeader title={`Verifikasi ${a.id}`} description="Periksa data aktivitas, lalu setujui, minta revisi, atau tolak." crumbs={[{ label: "HRD" }, { label: "Verifikasi", href: "/hrd/verifications" }]} />
-  {st.error && <Alert tone="danger" title="Keputusan belum tersimpan">{st.error}</Alert>}
-  {!check.ok && <Alert tone="warning" title="Anda tidak dapat memverifikasi aktivitas ini">{check.reason}</Alert>}
+
+<DashboardLayout title={`Verifikasi Berkas ${a.id}`}>
+  <PageHeader
+    title={`Verifikasi Berkas ${a.id}`}
+    description="Periksa bukti fisik dan keabsahan laporan lapangan, lalu tetapkan persetujuan, permintaan revisi, atau penolakan."
+    crumbs={[
+      { label: "Admin Pemasaran" },
+      { label: "Antrean Verifikasi", href: "/hrd/verifications" },
+      { label: a.id }
+    ]}
+  />
+
+  {st.error && <Alert tone="danger" title="Keputusan Belum Tersimpan">{st.error}</Alert>}
+  {!check.ok && <Alert tone="warning" title="Anda Tidak Memiliki Hak Memverifikasi">{check.reason}</Alert>}
+
   <div class="grid-3-1">
-    <section class="card"><div class="card-head"><h2>Data aktivitas</h2><Badge status={a.status} /></div><div class="card-body"><ActivityDetail activity={a} /></div></section>
+    <!-- Kolom Kiri: Rincian Lengkap Data Aktivitas -->
+    <section class="card">
+      <div class="card-head">
+        <h2>Rincian Berkas Laporan Lapangan</h2>
+        <Badge status={a.status} />
+      </div>
+      <div class="card-body">
+        <ActivityDetail activity={a} />
+      </div>
+    </section>
+
+    <!-- Kolom Kanan: Proyeksi KPI & Panel Keputusan Verifikator -->
     <div class="stack">
-      {ind ? (
+      {projections.length > 0 ? (
         <section class="card" style="background:#f0fdf4;border-color:#bbf7d0;">
           <div class="card-head" style="border-bottom-color:#bbf7d0;">
-            <h3 style="font-size:0.95rem;color:#166534;margin:0;">Proyeksi Kontribusi KPI</h3>
-            <span class="badge badge-success">Terpetakan</span>
+            <h3 style="font-size:0.95rem;color:#166534;margin:0;">Proyeksi Akumulasi KPI</h3>
+            <span class="badge badge-success">Terpetakan Otomatis</span>
           </div>
-          <div class="card-body" style="font-size:var(--text-sm);color:#14532d;">
-            <p style="margin:0 0 0.35rem;">
-              Jika disetujui, akan menambah realisasi <strong>{ind.name} ({ind.code})</strong>:
+          <div class="card-body" style="font-size:var(--text-sm);color:#14532d;display:flex;flex-direction:column;gap:0.75rem;">
+            <p style="margin:0;font-size:0.8rem;color:#166534;">
+              Jika laporan ini <strong>Disetujui</strong>, nilai realisasi berikut akan dihitung ke rapor KPI:
             </p>
-            <div style="font-size:1.25rem;font-weight:700;color:#0f5a2b;margin-bottom:0.25rem;">
-              +{projVal !== null ? (ind.unit === "Rp" ? rupiah(projVal) : `${num(projVal)} ${ind.unit}`) : "—"}
-            </div>
-            <span class="muted text-xs" style="color:#15803d;">Mapping: {m?.note}</span>
+            {projections.map((p) => (
+              <div style="background:#ffffff;border:1px solid #bbf7d0;border-radius:var(--radius-sm);padding:0.65rem 0.85rem;">
+                <div style="font-size:0.8rem;font-weight:700;color:#166534;">
+                  {p.ind!.name} <span class="mono" style="font-size:0.7rem;background:#dcfce7;padding:0.1rem 0.35rem;border-radius:4px;">{p.ind!.code}</span>
+                </div>
+                <div style="font-size:1.15rem;font-weight:800;color:#0f5a2b;margin:0.2rem 0;">
+                  +{p.ind!.unit === "Rp" ? rupiah(p.val) : `${num(p.val)} ${p.ind!.unit}`}
+                </div>
+                <div style="font-size:0.7rem;color:#15803d;">
+                  {p.m.note}
+                </div>
+              </div>
+            ))}
           </div>
         </section>
       ) : (
         <section class="card" style="background:#fffbeb;border-color:#fde68a;">
           <div class="card-head" style="border-bottom-color:#fde68a;">
-            <h3 style="font-size:0.95rem;color:#92400e;margin:0;">Status Mapping KPI</h3>
-            <span class="badge badge-pending">Manual</span>
+            <h3 style="font-size:0.95rem;color:#92400e;margin:0;">Status Pemetaan KPI</h3>
+            <span class="badge badge-pending">Non-KPI / Manual</span>
           </div>
-          <div class="card-body" style="font-size:var(--text-xs);color:#78350f;">
-            Aktivitas jenis ini belum terpetakan otomatis ke KPI. Persetujuan tetap dicatat sah pada audit sistem.
+          <div class="card-body" style="font-size:var(--text-xs);color:#78350f;line-height:1.5;">
+            Aktivitas jenis ini belum memiliki rumus akumulasi otomatis ke indikator KPI. Keputusan persetujuan tetap dicatat sah di audit trail sistem dan rekapitulasi operasional.
           </div>
         </section>
       )}
 
+      <!-- Panel Keputusan Admin Pemasaran -->
       {check.ok && (
-        <section class="card"><div class="card-head"><h2>Keputusan HRD</h2></div><div class="card-body">
-          <form method="post" action={`/api/verifications/${a.id}`} id="vform">
-            <div class="field"><label for="note">Catatan pemeriksaan</label><textarea class="textarea" id="note" name="note" aria-invalid={st.fields.note ? "true" : undefined} placeholder="Tuliskan alasan jika meminta revisi atau menolak...">{st.values.note ?? ""}</textarea><span class="hint">Wajib diisi saat meminta revisi atau menolak.</span><FormError message={st.fields.note} /></div>
-            <div class="stack" style="gap:0.6rem;">
-              <button class="btn btn-primary" style="width:100%;justify-content:center;background:#16a34a;border-color:#16a34a;font-weight:600;" name="status" value="approved" type="button" data-confirm-open="dlg-approve">
-                {a.type === "offer" ? "Setujui (Deal Iklan Sah)" : "Setujui Laporan (Valid)"}
-              </button>
-              <button class="btn btn-warn" style="width:100%;justify-content:center;font-weight:600;" name="status" value="revision" type="submit">
-                Minta Perbaikan / Revisi Bukti
-              </button>
-              <button class="btn btn-danger" style="width:100%;justify-content:center;font-weight:600;" name="status" value="rejected" type="button" data-confirm-open="dlg-reject">
-                {a.type === "offer" ? "Tolak (Penawaran Batal / NO)" : "Tolak Laporan (Tidak Valid)"}
-              </button>
-            </div>
-          </form>
+        <section class="card">
+          <div class="card-head">
+            <h2>Keputusan Verifikator</h2>
+          </div>
+          <div class="card-body">
+            <form method="post" action={`/api/verifications/${a.id}`} id="vform">
+              <div class="field">
+                <label for="note">Catatan Pemeriksaan / Alasan</label>
+                <textarea
+                  class="textarea"
+                  id="note"
+                  name="note"
+                  aria-invalid={st.fields.note ? "true" : undefined}
+                  placeholder="Wajib diisi jika meminta revisi atau menolak (misal: nota kurang jelas, oplah retur belum dilampirkan, bukti muat belum terbit)..."
+                >{st.values.note ?? ""}</textarea>
+                <span class="hint">Wajib diisi saat meminta revisi perbaikan atau menolak.</span>
+                <FormError message={st.fields.note} />
+              </div>
 
-          <form method="post" action="/api/activities/delete" style="margin-top:0.75rem;" onsubmit="return confirm('PERINGATAN: Apakah Anda yakin ingin menghapus data laporan ini secara permanen dari sistem dan database Supabase? Tindakan ini tidak dapat dibatalkan.');">
-            <input type="hidden" name="activityId" value={a.id} />
-            <input type="hidden" name="back" value="/hrd/verifications" />
-            <button type="submit" class="btn btn-secondary btn-sm" style="width:100%;justify-content:center;color:#dc2626;border-color:#fca5a5;">
-              <Icon name="trash" size={14} />
-              <span>Hapus Laporan Ini (Permanen)</span>
-            </button>
-          </form>
-        </div></section>
+              <div class="stack" style="gap:0.6rem;margin-top:1rem;">
+                <button
+                  class="btn btn-primary"
+                  style="width:100%;justify-content:center;background:#16a34a;border-color:#16a34a;font-weight:700;"
+                  name="status"
+                  value="approved"
+                  type="button"
+                  data-confirm-open="dlg-approve"
+                >
+                  <Icon name="check" size={16} />
+                  <span>{a.type === "offer" ? "Setujui (Deal Iklan Sah)" : a.type === "oplah" ? "Setujui Sirkulasi Oplah" : "Setujui Laporan (Valid)"}</span>
+                </button>
+
+                <button
+                  class="btn btn-warn"
+                  style="width:100%;justify-content:center;font-weight:700;"
+                  name="status"
+                  value="revision"
+                  type="submit"
+                >
+                  <Icon name="pencil" size={16} />
+                  <span>Minta Perbaikan / Revisi Bukti</span>
+                </button>
+
+                <button
+                  class="btn btn-danger"
+                  style="width:100%;justify-content:center;font-weight:700;"
+                  name="status"
+                  value="rejected"
+                  type="button"
+                  data-confirm-open="dlg-reject"
+                >
+                  <Icon name="logout" size={16} />
+                  <span>{a.type === "offer" ? "Tolak (Penawaran Batal / NO)" : "Tolak Laporan (Tidak Sah)"}</span>
+                </button>
+              </div>
+            </form>
+
+            <form
+              method="post"
+              action="/api/activities/delete"
+              style="margin-top:1.25rem;border-top:1px dashed var(--color-border);padding-top:1rem;"
+              onsubmit="return confirm('PERINGATAN: Apakah Anda yakin ingin menghapus data laporan ini secara permanen dari sistem dan database Supabase? Tindakan ini tidak dapat dibatalkan.');"
+            >
+              <input type="hidden" name="activityId" value={a.id} />
+              <input type="hidden" name="back" value="/hrd/verifications" />
+              <button
+                type="submit"
+                class="btn btn-secondary btn-sm"
+                style="width:100%;justify-content:center;color:#dc2626;border-color:#fca5a5;"
+              >
+                <Icon name="trash" size={14} />
+                <span>Hapus Laporan Ini (Permanen)</span>
+              </button>
+            </form>
+          </div>
+        </section>
       )}
-      <section class="card"><div class="card-head"><h2>Riwayat verifikasi</h2></div><div class="card-body">
-        {hist.length === 0 ? <p class="muted mb-0">Belum ada riwayat.</p> : <ol class="timeline">{hist.map((h) => <li><Badge status={h.status} /> <span class="text-xs muted">{dateTimeID(h.at)} · {employeeName(h.by)}</span><p class="text-sm mb-0">{h.note}</p></li>)}</ol>}
-      </div></section>
+
+      <!-- Riwayat Audit Log Verifikasi -->
+      <section class="card">
+        <div class="card-head">
+          <h2>Riwayat Pemeriksaan</h2>
+        </div>
+        <div class="card-body">
+          {hist.length === 0 ? (
+            <p class="muted mb-0" style="font-size:var(--text-sm);">Belum ada riwayat pemeriksaan sebelumnya.</p>
+          ) : (
+            <ol class="timeline">
+              {hist.map((h) => (
+                <li>
+                  <Badge status={h.status} />
+                  <span class="text-xs muted" style="margin-left:0.35rem;">
+                    {dateTimeID(h.at)} · {employeeName(h.by)}
+                  </span>
+                  <p class="text-sm mb-0" style="margin-top:0.25rem;color:#334155;">{h.note}</p>
+                </li>
+              ))}
+            </ol>
+          )}
+        </div>
+      </section>
     </div>
   </div>
-  <ConfirmDialog id="dlg-approve" title="Setujui aktivitas ini?" confirmLabel="Ya, setujui"><p class="mb-0">Aktivitas akan dihitung ke realisasi KPI sesuai mapping.</p></ConfirmDialog>
-  <ConfirmDialog id="dlg-reject" title="Tolak aktivitas ini?" confirmLabel="Ya, tolak" danger><p class="mb-0">Aktivitas ditolak tidak dihitung ke KPI. Pastikan catatan alasan sudah diisi.</p></ConfirmDialog>
+
+  <ConfirmDialog id="dlg-approve" title="Setujui laporan ini?" confirmLabel="Ya, Setujui">
+    <p class="mb-0">
+      Laporan ini akan disahkan. Realisasi volume atau nilai transaksi komersial akan langsung dihitung ke indikator KPI staf dan divisi.
+    </p>
+  </ConfirmDialog>
+
+  <ConfirmDialog id="dlg-reject" title="Tolak laporan ini?" confirmLabel="Ya, Tolak" danger>
+    <p class="mb-0">
+      Laporan yang ditolak tidak akan dihitung ke akumulasi KPI. Pastikan Anda telah menuliskan catatan alasan pemeriksaan pada kotak di samping.
+    </p>
+  </ConfirmDialog>
+
   <script is:inline>
     const form = document.getElementById("vform");
     ["approve", "reject"].forEach((k) => {
-      const d = document.getElementById("dlg-" + k); if (!d || !form) return;
-      d.addEventListener("close", () => { if (d.returnValue === "ok") { const h = document.createElement("input"); h.type = "hidden"; h.name = "status"; h.value = k === "approve" ? "approved" : "rejected"; form.appendChild(h); form.submit(); } });
+      const d = document.getElementById("dlg-" + k);
+      if (!d || !form) return;
+      d.addEventListener("confirm", () => {
+        const h = document.createElement("input");
+        h.type = "hidden";
+        h.name = "status";
+        h.value = k === "approve" ? "approved" : "rejected";
+        form.appendChild(h);
+        form.submit();
+      });
     });
   </script>
 </DashboardLayout>
-

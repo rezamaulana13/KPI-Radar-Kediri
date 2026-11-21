@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import { db, employeeName } from "../../../../lib/data/store";
 import type { Role } from "../../../../lib/data/types";
+import { syncUpdateUser } from "../../../../lib/supabase/sync";
 
 export const POST: APIRoute = async ({ params, request, locals, redirect }) => {
   const currentAdmin = locals.user;
@@ -30,6 +31,9 @@ export const POST: APIRoute = async ({ params, request, locals, redirect }) => {
     // Balik status: jika aktif jadi nonaktif, jika nonaktif jadi aktif
     targetEmp.active = !targetEmp.active;
 
+    // Sinkronkan ke database Supabase
+    await syncUpdateUser(targetEmp.id, { active: targetEmp.active });
+
     // Catat ke Audit Log
     db.auditLogs.unshift({
       id: `LOG-${Date.now()}`,
@@ -53,6 +57,9 @@ export const POST: APIRoute = async ({ params, request, locals, redirect }) => {
 
     const oldRole = targetEmp.role;
     targetEmp.role = newRole;
+
+    // Sinkronkan ke database Supabase
+    await syncUpdateUser(targetEmp.id, { role: newRole });
 
     // Catat ke Audit Log
     db.auditLogs.unshift({

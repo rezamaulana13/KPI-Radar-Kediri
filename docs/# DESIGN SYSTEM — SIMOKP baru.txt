@@ -1,0 +1,1498 @@
+# DESIGN SYSTEM — SIMOKP
+## Sistem Informasi Manajemen Oplah, Kerja Sama, dan Kinerja Pemasaran
+
+**Versi:** 1.0  
+**Jenis aplikasi:** Responsive Web Dashboard  
+**Gaya desain:** Professional Corporate Dashboard  
+**Bahasa antarmuka:** Bahasa Indonesia  
+**Target perangkat:** Desktop, tablet, dan mobile
+
+---
+
+# 1. Konsep Desain
+
+## 1.1 Arah Visual
+
+SIMOKP menggunakan desain dashboard profesional yang mengutamakan:
+- Kejelasan informasi.
+- Kemudahan navigasi.
+- Efisiensi input data.
+- Konsistensi tampilan.
+- Kemudahan membaca laporan.
+- Hierarki informasi yang jelas.
+- Penggunaan warna secara fungsional.
+
+Aplikasi harus terasa seperti sistem manajemen perusahaan media, bukan website berita publik.
+
+## 1.2 Karakter Desain
+
+- Profesional.
+- Modern.
+- Bersih.
+- Terstruktur.
+- Informatif.
+- Tidak terlalu dekoratif.
+- Mengutamakan data dan tindakan.
+
+## 1.3 Prinsip UX
+
+1. Pengguna dapat memahami halaman tanpa pelatihan panjang.
+2. Informasi terpenting ditampilkan lebih dahulu.
+3. Form dibagi menjadi beberapa bagian logis.
+4. Tindakan penting membutuhkan konfirmasi.
+5. Status selalu terlihat jelas.
+6. Kesalahan input dijelaskan secara spesifik.
+7. Tabel mendukung pencarian, filter, sortir, dan pagination.
+8. Tampilan menyesuaikan permission pengguna.
+
+---
+
+# 2. Design Token
+
+## 2.1 Palet Warna
+
+Warna utama menggunakan navy, biru, dan teal.
+
+| Token | Warna | Penggunaan |
+|---|---|---|
+| Primary | #1E3A5F | Navigasi dan tombol utama |
+| Primary Light | #EAF1F8 | Background aktif |
+| Secondary | #2878B5 | Link dan elemen sekunder |
+| Accent | #159A91 | Data positif dan aksen |
+| Background | #F5F7FA | Background aplikasi |
+| Surface | #FFFFFF | Card dan panel |
+| Text Primary | #172B4D | Teks utama |
+| Text Secondary | #667085 | Teks pendukung |
+| Border | #E4E7EC | Garis pembatas |
+| Success | #159A62 | Berhasil/disetujui |
+| Warning | #D99026 | Perlu perhatian |
+| Danger | #D64545 | Ditolak/error |
+| Info | #2780B9 | Informasi |
+
+## 2.2 Aturan Penggunaan Warna
+
+- Primary untuk aksi utama.
+- Success untuk status berhasil.
+- Warning untuk proses tertunda.
+- Danger untuk penolakan dan tindakan berisiko.
+- Info untuk informasi netral.
+- Warna status harus dilengkapi teks atau ikon.
+- Jangan menggunakan banyak warna aksen dalam satu halaman.
+
+## 2.3 Tipografi
+
+Font utama: Inter.
+
+Fallback:
+- system-ui
+- Arial
+- sans-serif
+
+Ukuran:
+- Page title: 24–28 px.
+- Section title: 18–20 px.
+- Card title: 14–16 px.
+- Body: 14 px.
+- Table: 13–14 px.
+- Caption: 12 px.
+- Form label: 13–14 px.
+
+Bobot:
+- Regular 400.
+- Medium 500.
+- Semibold 600.
+- Bold 700.
+
+## 2.4 Spacing
+
+Gunakan basis 4 px.
+
+| Token | Ukuran |
+|---|---:|
+| xs | 4 px |
+| sm | 8 px |
+| md | 12 px |
+| lg | 16 px |
+| xl | 24 px |
+| 2xl | 32 px |
+| 3xl | 40 px |
+
+## 2.5 Radius
+
+- Input: 8 px.
+- Button: 8 px.
+- Card: 12 px.
+- Modal: 12 px.
+- Badge: 999 px.
+
+## 2.6 Elevation
+
+- Card: shadow sangat ringan.
+- Dropdown: shadow sedang.
+- Modal: shadow lebih kuat.
+- Sidebar: tanpa shadow berat.
+
+---
+
+# 3. Layout Global
+
+## 3.1 Desktop Layout
+
+Struktur:
+
+```text
++------------------------------------------------------+
+| SIDEBAR       | TOPBAR                               |
+|               |--------------------------------------|
+| Logo SIMOKP   | Breadcrumb       Search   Notifikasi |
+|               |--------------------------------------|
+| Dashboard     |                                      |
+| Oplah         | Page Title                           |
+| Sirkulasi     | Description                           |
+| Pemasaran     |                                      |
+| Kerja Sama    | Content                               |
+| Event         |                                      |
+| Keuangan      |                                      |
+| KPI           |                                      |
+| Laporan       |                                      |
+| Pengaturan    |                                      |
+|               |                                      |
+| User Profile  |                                      |
++------------------------------------------------------+
+```
+
+## 3.2 Sidebar
+
+Lebar:
+- Expanded: 250 px.
+- Collapsed: 76 px.
+
+Isi:
+- Logo SIMOKP.
+- Dashboard.
+- Oplah & Sirkulasi.
+- Pemasaran.
+- Kerja Sama.
+- Event.
+- Keuangan.
+- Kinerja & KPI.
+- Laporan.
+- Pengaturan.
+
+Menu ditampilkan sesuai permission.
+
+Submenu dapat menggunakan accordion.
+
+## 3.3 Topbar
+
+Komponen:
+- Tombol toggle sidebar.
+- Breadcrumb.
+- Search global.
+- Notifikasi.
+- Bantuan.
+- Avatar pengguna.
+- Dropdown profil.
+
+Search global mencari:
+- Klien.
+- Proposal.
+- Nomor transaksi.
+- Edisi koran.
+- Invoice.
+- Nama karyawan.
+
+## 3.4 Area Konten
+
+- Background abu-abu sangat muda.
+- Padding desktop 24 px.
+- Lebar konten fleksibel.
+- Card putih.
+- Tabel menggunakan ruang yang tersedia.
+- Judul halaman di bagian atas.
+- Aksi utama ditempatkan di kanan atas.
+
+---
+
+# 4. Navigasi Berdasarkan Role
+
+## 4.1 Super Admin
+
+Menu:
+- Dashboard Sistem.
+- Pengguna.
+- Role & Permission.
+- Divisi.
+- Data Master.
+- Audit Log.
+- Pengaturan Sistem.
+
+## 4.2 Admin
+
+Menu:
+- Dashboard.
+- Oplah & Sirkulasi.
+- Klien.
+- Pemasaran.
+- Kerja Sama.
+- Persetujuan.
+- Realisasi.
+- Event.
+- Keuangan.
+- Kinerja & KPI.
+- Laporan.
+
+## 4.3 Karyawan
+
+Menu ditampilkan berdasarkan permission.
+
+Karyawan Pemasaran:
+- Dashboard.
+- Klien.
+- Prospek.
+- Proposal.
+- Kerja Sama.
+- Realisasi.
+- KPI Saya.
+
+Karyawan Sirkulasi:
+- Dashboard.
+- Edisi.
+- Produksi.
+- Distribusi.
+- Penjualan.
+- Retur.
+- Persediaan.
+- Laporan sesuai akses.
+
+Karyawan Keuangan:
+- Dashboard.
+- Invoice.
+- Pembayaran.
+- Piutang.
+- Laporan sesuai akses.
+
+Karyawan Redaksi:
+- Dashboard.
+- Jadwal Terbit.
+- Publikasi.
+- Dokumentasi.
+
+---
+
+# 5. Komponen Global
+
+## 5.1 Button
+
+Jenis:
+- Primary.
+- Secondary.
+- Outline.
+- Ghost.
+- Danger.
+
+Ukuran:
+- Small.
+- Medium.
+- Large.
+
+Contoh label:
+- Tambah Data.
+- Simpan.
+- Simpan Draft.
+- Ajukan.
+- Setujui.
+- Tolak.
+- Minta Revisi.
+- Unduh Excel.
+- Cetak.
+
+## 5.2 Status Badge
+
+Status:
+- Draft.
+- Diajukan.
+- Dalam Pemeriksaan.
+- Perlu Revisi.
+- Disetujui.
+- Ditolak.
+- Berjalan.
+- Selesai.
+- Dibatalkan.
+- Lunas.
+- Jatuh Tempo.
+
+Setiap status memiliki warna, teks, dan bila perlu ikon.
+
+## 5.3 Data Table
+
+Fitur:
+- Search.
+- Filter.
+- Sort.
+- Pagination.
+- Row action.
+- Bulk selection jika diperlukan.
+- Export.
+- Loading state.
+- Empty state.
+- Error state.
+
+Kolom umum:
+- Nomor.
+- Tanggal.
+- Nama.
+- Kategori.
+- Penanggung jawab.
+- Status.
+- Nilai.
+- Aksi.
+
+## 5.4 Form
+
+Aturan:
+- Label di atas input.
+- Tanda wajib untuk field required.
+- Placeholder hanya sebagai contoh.
+- Error di bawah input.
+- Format angka dan tanggal konsisten.
+- Form panjang dibagi menjadi beberapa section.
+- Data tidak hilang jika terjadi kesalahan validasi.
+
+## 5.5 Modal
+
+Digunakan untuk:
+- Konfirmasi persetujuan.
+- Penolakan.
+- Pembatalan.
+- Penyesuaian data.
+- Konfirmasi tindakan permanen.
+
+Modal harus menjelaskan dampak tindakan.
+
+## 5.6 Notification
+
+Jenis:
+- Success toast.
+- Error toast.
+- Warning toast.
+- Info toast.
+
+Notifikasi tidak boleh hanya menyampaikan "Terjadi kesalahan". Tampilkan pesan yang dapat membantu pengguna memperbaiki masalah.
+
+---
+
+# 6. Halaman Login
+
+## 6.1 Layout
+
+- Background navy atau ilustrasi abstrak perusahaan media.
+- Panel login putih.
+- Logo SIMOKP.
+- Judul Sistem Informasi Manajemen.
+- Email/username.
+- Password.
+- Toggle tampilkan password.
+- Remember me jika session policy mendukung.
+- Tombol Masuk.
+- Pesan error.
+
+## 6.2 Validasi
+
+- Email/username wajib.
+- Password wajib.
+- Pesan kredensial salah tidak membocorkan apakah akun terdaftar.
+- Pembatasan percobaan login.
+- Redirect ke dashboard sesuai role dan permission.
+
+---
+
+# 7. Dashboard Admin
+
+## 7.1 Header
+
+Judul: Dashboard Manajemen.
+
+Deskripsi: Ringkasan aktivitas perusahaan dan pencapaian periode berjalan.
+
+Filter:
+- Periode.
+- Divisi.
+- Karyawan.
+- Edisi.
+
+## 7.2 KPI Cards
+
+Card:
+1. Total Oplah.
+2. Total Distribusi.
+3. Total Penjualan.
+4. Total Retur.
+5. Omzet Tunai.
+6. Nilai Barter.
+7. Proposal Menunggu Persetujuan.
+8. Piutang.
+
+Setiap card:
+- Label.
+- Nilai.
+- Perbandingan periode.
+- Ikon.
+- Link ke detail.
+
+## 7.3 Grafik
+
+Grafik:
+- Omzet tunai per bulan.
+- Barter per bulan.
+- Oplah dan distribusi.
+- Penjualan dan retur.
+- Pencapaian target karyawan.
+
+Nilai tunai dan barter harus menggunakan grafik atau seri berbeda.
+
+## 7.4 Widget
+
+- Proposal menunggu persetujuan.
+- Kerja sama terbaru.
+- Tagihan jatuh tempo.
+- Realisasi mendekati tenggat.
+- Aktivitas karyawan.
+- Peringatan persediaan.
+
+---
+
+# 8. Dashboard Karyawan
+
+Tampilan disesuaikan berdasarkan divisi.
+
+## 8.1 Karyawan Pemasaran
+
+Card:
+- Prospek saya.
+- Klien aktif.
+- Proposal saya.
+- Proposal menunggu keputusan.
+- Omzet saya.
+- Nilai barter saya.
+- Target bulanan.
+- Realisasi kerja sama.
+
+Widget:
+- Follow-up terjadwal.
+- Aktivitas terakhir.
+- Proposal yang perlu revisi.
+- Jadwal event.
+
+## 8.2 Karyawan Sirkulasi
+
+Card:
+- Oplah hari ini.
+- Distribusi hari ini.
+- Penjualan hari ini.
+- Retur hari ini.
+- Persediaan.
+
+Widget:
+- Transaksi terbaru.
+- Pengiriman yang belum selesai.
+- Retur yang perlu diproses.
+- Peringatan stok.
+
+## 8.3 Karyawan Keuangan
+
+Card:
+- Total invoice.
+- Pembayaran masuk.
+- Piutang.
+- Piutang jatuh tempo.
+
+Widget:
+- Invoice terbaru.
+- Pembayaran menunggu verifikasi.
+- Tagihan mendekati jatuh tempo.
+
+---
+
+# 9. Desain Modul Oplah
+
+## 9.1 Halaman Daftar Edisi
+
+Header:
+- Judul Edisi Koran.
+- Tombol Tambah Edisi.
+
+Filter:
+- Tanggal.
+- Status.
+- Nomor edisi.
+
+Tabel:
+- Nomor edisi.
+- Nama edisi.
+- Tanggal terbit.
+- Jumlah oplah.
+- Total distribusi.
+- Total retur.
+- Status.
+- Aksi.
+
+## 9.2 Form Edisi
+
+Field:
+- Nama edisi.
+- Nomor edisi.
+- Tanggal terbit.
+- Deskripsi.
+- Status.
+
+Tombol:
+- Simpan.
+- Simpan dan kembali.
+- Batal.
+
+## 9.3 Halaman Produksi
+
+Header:
+- Produksi Koran.
+- Tambah Produksi.
+
+Tabel:
+- Nomor produksi.
+- Edisi.
+- Tanggal.
+- Jumlah cetak.
+- Jumlah rusak.
+- Jumlah layak.
+- Status.
+- Petugas.
+
+## 9.4 Form Produksi
+
+Section:
+1. Informasi produksi.
+2. Detail jumlah cetak.
+3. Biaya dan percetakan.
+4. Catatan.
+5. Lampiran.
+
+Field jumlah:
+- Jumlah cetak.
+- Jumlah cetak tambahan.
+- Jumlah rusak.
+
+Jumlah layak dihitung otomatis berdasarkan rumus yang disepakati.
+
+## 9.5 Halaman Distribusi
+
+Tabel:
+- Nomor distribusi.
+- Tanggal.
+- Edisi.
+- Tujuan.
+- Kanal.
+- Jumlah.
+- Petugas.
+- Status.
+
+Form distribusi:
+- Tanggal.
+- Edisi.
+- Kanal.
+- Agen/pelanggan.
+- Jumlah.
+- Harga jika berbayar.
+- Jenis distribusi.
+- Bukti.
+- Catatan.
+
+Jenis distribusi:
+- Berbayar.
+- Gratis/promosi.
+- Barter.
+- Internal.
+- Lainnya.
+
+## 9.6 Halaman Retur
+
+Tabel:
+- Nomor retur.
+- Nomor distribusi.
+- Edisi.
+- Agen.
+- Jumlah retur.
+- Jumlah layak.
+- Jumlah rusak.
+- Tanggal.
+- Status.
+
+Form retur harus mengacu pada distribusi sebelumnya.
+
+## 9.7 Halaman Persediaan
+
+Card:
+- Stok tersedia.
+- Stok rusak.
+- Stok dalam perjalanan jika digunakan.
+
+Tabel pergerakan:
+- Tanggal.
+- Referensi.
+- Jenis pergerakan.
+- Masuk.
+- Keluar.
+- Saldo.
+- Petugas.
+
+---
+
+# 10. Desain Modul CRM
+
+## 10.1 Daftar Klien
+
+Header:
+- Klien & Mitra.
+- Tambah Klien.
+
+Filter:
+- Status.
+- Kategori.
+- Kota.
+- Penanggung jawab.
+
+Tabel:
+- Kode klien.
+- Nama perusahaan.
+- Kontak.
+- Telepon.
+- Kategori.
+- PIC.
+- Status.
+- Aksi.
+
+## 10.2 Detail Klien
+
+Header:
+- Nama perusahaan.
+- Status.
+- Kategori.
+- Tombol Edit.
+- Tombol Buat Proposal.
+
+Tab:
+1. Ringkasan.
+2. Kontak.
+3. Aktivitas.
+4. Proposal.
+5. Kerja Sama.
+6. Invoice.
+7. Dokumen.
+
+## 10.3 Form Klien
+
+Section:
+- Informasi perusahaan.
+- Informasi kontak.
+- Alamat.
+- Kategori.
+- Penanggung jawab.
+- Catatan.
+
+---
+
+# 11. Desain Modul Pemasaran dan Kerja Sama
+
+## 11.1 Halaman Daftar Proposal
+
+Header:
+- Proposal Kerja Sama.
+- Buat Proposal.
+
+Filter:
+- Periode.
+- Status.
+- Jenis kerja sama.
+- Karyawan.
+- Klien.
+
+Tabel:
+- Nomor proposal.
+- Tanggal.
+- Klien.
+- Judul.
+- Jenis.
+- Nilai tunai.
+- Nilai barter.
+- Total nilai.
+- PIC.
+- Status.
+- Aksi.
+
+## 11.2 Form Proposal
+
+Form dibagi menjadi beberapa bagian.
+
+### Bagian A — Informasi Umum
+- Klien.
+- Judul proposal.
+- Tanggal.
+- PIC.
+- Jenis kerja sama.
+
+### Bagian B — Detail Penawaran
+- Deskripsi.
+- Tujuan.
+- Latar belakang.
+- Manfaat.
+
+### Bagian C — Nilai Komersial
+- Nilai tunai.
+- Nilai barter.
+- Total nilai.
+- Dasar penilaian barter.
+
+### Bagian D — Rincian Barter
+- Nama barang/jasa.
+- Jumlah.
+- Satuan.
+- Nilai satuan.
+- Total.
+- Keterangan.
+
+### Bagian E — Kewajiban
+- Kewajiban perusahaan.
+- Kewajiban mitra.
+- Jadwal.
+- Tenggat.
+
+### Bagian F — Dokumen
+- Proposal PDF.
+- Surat penawaran.
+- Dokumen pendukung.
+- Lampiran lainnya.
+
+Footer:
+- Simpan Draft.
+- Ajukan Proposal.
+- Batal.
+
+## 11.3 Detail Proposal
+
+Bagian atas:
+- Nomor proposal.
+- Judul.
+- Klien.
+- PIC.
+- Status.
+- Nilai tunai.
+- Nilai barter.
+- Total nilai.
+
+Tab:
+1. Ringkasan.
+2. Rincian.
+3. Kewajiban.
+4. Dokumen.
+5. Riwayat Persetujuan.
+6. Realisasi.
+7. Aktivitas.
+
+## 11.4 Halaman Persetujuan Admin
+
+Tampilan khusus Admin.
+
+Daftar:
+- Proposal masuk.
+- Tanggal pengajuan.
+- Klien.
+- PIC.
+- Nilai tunai.
+- Nilai barter.
+- Total.
+- Lama menunggu.
+- Aksi.
+
+Detail pemeriksaan:
+- Informasi klien.
+- Nilai kerja sama.
+- Rincian barter.
+- Kewajiban kedua pihak.
+- Manfaat.
+- Dokumen pendukung.
+
+Tombol:
+- Setujui.
+- Minta Revisi.
+- Tolak.
+
+Tindakan harus meminta konfirmasi.
+
+Setujui:
+- Konfirmasi persetujuan.
+- Catatan opsional atau wajib sesuai kebijakan.
+- Tombol konfirmasi.
+
+Minta revisi:
+- Catatan revisi wajib.
+- Tombol kirim.
+
+Tolak:
+- Alasan penolakan wajib.
+- Tombol konfirmasi.
+
+## 11.5 Riwayat Persetujuan
+
+Tampilkan timeline:
+- Proposal dibuat.
+- Proposal diajukan.
+- Admin memeriksa.
+- Revisi diminta jika ada.
+- Pengajuan ulang.
+- Disetujui/ditolak.
+
+Setiap item memuat:
+- Nama pengguna.
+- Tanggal dan waktu.
+- Status.
+- Catatan.
+
+---
+
+# 12. Desain Modul Realisasi
+
+## 12.1 Daftar Realisasi
+
+Tabel:
+- Nomor realisasi.
+- Proposal.
+- Klien.
+- Jenis kewajiban.
+- Nilai komitmen.
+- Nilai realisasi.
+- Sisa.
+- Persentase.
+- Status.
+
+## 12.2 Detail Realisasi
+
+Ringkasan:
+- Nilai komitmen tunai.
+- Realisasi tunai.
+- Sisa tunai.
+- Nilai komitmen barter.
+- Realisasi barter.
+- Sisa barter.
+
+Tampilkan progress bar secara terpisah.
+
+Tab:
+- Kewajiban.
+- Realisasi.
+- Bukti.
+- Riwayat.
+
+## 12.3 Form Realisasi
+
+Field:
+- Proposal.
+- Kewajiban.
+- Tanggal.
+- Jenis realisasi.
+- Nilai.
+- Deskripsi.
+- Bukti.
+- Catatan.
+
+Status:
+- Draft.
+- Diajukan untuk verifikasi.
+- Terverifikasi.
+- Ditolak.
+
+Admin atau pengguna yang diberi permission verifikasi dapat memvalidasi realisasi.
+
+---
+
+# 13. Desain Modul Event
+
+## 13.1 Daftar Event
+
+Card atau tabel:
+- Nama event.
+- Penyelenggara.
+- Tanggal.
+- Lokasi.
+- PIC.
+- Mitra.
+- Status.
+
+## 13.2 Detail Event
+
+Tab:
+- Ringkasan.
+- Mitra.
+- Kebutuhan.
+- Jadwal.
+- Dokumentasi.
+- Evaluasi.
+
+## 13.3 Form Event
+
+Field:
+- Nama.
+- Penyelenggara.
+- Lokasi.
+- Tanggal mulai dan selesai.
+- PIC.
+- Proposal terkait.
+- Anggaran.
+- Deskripsi.
+- Lampiran.
+
+---
+
+# 14. Desain Modul KPI
+
+## 14.1 Dashboard KPI Admin
+
+Card:
+- Total target omzet.
+- Total realisasi omzet.
+- Total target barter.
+- Total realisasi barter.
+- Rata-rata pencapaian.
+- Jumlah karyawan mencapai target.
+
+Grafik:
+- Pencapaian per karyawan.
+- Omzet per bulan.
+- Barter per bulan.
+- Perbandingan target dan realisasi.
+
+## 14.2 Daftar Target
+
+Tabel:
+- Nama karyawan.
+- Divisi.
+- Periode.
+- Target omzet.
+- Realisasi omzet.
+- Target barter.
+- Realisasi barter.
+- Persentase pencapaian.
+
+## 14.3 Form Target
+
+Field:
+- Karyawan.
+- Periode.
+- Target omzet.
+- Target barter.
+- Target klien baru.
+- Target proposal.
+- Target kerja sama selesai.
+- Catatan.
+
+## 14.4 Detail KPI Karyawan
+
+Tampilkan:
+- Identitas karyawan.
+- Periode.
+- Target.
+- Realisasi.
+- Persentase.
+- Riwayat pencapaian.
+- Aktivitas pendukung.
+
+Omzet dan barter tidak boleh digabung dalam satu indikator pencapaian tanpa rincian masing-masing.
+
+---
+
+# 15. Desain Modul Keuangan
+
+## 15.1 Dashboard Keuangan
+
+Card:
+- Total invoice.
+- Total pembayaran.
+- Total piutang.
+- Piutang jatuh tempo.
+- Pembayaran menunggu verifikasi.
+
+Grafik:
+- Pembayaran per bulan.
+- Piutang per bulan.
+- Invoice berdasarkan status.
+
+## 15.2 Daftar Invoice
+
+Kolom:
+- Nomor invoice.
+- Klien.
+- Tanggal.
+- Jatuh tempo.
+- Nilai.
+- Dibayar.
+- Sisa.
+- Status.
+
+## 15.3 Form Invoice
+
+Field:
+- Klien.
+- Proposal.
+- Tanggal.
+- Jatuh tempo.
+- Rincian tagihan.
+- Subtotal.
+- Pajak jika berlaku.
+- Total.
+- Lampiran.
+
+## 15.4 Detail Invoice
+
+- Informasi klien.
+- Rincian tagihan.
+- Total.
+- Riwayat pembayaran.
+- Sisa piutang.
+- Dokumen.
+- Status.
+
+## 15.5 Form Pembayaran
+
+Field:
+- Invoice.
+- Tanggal.
+- Nominal.
+- Metode.
+- Referensi.
+- Bukti pembayaran.
+- Catatan.
+
+---
+
+# 16. Desain Modul Laporan
+
+## 16.1 Halaman Laporan
+
+Gunakan kategori:
+- Laporan Oplah.
+- Laporan Distribusi.
+- Laporan Penjualan.
+- Laporan Retur.
+- Laporan Persediaan.
+- Laporan Pemasaran.
+- Laporan Kerja Sama.
+- Laporan Barter.
+- Laporan Realisasi.
+- Laporan KPI.
+- Laporan Keuangan.
+
+## 16.2 Komponen Filter
+
+- Rentang tanggal.
+- Divisi.
+- Karyawan.
+- Klien.
+- Edisi.
+- Status.
+- Jenis kerja sama.
+
+## 16.3 Tampilan Laporan
+
+Setiap laporan:
+- Judul.
+- Deskripsi.
+- Filter aktif.
+- Ringkasan angka.
+- Grafik bila relevan.
+- Tabel detail.
+- Waktu pembuatan laporan.
+- Tombol ekspor Excel/PDF.
+- Tombol cetak.
+
+Laporan harus mencantumkan periode dan definisi angka yang ditampilkan.
+
+---
+
+# 17. Desain Pengaturan Super Admin
+
+## 17.1 Manajemen Pengguna
+
+Tabel:
+- Nama.
+- Username/email.
+- Divisi.
+- Role.
+- Status.
+- Terakhir login.
+- Aksi.
+
+Tombol:
+- Tambah pengguna.
+- Edit.
+- Nonaktifkan.
+- Reset akses sesuai prosedur keamanan.
+
+## 17.2 Form Pengguna
+
+Field:
+- Nama lengkap.
+- Username/email.
+- Nomor telepon.
+- Divisi.
+- Role.
+- Status.
+- Password awal atau mekanisme undangan/reset password.
+
+## 17.3 Role dan Permission
+
+Tampilkan tiga role utama:
+- Super Admin.
+- Admin.
+- Karyawan.
+
+Permission ditampilkan berdasarkan modul:
+- Dashboard.
+- Oplah.
+- Pemasaran.
+- Klien.
+- Kerja Sama.
+- Realisasi.
+- Event.
+- Keuangan.
+- KPI.
+- Laporan.
+- Pengaturan.
+- Audit.
+
+Permission dapat diberikan melalui checkbox.
+
+## 17.4 Permission Tambahan
+
+Untuk karyawan tertentu, Super Admin dapat memberikan akses tambahan atau pembatasan.
+
+Contoh:
+- Karyawan pemasaran boleh melihat laporan keuangan tertentu.
+- Karyawan keuangan boleh memverifikasi pembayaran.
+- Karyawan sirkulasi boleh memvalidasi retur.
+
+Perubahan permission harus dicatat dalam audit log.
+
+---
+
+# 18. Desain Audit Log
+
+Tabel:
+- Waktu.
+- Pengguna.
+- Modul.
+- Aktivitas.
+- ID data.
+- Ringkasan perubahan.
+- Aksi detail.
+
+Detail:
+- Data sebelum.
+- Data sesudah.
+- Pengguna.
+- Timestamp.
+- Alasan perubahan.
+
+Audit log bersifat read-only bagi pengguna yang memiliki izin melihatnya.
+
+---
+
+# 19. Desain Responsive
+
+## 19.1 Desktop
+
+- Sidebar tetap.
+- Topbar penuh.
+- Tabel menggunakan lebar maksimal.
+- Dashboard dapat menggunakan 3–4 kolom KPI.
+- Form menggunakan 2 kolom bila sesuai.
+
+## 19.2 Tablet
+
+- Sidebar dapat collapse.
+- KPI menjadi 2 kolom.
+- Form menjadi 1–2 kolom.
+- Tabel dapat menggunakan horizontal scroll.
+
+## 19.3 Mobile
+
+- Sidebar menjadi drawer.
+- Topbar ringkas.
+- KPI menjadi 1–2 kolom.
+- Form satu kolom.
+- Tombol aksi utama mudah dijangkau.
+- Tabel kompleks dapat berubah menjadi list/card.
+- Input file dan foto harus mudah digunakan.
+
+Breakpoint acuan:
+- Mobile: sampai 767 px.
+- Tablet: 768–1023 px.
+- Desktop: mulai 1024 px.
+
+---
+
+# 20. UX State
+
+Setiap halaman harus memiliki:
+
+## Loading
+- Skeleton card.
+- Skeleton table.
+- Indikator proses pada tombol.
+
+## Empty State
+Contoh:
+"Belum ada proposal kerja sama."
+
+Sediakan tombol:
+"Buat Proposal".
+
+## Error State
+- Pesan kesalahan yang jelas.
+- Tombol coba lagi jika relevan.
+- Jangan menampilkan stack trace kepada pengguna.
+
+## Success State
+- Konfirmasi berhasil.
+- Informasi data yang berhasil disimpan.
+- Navigasi ke halaman detail jika relevan.
+
+## Validation State
+- Field bermasalah diberi indikator.
+- Pesan kesalahan spesifik.
+- Fokus diarahkan ke field pertama yang bermasalah.
+
+---
+
+# 21. Form UX dan Validasi
+
+Aturan:
+- Field wajib ditandai.
+- Format angka rupiah konsisten.
+- Tanggal menggunakan format lokal Indonesia.
+- Nomor dokumen dibuat otomatis.
+- Select memiliki pencarian jika data banyak.
+- Upload menampilkan nama dan ukuran file.
+- Form panjang menggunakan section atau stepper.
+- Data draft dapat disimpan.
+- Perubahan yang belum disimpan diberi peringatan ketika pengguna keluar.
+
+Untuk proposal:
+- Nilai tunai dan barter diinput terpisah.
+- Total nilai dihitung otomatis.
+- Rincian barter harus sesuai total nilai barter.
+- Lampiran dapat ditambahkan.
+- Tombol ajukan tidak aktif jika data wajib belum lengkap.
+
+Untuk retur:
+- Distribusi asal wajib dipilih.
+- Jumlah retur tidak boleh melampaui sisa kuantitas yang dapat diretur.
+
+Untuk pembayaran:
+- Nominal tidak boleh negatif.
+- Pembayaran tidak boleh melebihi sisa tagihan kecuali perusahaan mengaktifkan mekanisme uang muka/kelebihan pembayaran.
+
+---
+
+# 22. Interaksi Penting
+
+## 22.1 Persetujuan Proposal
+
+- Admin membuka daftar proposal.
+- Memilih proposal.
+- Memeriksa rincian.
+- Memilih Setujui, Tolak, atau Minta Revisi.
+- Sistem menampilkan dialog konfirmasi.
+- Admin mengonfirmasi.
+- Sistem menyimpan keputusan dan audit log.
+- Karyawan menerima notifikasi.
+
+## 22.2 Pengajuan Proposal
+
+- Karyawan mengisi form.
+- Menyimpan draft.
+- Memeriksa ringkasan.
+- Mengajukan proposal.
+- Sistem memvalidasi.
+- Status berubah menjadi Diajukan.
+- Admin menerima notifikasi.
+
+## 22.3 Pencatatan Retur
+
+- Karyawan memilih distribusi.
+- Sistem menampilkan jumlah awal dan sisa kuantitas.
+- Karyawan menginput retur.
+- Sistem memvalidasi.
+- Stok diperbarui sesuai kondisi.
+- Riwayat retur tersimpan.
+
+## 22.4 Pembayaran
+
+- Karyawan keuangan membuka invoice.
+- Memilih catat pembayaran.
+- Mengisi nominal dan bukti.
+- Pembayaran masuk status menunggu verifikasi jika diperlukan.
+- Pengguna berwenang memverifikasi.
+- Piutang diperbarui.
+
+---
+
+# 23. Microcopy Antarmuka
+
+Gunakan bahasa yang sederhana dan konsisten.
+
+Contoh:
+- "Tambah Klien"
+- "Buat Proposal"
+- "Simpan Draft"
+- "Ajukan Proposal"
+- "Menunggu Persetujuan Admin"
+- "Proposal Disetujui"
+- "Proposal Memerlukan Revisi"
+- "Belum Ada Data"
+- "Data berhasil disimpan"
+- "Periksa kembali data yang wajib diisi"
+- "Anda tidak memiliki akses untuk melakukan tindakan ini"
+
+Hindari istilah teknis seperti CRUD, RBAC, API, atau database pada tampilan pengguna biasa.
+
+---
+
+# 24. Standar Komponen
+
+Komponen yang sebaiknya reusable:
+- AppSidebar.
+- AppTopbar.
+- Breadcrumb.
+- PageHeader.
+- StatCard.
+- DataTable.
+- FilterBar.
+- SearchInput.
+- DateRangePicker.
+- StatusBadge.
+- UserAvatar.
+- FormSection.
+- FileUploader.
+- ConfirmDialog.
+- ApprovalDialog.
+- ActivityTimeline.
+- EmptyState.
+- ErrorState.
+- LoadingSkeleton.
+- Pagination.
+- CurrencyInput.
+- NumberInput.
+- PermissionGuard.
+
+---
+
+# 25. Standar Grafik
+
+Grafik:
+- Line chart untuk tren waktu.
+- Bar chart untuk perbandingan.
+- Pie/donut chart untuk komposisi sederhana.
+- Progress bar untuk pencapaian.
+- Table untuk rincian angka.
+
+Ketentuan:
+- Judul grafik harus menjelaskan metrik.
+- Satuan harus ditampilkan.
+- Periode harus terlihat.
+- Nilai tunai dan barter harus terpisah.
+- Tooltip menampilkan angka lengkap.
+- Grafik tetap memiliki tabel atau ringkasan yang dapat diakses.
+
+---
+
+# 26. Aksesibilitas
+
+- Kontras teks sesuai standar aksesibilitas yang layak.
+- Input memiliki label.
+- Tombol memiliki nama tindakan jelas.
+- Ikon dekoratif tidak menggantikan label penting.
+- Navigasi keyboard didukung.
+- Focus state terlihat.
+- Error tidak hanya ditandai dengan warna.
+- Dialog memiliki fokus dan perilaku keyboard yang benar.
+
+---
+
+# 27. Standar File dan Dokumen
+
+Dokumen yang diunggah:
+- PDF.
+- JPG/JPEG.
+- PNG.
+- XLS/XLSX jika diizinkan.
+- DOC/DOCX jika diizinkan.
+
+Ketentuan:
+- Batas ukuran file dikonfigurasi.
+- Tipe file divalidasi.
+- Nama file disimpan dengan identifier aman.
+- File privat memerlukan otorisasi.
+- Tampilkan preview untuk format yang didukung.
+- Penghapusan dokumen transaksi harus mengikuti aturan retensi dan audit.
+
+---
+
+# 28. Quality Assurance UI/UX
+
+Checklist:
+- [ ] Sidebar menampilkan menu sesuai permission.
+- [ ] Dashboard sesuai role dan divisi.
+- [ ] Semua tombol mempunyai aksi yang jelas.
+- [ ] Semua form memiliki validasi.
+- [ ] Semua tabel mendukung pencarian dan pagination.
+- [ ] Status transaksi konsisten.
+- [ ] Dialog konfirmasi tersedia untuk tindakan penting.
+- [ ] Empty state tersedia.
+- [ ] Loading state tersedia.
+- [ ] Error state tersedia.
+- [ ] Layout responsif.
+- [ ] Angka rupiah diformat konsisten.
+- [ ] Nilai tunai dan barter terpisah.
+- [ ] Grafik menampilkan periode dan satuan.
+- [ ] Dokumen dapat diunggah dan dilihat sesuai izin.
+- [ ] Tidak ada data sensitif yang tampil kepada pengguna tanpa izin.
+
+---
+
+# 29. Prinsip Konsistensi Desain
+
+1. Semua halaman memakai PageHeader yang konsisten.
+2. Semua tabel menggunakan komponen DataTable.
+3. Semua status menggunakan StatusBadge.
+4. Semua aksi berisiko menggunakan ConfirmDialog.
+5. Semua form mengikuti aturan label dan validasi.
+6. Semua nilai uang menggunakan format rupiah.
+7. Semua tanggal menggunakan format Indonesia.
+8. Semua halaman memiliki loading, empty, dan error state.
+9. Hak akses diterapkan pada navigasi dan aksi.
+10. Keputusan bisnis selalu memiliki riwayat yang dapat ditelusuri.
+
+---
+
+# 30. Hasil Akhir yang Diharapkan
+
+SIMOKP harus tampil sebagai aplikasi manajemen internal yang profesional, mudah digunakan, dan konsisten.
+
+Prioritas utama desain:
+- Admin dapat memantau seluruh perusahaan.
+- Karyawan dapat menyelesaikan pekerjaan dengan cepat.
+- Super Admin dapat mengelola sistem tanpa mengganggu keputusan bisnis.
+- Proposal mudah dibuat dan disetujui.
+- Oplah dan distribusi mudah direkonsiliasi.
+- Nilai tunai dan barter mudah dibedakan.
+- KPI dapat dipahami.
+- Laporan mudah dibaca dan diekspor.
+- Semua aktivitas penting dapat ditelusuri.

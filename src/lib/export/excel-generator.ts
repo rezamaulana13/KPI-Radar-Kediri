@@ -341,16 +341,16 @@ export async function generateHrdExcel(periodId: string): Promise<Buffer> {
     { width: 22 },
   ];
 
-  // --- SHEET 2: HASIL SPK SAW ---
-  const ws2 = wb.addWorksheet("Hasil SPK Metode SAW");
+  // --- SHEET 2: HASIL EVALUASI KINERJA KPI ---
+  const ws2 = wb.addWorksheet("Evaluasi Kinerja Berbobot");
   ws2.views = [{ showGridLines: true }];
 
   ws2.mergeCells("A1:H1");
-  ws2.getCell("A1").value = `HASIL EVALUASI SPK METODE SIMPLE ADDITIVE WEIGHTING (SAW)`;
+  ws2.getCell("A1").value = `HASIL EVALUASI INDEKS KINERJA KARYAWAN BERBASIS KPI BERBOBOT`;
   ws2.getCell("A1").font = { name: "Arial", size: 12, bold: true, color: { argb: "FF12345A" } };
 
   ws2.mergeCells("A2:H2");
-  ws2.getCell("A2").value = `Perangkingan obyektif berdasarkan bobot kriteria preferensi normalisasi matriks (R) dan nilai akhir (V)`;
+  ws2.getCell("A2").value = `Perangkingan objektif berdasarkan agregasi capaian indikator performa kerja tervalidasi`;
   ws2.getCell("A2").font = { name: "Arial", size: 9, italic: true };
 
   ws2.addRow([]);
@@ -359,10 +359,10 @@ export async function generateHrdExcel(periodId: string): Promise<Buffer> {
     "NIP",
     "Nama Karyawan",
     "Divisi",
-    "Nilai Akhir SAW (V)",
-    "Predikat Rekomendasi",
-    "Capaian Tertinggi",
-    "Catatan Evaluasi HRD",
+    "Indeks Capaian",
+    "Predikat Kinerja",
+    "Status Performa",
+    "Rekomendasi Manajemen",
   ]);
 
   sawHeader.eachCell((c) => {

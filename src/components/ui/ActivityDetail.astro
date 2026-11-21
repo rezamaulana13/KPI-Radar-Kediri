@@ -15,9 +15,67 @@ const c = client(a.clientId ?? offer(a.offerId)?.clientId);
   <dt>Deskripsi</dt><dd>{a.description}</dd>
   {c && (<><dt>Client</dt><dd>{c.name} · {c.sector}</dd></>)}
   {a.offerId && (<><dt>Penawaran</dt><dd><a href={`/marketing/offers/${a.offerId}`}>{a.offerId}</a></dd></>)}
-  {a.qty != null && (<><dt>Jumlah</dt><dd>{num(a.qty)} eksemplar</dd></>)}
-  {a.source && (<><dt>Sumber oplah</dt><dd>{a.source}: {a.sourceName}</dd></>)}
-  {a.value != null && (<><dt>Nilai</dt><dd>{rupiah(a.value)}</dd></>)}
+  {a.editionName && (<><dt>Edisi Koran</dt><dd><strong>{a.editionName}</strong></dd></>)}
+  {a.source && (<><dt>Kanal Distribusi</dt><dd>{a.source}: <strong>{a.sourceName}</strong></dd></>)}
+  {a.qty != null && (
+    <>
+      <dt>Eksemplar Dikirim</dt><dd>{num(a.qty)} eksemplar</dd>
+      {a.returnQty != null && a.returnQty > 0 && (
+        <>
+          <dt>Eksemplar Retur</dt>
+          <dd style="color: #dc2626; font-weight: 600;">
+            {num(a.returnQty)} eksemplar
+            <span style="font-size: 0.75rem; background: #fee2e2; color: #991b1b; padding: 0.15rem 0.5rem; border-radius: 999px; margin-left: 0.4rem;">
+              {a.returnCondition === "layak_stok" ? "Layak Stok Gudang" : "Rusak / Afkir"}
+            </span>
+          </dd>
+        </>
+      )}
+      {a.soldQty != null && (
+        <>
+          <dt>Eksemplar Terjual (Net)</dt>
+          <dd style="color: #15803d; font-weight: 700;">
+            {num(a.soldQty)} eksemplar
+            {a.qty > 0 && <span style="font-size: 0.8rem; color: #64748b; font-weight: normal; margin-left: 0.4rem;">({Math.round((a.soldQty / a.qty) * 100)}% terjual)</span>}
+          </dd>
+        </>
+      )}
+    </>
+  )}
+  {a.value != null && (
+    <>
+      <dt>Total Komersial</dt>
+      <dd>
+        <strong>{rupiah(a.value)}</strong>
+        {a.partnershipType && (
+          <span style="font-size: 0.75rem; background: #e0f2fe; color: #0369a1; padding: 0.15rem 0.5rem; border-radius: 999px; margin-left: 0.5rem; text-transform: uppercase; font-weight: 700;">
+            {a.partnershipType}
+          </span>
+        )}
+      </dd>
+      {a.cashValue != null && a.cashValue > 0 && (
+        <>
+          <dt>Porsi Kas Tunai</dt>
+          <dd style="color: #15803d; font-weight: 600;">{rupiah(a.cashValue)}</dd>
+        </>
+      )}
+      {a.barterValue != null && a.barterValue > 0 && (
+        <>
+          <dt>Porsi Nilai Barter</dt>
+          <dd style="color: #b45309; font-weight: 600;">
+            {rupiah(a.barterValue)}
+            {a.barterType && <span style="font-size: 0.8rem; color: #64748b; font-weight: normal; margin-left: 0.35rem;">({a.barterType})</span>}
+          </dd>
+          {a.barterDesc && (
+            <>
+              <dt>Rincian Barter</dt>
+              <dd style="color: #475569; font-style: italic;">{a.barterDesc}</dd>
+            </>
+          )}
+        </>
+      )}
+    </>
+  )}
   {a.progressType && (<><dt>Tipe progress</dt><dd>{a.progressType}</dd></>)}
   {a.potential && (<><dt>Potensi client</dt><dd>{a.potential}</dd></>)}
   {a.outcome && (<><dt>Hasil akhir</dt><dd><Badge status={a.outcome} /></dd></>)}

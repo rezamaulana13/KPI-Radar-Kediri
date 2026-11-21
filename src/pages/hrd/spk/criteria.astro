@@ -3,6 +3,8 @@ import DashboardLayout from "../../../layouts/DashboardLayout.astro";
 import ListPage from "../../../components/ui/ListPage.astro";
 import Alert from "../../../components/ui/Alert.astro";
 import { db } from "../../../lib/data/store";
+import { ENABLE_SPK } from "../../../lib/config";
+if (!ENABLE_SPK) return Astro.redirect("/hrd/kpi/achievements");
 const rows = db.criteria.map((c) => ({ ...c, dir: c.direction === "benefit" ? "Benefit" : "Cost", weightPct: c.weight * 100 }));
 ---
 <DashboardLayout title="Kriteria SPK">

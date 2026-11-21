@@ -34,8 +34,8 @@ const sum = achievementSummary(p.id);
 const rows = achievements(p.id);
 const titles: Record<string, string> = {
   admin: "Dashboard Super Admin",
-  hrd: "Dashboard Admin (HRD)",
-  employee: "Portal CMS Karyawan",
+  hrd: "Dashboard Pemasaran & Sirkulasi",
+  employee: "Portal Karyawan",
 };
 const mine = activitiesFor({ id: user.id, role: user.role }).filter((a) => a.periodId === p.id);
 const count = (list: typeof mine, s: string) => list.filter((a) => a.status === s).length;
@@ -59,6 +59,24 @@ const displayTargets = myTargets.length > 0 ? myTargets : marketingDivTargets;
 
 // Approval rate
 const approvalRate = mine.length > 0 ? Math.round((count(mine, "approved") / mine.length) * 100) : 0;
+
+// 3 Pilar Metrik Utama SIMOKP Periode Aktif
+const approvedActivities = db.activities.filter((a) => a.periodId === p.id && a.status === "approved");
+const totalSoldOplah = approvedActivities
+  .filter((a) => a.type === "oplah")
+  .reduce((s, a) => s + (a.soldQty != null ? a.soldQty : Math.max(0, (a.qty || 0) - (a.returnQty || 0))), 0);
+const totalSentOplah = approvedActivities
+  .filter((a) => a.type === "oplah")
+  .reduce((s, a) => s + (a.qty || 0), 0);
+const totalReturnOplah = approvedActivities
+  .filter((a) => a.type === "oplah")
+  .reduce((s, a) => s + (a.returnQty || 0), 0);
+const totalCashDeals = approvedActivities
+  .filter((a) => a.type === "outcome" && a.outcome === "deal")
+  .reduce((s, a) => s + (a.cashValue != null ? a.cashValue : (a.value || 0)), 0);
+const totalBarterDeals = approvedActivities
+  .filter((a) => (a.type === "outcome" && a.outcome === "deal" && (a.barterValue || 0) > 0) || a.type === "program")
+  .reduce((s, a) => s + (a.barterValue != null ? a.barterValue : 0), 0);
 ---
 <DashboardLayout title={titles[user.role]}>
   <PageHeader title={titles[user.role]} description={`${p.name}. Halo, ${user.name.split(" ")[0]}.`} crumbs={[]}>
@@ -70,9 +88,9 @@ const approvalRate = mine.length > 0 ? Math.round((count(mine, "approved") / min
         </a>
       )}
       {user.role === "hrd" && (
-        <a href={`/api/export/excel?type=hrd&period=${p.id}`} class="btn btn-primary" download title="Unduh Rekapitulasi Manajemen HRD Bulanan (Excel)">
+        <a href={`/api/export/excel?type=hrd&period=${p.id}`} class="btn btn-primary" download title="Unduh Rekapitulasi Kinerja Bulanan (Excel)">
           <Icon name="download" size={16} />
-          <span>Unduh Rekap HRD (Excel)</span>
+          <span>Unduh Rekap Kinerja (.xlsx)</span>
         </a>
       )}
     </Fragment>
@@ -81,19 +99,22 @@ const approvalRate = mine.length > 0 ? Math.round((count(mine, "approved") / min
   {user.role === "admin" && (<>
     {user.mode === "demo" && <Alert tone="info" title="Mode demo">Data berasal dari contoh di memori server dan akan kembali seperti semula saat server dimulai ulang.</Alert>}
     
-    <!-- Stat Grid Eksekutif Super Admin -->
+    <!-- 4 Stat Card Fokus Super Admin (Tata Kelola Platform & Nilai Komersial) -->
     <div class="stat-grid">
-      <StatCard label="Pengguna aktif" value={db.employees.filter((e) => e.active).length} note={`${db.employees.length} total akun terdaftar`} />
-      <StatCard label="Aktivitas divisi" value={db.activities.length} note={`${db.activities.filter(a => a.status === 'approved').length} disetujui HRD`} />
-      <StatCard label="Menunggu verifikasi" value={db.activities.filter(a => a.status === 'pending').length} tone={db.activities.filter(a => a.status === 'pending').length ? "warn" : "ok"} note="Butuh approval" />
-      <StatCard label="Catatan audit log" value={db.auditLogs.length} note="Jejak sistem terekam aman" />
+      <StatCard label="Pengguna Aktif" value={db.employees.filter((e) => e.active).length} note={`${db.employees.length} total akun terdaftar`} />
+      <StatCard label="Aktivitas Terverifikasi" value={db.activities.filter(a => a.status === 'approved').length} tone="ok" note={`${db.activities.length} total laporan kegiatan`} />
+      <StatCard label="Nilai Komersial Disetujui" value={rupiah(totalCashDeals + totalBarterDeals)} tone="info" note={`Kas: ${rupiah(totalCashDeals)} | Barter: ${rupiah(totalBarterDeals)}`} />
+      <StatCard label="Catatan Audit Log" value={db.auditLogs.length} note="Integritas ISO/IEC 25010" />
     </div>
 
     <div class="grid-3-1" style="margin-top: 1.5rem;">
       <!-- Kolom Kiri: Aktivitas Sistem & Audit Trail -->
       <section class="card">
         <div class="card-head">
-          <h2>Aktivitas Sistem &amp; Audit Trail Terbaru</h2>
+          <div>
+            <h2>Audit Trail &amp; Log Sistem Terkini</h2>
+            <p class="muted font-xs" style="margin: 0.15rem 0 0;">Jejak perubahan data penting untuk akuntabilitas sistem.</p>
+          </div>
           <a href="/admin/audit-logs">Buka Semua Log &rarr;</a>
         </div>
         <DataTable
@@ -110,28 +131,28 @@ const approvalRate = mine.length > 0 ? Math.round((count(mine, "approved") / min
         />
       </section>
 
-      <!-- Kolom Kanan: Ringkasan Master Data & Pintasan Aksi Cepat -->
+      <!-- Kolom Kanan: Status Lingkungan Sistem & Pintasan Super Admin -->
       <div class="stack">
         <section class="card" style="background: #f8fafc; border-color: #e2e8f0;">
           <div class="card-head">
-            <h3 style="font-size:0.95rem;margin:0;font-weight:700;">Status Operasional Divisi</h3>
+            <h3 style="font-size:0.95rem;margin:0;font-weight:700;">Status Lingkungan Sistem</h3>
           </div>
           <div class="card-body" style="font-size:var(--text-sm);">
             <div style="display:flex;justify-content:space-between;padding:0.4rem 0;border-bottom:1px solid #e2e8f0;">
-              <span class="muted">Divisi Aktif:</span>
+              <span class="muted">Platform:</span>
+              <strong>SIMOKP v2.0</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:0.4rem 0;border-bottom:1px solid #e2e8f0;">
+              <span class="muted">Unit Bisnis:</span>
               <strong>Divisi Pemasaran &amp; Sirkulasi</strong>
             </div>
             <div style="display:flex;justify-content:space-between;padding:0.4rem 0;border-bottom:1px solid #e2e8f0;">
-              <span class="muted">Total Mitra Klien:</span>
-              <strong>{db.clients.length} Klien Terdaftar</strong>
-            </div>
-            <div style="display:flex;justify-content:space-between;padding:0.4rem 0;border-bottom:1px solid #e2e8f0;">
-              <span class="muted">Total Penawaran:</span>
-              <strong>{db.offers.length} Berkas Proposal</strong>
-            </div>
-            <div style="display:flex;justify-content:space-between;padding:0.4rem 0;">
               <span class="muted">Periode Aktif:</span>
               <span class="badge badge-approved">{p.name}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:0.4rem 0;">
+              <span class="muted">Standar Audit:</span>
+              <span class="badge badge-info" style="font-size:0.75rem;">ISO/IEC 25010</span>
             </div>
           </div>
         </section>
@@ -143,15 +164,15 @@ const approvalRate = mine.length > 0 ? Math.round((count(mine, "approved") / min
           <div class="card-body stack" style="gap:0.5rem;">
             <a href="/admin/users" class="btn btn-secondary" style="width:100%;justify-content:flex-start;">
               <Icon name="users" size={16} />
-              <span>Kelola Status Pengguna &rarr;</span>
+              <span>Kelola Pengguna &amp; Hak Akses &rarr;</span>
             </a>
-            <a href="/hrd/verifications" class="btn btn-secondary" style="width:100%;justify-content:flex-start;">
-              <Icon name="check" size={16} />
-              <span>Pantau Verifikasi Lapangan &rarr;</span>
+            <a href="/admin/audit-logs" class="btn btn-secondary" style="width:100%;justify-content:flex-start;">
+              <Icon name="shield" size={16} />
+              <span>Pusat Audit Trail Sistem &rarr;</span>
             </a>
             <a href="/admin/settings" class="btn btn-secondary" style="width:100%;justify-content:flex-start;">
               <Icon name="settings" size={16} />
-              <span>Konfigurasi Aplikasi &rarr;</span>
+              <span>Konfigurasi &amp; Kebijakan SIMOKP &rarr;</span>
             </a>
           </div>
         </section>
@@ -160,19 +181,75 @@ const approvalRate = mine.length > 0 ? Math.round((count(mine, "approved") / min
   </>)}
 
   {user.role === "hrd" && (<>
-    <div class="stat-grid">
-      <StatCard label="Aktivitas periode ini" value={sum.total} note={`${sum.approved} disetujui`} />
-      <StatCard label="Menunggu verifikasi" value={sum.pending} tone={sum.pending ? "warn" : "ok"} note="Perlu diverifikasi" />
-      <StatCard label="Perlu revisi / ditolak" value={sum.revision + sum.rejected} tone={sum.revision + sum.rejected ? "bad" : "ok"} />
-      <StatCard label="Rata-rata capaian target" value={sum.avgPercent == null ? "—" : `${num(sum.avgPercent)}%`} note={`${sum.targets} target, tiap target dibatasi 100%`} />
+    <!-- Stat Grid 1: 3 Pilar Utama SIMOKP & Indeks KPI -->
+    <div class="stat-grid" style="margin-bottom: 1.25rem;">
+      <StatCard label="Omzet Kas Tunai" value={rupiah(totalCashDeals)} tone="ok" note="Penerimaan riil iklan & advertorial" />
+      <StatCard label="Nilai Realisasi Barter" value={rupiah(totalBarterDeals)} tone="info" note="Kerja sama barang/jasa promosi" />
+      <StatCard label="Oplah Bersih Terjual" value={`${num(totalSoldOplah)} Eks`} note={`Kirim: ${num(totalSentOplah)} | Retur: ${num(totalReturnOplah)}`} />
+      <StatCard label="Rata-rata Capaian KPI" value={sum.avgPercent == null ? "—" : `${num(sum.avgPercent)}%`} tone={sum.avgPercent && sum.avgPercent >= 70 ? "ok" : "warn"} note={`${sum.targets} sasaran operasional aktif`} />
     </div>
+
+    <!-- Stat Grid 2: Operasional Verifikasi & Lapangan -->
+    <div class="stat-grid">
+      <StatCard label="Aktivitas periode ini" value={sum.total} note={`${sum.approved} disetujui HRD`} />
+      <StatCard label="Menunggu verifikasi" value={sum.pending} tone={sum.pending ? "warn" : "ok"} note="Perlu ditinjau segera" />
+      <StatCard label="Perlu revisi / ditolak" value={sum.revision + sum.rejected} tone={sum.revision + sum.rejected ? "bad" : "ok"} note="Ada catatan perbaikan" />
+      <StatCard label="Petugas Pemasaran" value={db.employees.filter((e) => e.role === "employee").length} note="Staf pelaksana lapangan" />
+    </div>
+
     {sum.unmapped > 0 && <Alert tone="warning" title="Ada indikator tanpa mapping">{sum.unmapped} target tidak punya mapping aktivitas, sehingga realisasinya tidak dihitung otomatis.</Alert>}
-    <div class="grid-3-1">
-      <section class="card"><div class="card-head"><h2>Capaian target perusahaan dan divisi</h2><a href="/hrd/kpi/achievements">Rincian realisasi</a></div>
-        <DataTable caption="Capaian perusahaan dan divisi" columns={[{ key: "subject", label: "Cakupan" }, { key: "name", label: "Indikator" }, { key: "target", label: "Target", type: "number" }, { key: "actual", label: "Realisasi", type: "number" }, { key: "percent", label: "Capaian", type: "meter" }]}
-          rows={divRows.map((r) => ({ subject: subjectName(r), name: r.indicator.name, target: r.target.value, actual: r.actual, percent: r.percent }))} /></section>
-      <section class="card"><div class="card-head"><h2>Antrean verifikasi</h2><a href="/hrd/verifications">Buka antrean</a></div>
-        <DataTable caption="Antrean verifikasi" columns={[{ key: "id", label: "ID", href: (r) => `/hrd/verifications/${r.id}` }, { key: "owner", label: "Pemilik" }, { key: "typeLabel", label: "Jenis" }]} rows={waiting.slice(0, 5).map((a) => ({ ...a, owner: employeeName(a.ownerId), typeLabel: TYPE_LABEL[a.type] }))} emptyTitle="Antrean kosong" emptyHint="Tidak ada aktivitas yang menunggu verifikasi." /></section>
+
+    <div class="grid-3-1" style="margin-top: 1.5rem;">
+      <section class="card">
+        <div class="card-head">
+          <div>
+            <h2>Capaian Target Perusahaan &amp; Divisi</h2>
+            <p class="muted font-xs" style="margin: 0.15rem 0 0;">Monitoring sasaran korporat dan target divisi pemasaran &amp; sirkulasi periode {p.name}.</p>
+          </div>
+          <a href="/hrd/kpi/achievements">Rincian Realisasi &rarr;</a>
+        </div>
+        <DataTable
+          caption="Capaian perusahaan dan divisi"
+          columns={[
+            { key: "subject", label: "Cakupan" },
+            { key: "name", label: "Indikator" },
+            { key: "targetDisplay", label: "Target" },
+            { key: "actualDisplay", label: "Realisasi" },
+            { key: "percent", label: "Capaian", type: "meter" }
+          ]}
+          rows={divRows.map((r) => {
+            const isCurrency = r.indicator.unit === "Rp" || r.indicator.unit.toLowerCase().includes("rupiah");
+            return {
+              subject: subjectName(r),
+              name: r.indicator.name,
+              targetDisplay: isCurrency ? rupiah(r.target.value) : `${num(r.target.value)} ${r.indicator.unit}`,
+              actualDisplay: r.actual != null ? (isCurrency ? rupiah(r.actual) : `${num(r.actual)} ${r.indicator.unit}`) : "—",
+              percent: r.percent,
+            };
+          })}
+        />
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <div>
+            <h2>Antrean Verifikasi</h2>
+            <p class="muted font-xs" style="margin: 0.15rem 0 0;">Laporan staf yang butuh persetujuan.</p>
+          </div>
+          <a href="/hrd/verifications">Buka Antrean &rarr;</a>
+        </div>
+        <DataTable
+          caption="Antrean verifikasi"
+          columns={[
+            { key: "id", label: "ID", href: (r) => `/hrd/verifications/${r.id}` },
+            { key: "owner", label: "Pemilik" },
+            { key: "typeLabel", label: "Jenis" }
+          ]}
+          rows={waiting.slice(0, 5).map((a) => ({ ...a, owner: employeeName(a.ownerId), typeLabel: TYPE_LABEL[a.type] }))}
+          emptyTitle="Antrean kosong"
+          emptyHint="Tidak ada aktivitas yang menunggu verifikasi saat ini."
+        />
+      </section>
     </div>
   </>)}
 
@@ -322,7 +399,7 @@ const approvalRate = mine.length > 0 ? Math.round((count(mine, "approved") / min
             </div>
             <h3>Belum ada aktivitas yang dicatat</h3>
             <p class="muted text-sm" style="max-width: 38ch; margin: 0 auto var(--space-4);">
-              Mulai input aktivitas kerja atau sirkulasi harian Anda agar dapat diverifikasi oleh Supervisor dan HRD.
+              Mulai input aktivitas kerja atau sirkulasi harian Anda agar dapat diverifikasi oleh Supervisor dan Admin Pemasaran.
             </p>
             <a href="/employee/activities/new" class="btn btn-primary">+ Catat Aktivitas Pertama</a>
           </div>
@@ -428,14 +505,14 @@ const approvalRate = mine.length > 0 ? Math.round((count(mine, "approved") / min
               <span class="sop-num">3</span>
               <div>
                 <strong>Pantau Antrean Verifikasi</strong>
-                <p class="muted" style="margin: 0.15rem 0 0;">Supervisor dan HRD akan memvalidasi aktivitas untuk dimasukkan ke perhitungan KPI.</p>
+                <p class="muted" style="margin: 0.15rem 0 0;">Admin dan Supervisor memvalidasi aktivitas untuk dimasukkan ke perhitungan KPI.</p>
               </div>
             </div>
             <div class="sop-step" style="margin-bottom: 0;">
               <span class="sop-num">4</span>
               <div>
-                <strong>Perhitungan Akhir SPK SAW</strong>
-                <p class="muted" style="margin: 0.15rem 0 0;">Skor akhir dihitung secara objektif menggunakan metode Simple Additive Weighting.</p>
+                <strong>Evaluasi Akhir Capaian KPI</strong>
+                <p class="muted" style="margin: 0.15rem 0 0;">Pencapaian dihitung transparan berdasarkan rasio target operasional vs realisasi tervalidasi.</p>
               </div>
             </div>
           </div>

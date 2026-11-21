@@ -83,15 +83,64 @@ export function createActivity(actor: Viewer, input: Record<string, any>): Resul
   };
   const detail = `${a.id} (${a.type}) dibuat oleh ${employeeName(actor.id)} untuk ${owner.name}.`;
   switch (input.type) {
-    case "oplah": Object.assign(a, { qty: input.qty, source: input.source, sourceName: input.sourceName }); break;
+    case "oplah": {
+      const returnQty = Math.max(0, Number(input.returnQty || 0));
+      const qty = Math.max(0, Number(input.qty || 0));
+      const soldQty = Math.max(0, qty - returnQty);
+      Object.assign(a, {
+        qty,
+        returnQty,
+        soldQty,
+        returnCondition: input.returnCondition || "layak_stok",
+        editionName: input.editionName || "",
+        source: input.source,
+        sourceName: input.sourceName,
+      });
+      break;
+    }
     case "client": {
       const c: T.Client = { id: nextId("CL"), name: input.clientName, sector: input.sector, contact: input.contact, phone: input.phone, city: input.city, ownerId: owner.id, createdAt: input.date };
       db.clients.push(c); a.clientId = c.id; break;
     }
     case "profiling": Object.assign(a, { clientId: input.clientId, potential: input.potential }); break;
     case "offer": {
-      const o: T.Offer = { id: nextId("OFR"), clientId: input.clientId, programName: input.programName, ownerId: owner.id, date: input.date, value: input.value, periodId: p.id, note: "" };
-      db.offers.push(o); Object.assign(a, { offerId: o.id, clientId: o.clientId, value: o.value }); break;
+      const pType = input.partnershipType || "tunai";
+      let cash = Number(input.cashValue || 0);
+      let barter = Number(input.barterValue || 0);
+      if (pType === "tunai" && cash === 0 && input.value) cash = Number(input.value);
+      if (pType === "barter" && barter === 0 && input.value) barter = Number(input.value);
+      const totalVal = cash + barter > 0 ? cash + barter : Number(input.value || 0);
+      const o: T.Offer = {
+        id: nextId("OFR"),
+        clientId: input.clientId,
+        programName: input.programName,
+        ownerId: owner.id,
+        date: input.date,
+        value: totalVal,
+        cashValue: cash,
+        barterValue: barter,
+        partnershipType: pType,
+        barterType: input.barterType || (barter > 0 ? "barang" : undefined),
+        barterDesc: input.barterDesc || "",
+        periodId: p.id,
+        note: input.note || "",
+        realizationStatus: input.realizationStatus || "rencana",
+        proofUrl: input.proofUrl || "",
+      };
+      db.offers.push(o);
+      Object.assign(a, {
+        offerId: o.id,
+        clientId: o.clientId,
+        value: o.value,
+        cashValue: cash,
+        barterValue: barter,
+        partnershipType: pType,
+        barterType: o.barterType,
+        barterDesc: o.barterDesc,
+        realizationStatus: o.realizationStatus,
+        proofUrl: o.proofUrl,
+      });
+      break;
     }
     case "progress": Object.assign(a, { offerId: input.offerId, progressType: input.progressType }); break;
     case "program": {
@@ -102,7 +151,14 @@ export function createActivity(actor: Viewer, input: Record<string, any>): Resul
       const cur = offerOutcome(input.offerId);
       if (cur.status !== "open") return { ok: false, error: "Penawaran ini sudah memiliki hasil akhir aktif.", fields: { offerId: "Sudah ada hasil akhir." } };
       const o = offer(input.offerId);
-      Object.assign(a, { offerId: input.offerId, outcome: input.outcome, value: input.outcome === "deal" ? o?.value : undefined });
+      Object.assign(a, {
+        offerId: input.offerId,
+        outcome: input.outcome,
+        value: input.outcome === "deal" ? o?.value : undefined,
+        cashValue: input.outcome === "deal" ? o?.cashValue : undefined,
+        barterValue: input.outcome === "deal" ? o?.barterValue : undefined,
+        partnershipType: o?.partnershipType,
+      });
       if (input.outcome === "no") Object.assign(a, { reasonCategory: input.reasonCategory, reason: input.reason });
       break;
     }
@@ -127,13 +183,38 @@ export function verifyActivity(actor: Actor, id: string, status: "approved" | "r
   return { ok: true, data: a };
 }
 
-export function resubmitActivity(actor: Actor, id: string, patch: { description: string; qty?: number; value?: number }): Result<T.Activity> {
+export function resubmitActivity(
+  actor: Actor,
+  id: string,
+  patch: {
+    description: string;
+    qty?: number;
+    returnQty?: number;
+    value?: number;
+    cashValue?: number;
+    barterValue?: number;
+    proofUrl?: string;
+  }
+): Result<T.Activity> {
   const a = activity(id);
   if (!a) return { ok: false, error: "Aktivitas tidak ditemukan." };
   if (a.status !== "revision" || (a.ownerId !== actor.id && a.createdBy !== actor.id)) return { ok: false, error: "Aktivitas ini tidak dapat diperbaiki oleh Anda." };
   if (patch.description.trim().length < 10) return { ok: false, error: "Deskripsi minimal 10 karakter.", fields: { description: "Terlalu pendek." } };
   a.description = patch.description.trim();
-  if (patch.qty != null && a.type === "oplah") a.qty = patch.qty;
+  if (patch.qty != null && a.type === "oplah") {
+    a.qty = patch.qty;
+    if (patch.returnQty != null) a.returnQty = patch.returnQty;
+    a.soldQty = Math.max(0, a.qty - (a.returnQty ?? 0));
+  } else if (patch.returnQty != null && a.type === "oplah") {
+    a.returnQty = patch.returnQty;
+    a.soldQty = Math.max(0, (a.qty ?? 0) - a.returnQty);
+  }
+  if (patch.cashValue != null) a.cashValue = patch.cashValue;
+  if (patch.barterValue != null) a.barterValue = patch.barterValue;
+  if (patch.value != null) a.value = patch.value;
+  else if (a.cashValue != null || a.barterValue != null) a.value = (a.cashValue ?? 0) + (a.barterValue ?? 0);
+  if (patch.proofUrl) a.proofUrl = patch.proofUrl;
+
   a.status = "pending";
   db.verifications.push({ id: nextId("VER"), activityId: id, status: "pending", by: actor.id, at: new Date().toISOString(), note: "Diajukan kembali setelah revisi." });
   addAudit(actor.id, "aktivitas.diajukan-ulang", "activities", id, `Aktivitas ${id} diperbaiki dan diajukan kembali.`);

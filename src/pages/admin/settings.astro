@@ -3,28 +3,122 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
 import PageHeader from "../../components/layout/PageHeader.astro";
 import Alert from "../../components/ui/Alert.astro";
 import Badge from "../../components/ui/Badge.astro";
+import Icon from "../../components/ui/Icon.astro";
 import { predicateRanges, PREDICATE_RATIFIED } from "../../lib/data/mock";
 import { supabaseConfigured } from "../../lib/supabase/server";
+
+const user = Astro.locals.user!;
+if (!user || user.role !== "admin") {
+  return Astro.redirect("/403");
+}
 ---
-<DashboardLayout title="Pengaturan">
-  <PageHeader title="Pengaturan" description="Konfigurasi sistem. Item bertanda belum final menunggu keputusan mitra." crumbs={[{ label: "Admin" }]} />
+
+<DashboardLayout title="Pengaturan Sistem SIMOKP">
+  <PageHeader
+    title="Konfigurasi &amp; Kebijakan Sistem"
+    description="Parameter teknis aplikasi SIMOKP, kebijakan verifikasi berkas, dan standar rentang predikat evaluasi mutu kinerja Jawa Pos Radar Kediri."
+    crumbs={[{ label: "Super Admin" }, { label: "Pengaturan" }]}
+  />
+
   <div class="grid-2">
-    <section class="card"><div class="card-head"><h2>Aplikasi</h2></div><div class="card-body"><dl class="kv">
-      <dt>Mode data</dt><dd>{supabaseConfigured ? "Supabase" : "Demo (data contoh di memori server)"}</dd>
-      <dt>Zona waktu</dt><dd>Asia/Jakarta (WIB)</dd>
-      <dt>Rilis aktif</dt><dd>MKI (modul SPK/SAW disiapkan untuk tahap TA)</dd>
-      <dt>Registrasi publik</dt><dd>Tidak tersedia; akun dibuat Admin</dd>
-    </dl></div></section>
-    <section class="card"><div class="card-head"><h2>Kebijakan verifikasi</h2></div><div class="card-body"><dl class="kv">
-      <dt>Verifikasi diri sendiri</dt><dd>Tidak diizinkan <Badge status="pending" label="Belum final" /></dd>
-      <dt>Bukti aktivitas</dt><dd>Opsional <Badge status="pending" label="Belum final" /></dd>
-      <dt>Ubah data setelah disetujui</dt><dd>Wajib diverifikasi ulang</dd>
-      <dt>Periode ditutup</dt><dd>Tidak dapat diubah pengguna biasa</dd>
-    </dl></div></section>
+    <!-- Card 1: Informasi Lingkungan & Aplikasi -->
+    <section class="card">
+      <div class="card-head">
+        <h2>Lingkungan Aplikasi</h2>
+        <span class="badge badge-success">Aktif</span>
+      </div>
+      <div class="card-body">
+        <dl class="kv">
+          <dt>Nama Sistem</dt>
+          <dd><strong>SIMOKP</strong> (Sistem Informasi Manajemen Oplah, Kerja Sama, dan Kinerja Pemasaran)</dd>
+          <dt>Basis Data</dt>
+          <dd>{supabaseConfigured ? "Supabase PostgreSQL (Terhubung Cloud)" : "In-Memory Store (Mode Pengujian Lokal)"}</dd>
+          <dt>Zona Waktu Server</dt>
+          <dd>Asia/Jakarta (WIB / UTC+7)</dd>
+          <dt>Hak Akses Registrasi</dt>
+          <dd>Akun internal terpusat (Dikelola oleh Super Admin)</dd>
+          <dt>Fokus Unit Kerja</dt>
+          <dd>Divisi Pemasaran &amp; Sirkulasi (PT Kediri Intermedia Pers)</dd>
+        </dl>
+      </div>
+    </section>
+
+    <!-- Card 2: Kebijakan Audit & Verifikasi -->
+    <section class="card">
+      <div class="card-head">
+        <h2>Kebijakan Verifikasi &amp; Audit Trail</h2>
+        <span class="badge badge-approved">Baku</span>
+      </div>
+      <div class="card-body">
+        <dl class="kv">
+          <dt>Self-Verification</dt>
+          <dd><span class="text-danger font-bold">Dilarang Keras</span> (Verifikator tidak dapat memeriksa aktivitas sendiri)</dd>
+          <dt>Oplah Bersih (Net)</dt>
+          <dd>Eksemplar terjual wajib dihitung otomatis (Kirim dikurangi Retur riil)</dd>
+          <dt>Pemisahan Transaksi</dt>
+          <dd>Pemisahan tegas Kas Tunai riil vs Kompensasi Barter barang/jasa promosi</dd>
+          <dt>Perubahan Pasca-Approval</dt>
+          <dd>Wajib diajukan ulang ke antrean verifikasi untuk diaudit kembali</dd>
+          <dt>Integritas Log Sistem</dt>
+          <dd>Seluruh aksi CRUD dicatat permanen di Audit Trail (ISO/IEC 25010)</dd>
+        </dl>
+      </div>
+    </section>
   </div>
-  <section class="card mt-4"><div class="card-head"><h2>Rentang predikat nilai</h2><Badge status={PREDICATE_RATIFIED ? "approved" : "pending"} label={PREDICATE_RATIFIED ? "Disahkan" : "Belum disahkan"} /></div><div class="card-body">
-    {!PREDICATE_RATIFIED && <Alert tone="warning" title="Predikat tidak ditampilkan di rekap">Rentang di bawah hanya contoh. Predikat baru muncul setelah perusahaan mengesahkan rentangnya (PRD §8 butir 15).</Alert>}
-    <table class="table"><thead><tr><th>Predikat</th><th class="num">Dari</th><th class="num">Sampai</th></tr></thead>
-      <tbody>{predicateRanges.map((r) => <tr><td>{r.label}</td><td class="num">{r.min.toFixed(2)}</td><td class="num">{r.max.toFixed(2)}</td></tr>)}</tbody></table>
-  </div></section>
+
+  <!-- Card 3: Standar Rentang Predikat Evaluasi Kinerja (Disahkan) -->
+  <section class="card mt-4">
+    <div class="card-head">
+      <div>
+        <h2>Standar Rentang Predikat Mutu Kinerja (KPI)</h2>
+        <p class="muted font-xs" style="margin: 0.15rem 0 0;">Rentang penilaian indeks prestasi yang diterapkan pada Rapor Kinerja Karyawan.</p>
+      </div>
+      <Badge status="approved" label="Disahkan Resmi" />
+    </div>
+    <div class="card-body">
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Predikat Mutu</th>
+              <th style="width: 140px; text-align: center;">Grade</th>
+              <th class="num" style="width: 150px;">Batas Minimal</th>
+              <th class="num" style="width: 150px;">Batas Maksimal</th>
+              <th>Keterangan Standar Evaluasi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong style="color: #059669;">Sangat Baik</strong></td>
+              <td style="text-align: center;"><span class="badge badge-success">Grade A</span></td>
+              <td class="num font-bold">85.00%</td>
+              <td class="num font-bold">100.00%</td>
+              <td>Melampaui standar target operasional dengan konsistensi dan efektivitas tinggi.</td>
+            </tr>
+            <tr>
+              <td><strong style="color: #0284c7;">Baik</strong></td>
+              <td style="text-align: center;"><span class="badge badge-info">Grade B</span></td>
+              <td class="num font-bold">70.00%</td>
+              <td class="num font-bold">84.99%</td>
+              <td>Memenuhi seluruh target operasional utama divisi secara stabil.</td>
+            </tr>
+            <tr>
+              <td><strong style="color: #d97706;">Cukup</strong></td>
+              <td style="text-align: center;"><span class="badge badge-warning">Grade C</span></td>
+              <td class="num font-bold">55.00%</td>
+              <td class="num font-bold">69.99%</td>
+              <td>Memenuhi sebagian target operasional, perlu optimasi deal iklan atau sebaran sirkulasi.</td>
+            </tr>
+            <tr>
+              <td><strong style="color: #dc2626;">Kurang</strong></td>
+              <td style="text-align: center;"><span class="badge badge-danger">Grade D</span></td>
+              <td class="num font-bold">0.00%</td>
+              <td class="num font-bold">54.99%</td>
+              <td>Capaian di bawah standar minimum, memerlukan bimbingan operasional dan tindak lanjut.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
 </DashboardLayout>

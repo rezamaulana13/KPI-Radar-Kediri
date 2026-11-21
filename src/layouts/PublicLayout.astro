@@ -25,7 +25,7 @@ let notifCount = 0;
 
 if (user) {
   emp = employee(user.id);
-  posName = positions.find((pos) => pos.id === emp?.positionId)?.name ?? (user.role === "admin" ? "Super Admin" : user.role === "hrd" ? "Admin HRD" : "Eksekutif Marketing");
+  posName = positions.find((pos) => pos.id === emp?.positionId)?.name ?? (user.role === "admin" ? "Super Admin" : user.role === "hrd" ? "Admin (Pemasaran & Sirkulasi)" : "Karyawan");
   divName = divisionName(user.divisionId) || "Divisi Pemasaran & Sirkulasi";
   nip = emp?.nip || `RK-${user.id.slice(0, 4).toUpperCase()}`;
 
@@ -588,8 +588,8 @@ if (user) {
             <path d="M27 11h4M27 16h4" stroke="#60a5fa" stroke-width="3" stroke-linecap="round"/>
           </svg>
           <div>
-            <span class="pub-brand-title">Radar Kediri</span>
-            <span class="pub-brand-subtitle">Portal Kinerja &amp; Aktivitas</span>
+            <span class="pub-brand-title">SIMOKP</span>
+            <span class="pub-brand-subtitle">Radar Kediri</span>
           </div>
         </a>
 
@@ -660,7 +660,7 @@ if (user) {
                     <div class="dropdown-user-email">{user.email}</div>
                     <div class="dropdown-user-meta">
                       <span class={`pub-role-badge badge-${user.role}`}>
-                        {user.role === "admin" ? "Super Admin" : user.role === "hrd" ? "Admin HRD" : "Karyawan"}
+                        {user.role === "admin" ? "Super Admin" : user.role === "hrd" ? "Admin Pemasaran" : "Karyawan"}
                       </span>
                       <span style="font-size:0.75rem;color:#64748b;font-weight:600;">{nip}</span>
                     </div>
@@ -719,11 +719,11 @@ if (user) {
                               <span class="dropdown-item-icon"><Icon name="check" size={17} /></span>
                               <span>Verifikasi Aktivitas</span>
                             </a>
-                            <a href="/hrd/spk/calculations" class="dropdown-item" role="menuitem">
-                              <span class="dropdown-item-icon"><Icon name="target" size={17} /></span>
-                              <span>Perhitungan SPK SAW</span>
+                            <a href="/hrd/kpi/achievements" class="dropdown-item" role="menuitem">
+                              <span class="dropdown-item-icon"><Icon name="chart" size={17} /></span>
+                              <span>Realisasi Target KPI</span>
                             </a>
-                            <a href="/api/export/excel?type=hrd" class="dropdown-item" role="menuitem" download title="Unduh Rekap SAW Excel">
+                            <a href="/api/export/excel?type=hrd" class="dropdown-item" role="menuitem" download title="Unduh Rekap Kinerja Excel">
                               <span class="dropdown-item-icon">
                                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -731,7 +731,7 @@ if (user) {
                                   <line x1="12" y1="15" x2="12" y2="3"></line>
                                 </svg>
                               </span>
-                              <span>Unduh Rekap SAW Excel</span>
+                              <span>Unduh Rekap Kinerja (.xlsx)</span>
                             </a>
                           </>
                         )}
@@ -870,13 +870,13 @@ if (user) {
             </a>
             {user.role === "hrd" && (
               <>
-                <a class="pub-mobile-link" href="/hrd/activities">
+                <a class="pub-mobile-link" href="/hrd/verifications">
                   <Icon name="check" size={18} />
                   <span>Verifikasi Aktivitas</span>
                 </a>
-                <a class="pub-mobile-link" href="/hrd/spk/calculations">
-                  <Icon name="target" size={18} />
-                  <span>Perhitungan SPK SAW</span>
+                <a class="pub-mobile-link" href="/hrd/kpi/achievements">
+                  <Icon name="chart" size={18} />
+                  <span>Realisasi Target KPI</span>
                 </a>
               </>
             )}

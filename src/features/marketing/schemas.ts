@@ -7,10 +7,56 @@ const base = { ownerId: z.string().min(1, "Pemilik aktivitas wajib dipilih."), d
 const money = z.coerce.number({ error: "Isi dengan angka." }).positive("Nilai harus lebih dari 0.");
 
 export const activitySchema = z.discriminatedUnion("type", [
-  z.object({ ...base, type: z.literal("oplah"), source: z.enum(oplahSources as [string, ...string[]], { error: "Pilih sumber oplah." }), sourceName: z.string().trim().min(2, "Nama sumber wajib diisi."), qty: z.coerce.number({ error: "Isi dengan angka." }).int("Harus bilangan bulat.").positive("Jumlah harus lebih dari 0.") }),
+  z.object({
+    ...base,
+    type: z.literal("oplah"),
+    source: z.enum(oplahSources as [string, ...string[]], { error: "Pilih sumber oplah." }),
+    sourceName: z.string().trim().min(2, "Nama sumber wajib diisi."),
+    qty: z.coerce.number({ error: "Isi dengan angka." }).int("Harus bilangan bulat.").positive("Jumlah harus lebih dari 0."),
+    returnQty: z.coerce.number({ error: "Isi dengan angka." }).int("Harus bilangan bulat.").min(0, "Retur tidak boleh negatif.").optional().default(0),
+    returnCondition: z.enum(["layak_stok", "rusak"]).optional(),
+    editionName: z.string().trim().optional(),
+  }).refine((data) => (data.returnQty ?? 0) <= data.qty, {
+    message: "Jumlah retur tidak boleh melebihi eksemplar dikirim.",
+    path: ["returnQty"],
+  }),
   z.object({ ...base, type: z.literal("client"), clientName: z.string().trim().min(3, "Nama client wajib diisi."), sector: z.string().trim().min(2, "Sektor wajib diisi."), contact: z.string().trim().min(2, "Nama kontak wajib diisi."), phone: z.string().trim().min(6, "Nomor telepon wajib diisi."), city: z.string().trim().min(2, "Kota wajib diisi.") }),
   z.object({ ...base, type: z.literal("profiling"), clientId: z.string().min(1, "Pilih client."), potential: z.enum(["Tinggi", "Sedang", "Rendah"], { error: "Pilih potensi." }) }),
-  z.object({ ...base, type: z.literal("offer"), clientId: z.string().min(1, "Pilih client."), programName: z.string().trim().min(3, "Nama paket/penawaran wajib diisi."), value: money }),
+  z.object({
+    ...base,
+    type: z.literal("offer"),
+    clientId: z.string().min(1, "Pilih client."),
+    programName: z.string().trim().min(3, "Nama paket/penawaran wajib diisi."),
+    partnershipType: z.enum(["tunai", "barter", "hybrid"]).default("tunai"),
+    cashValue: z.coerce.number().min(0, "Nilai tunai tidak boleh negatif.").optional().default(0),
+    barterValue: z.coerce.number().min(0, "Nilai barter tidak boleh negatif.").optional().default(0),
+    barterType: z.enum(["barang", "jasa"]).optional(),
+    barterDesc: z.string().trim().optional(),
+    value: z.coerce.number().min(0).optional(),
+    realizationStatus: z.enum(["rencana", "sebagian", "selesai"]).optional().default("rencana"),
+    proofUrl: z.string().trim().optional(),
+  }).superRefine((data, ctx) => {
+    const cash = data.cashValue ?? 0;
+    const barter = data.barterValue ?? 0;
+    if (data.partnershipType === "tunai" && cash <= 0 && (!data.value || data.value <= 0)) {
+      ctx.addIssue({ code: "custom", message: "Nilai kas tunai wajib diisi lebih dari 0.", path: ["cashValue"] });
+    }
+    if (data.partnershipType === "barter") {
+      if (barter <= 0 && (!data.value || data.value <= 0)) {
+        ctx.addIssue({ code: "custom", message: "Nilai barter wajib diisi lebih dari 0.", path: ["barterValue"] });
+      }
+      if (!data.barterDesc || data.barterDesc.trim().length < 3) {
+        ctx.addIssue({ code: "custom", message: "Rincian barang/jasa barter wajib diisi.", path: ["barterDesc"] });
+      }
+    }
+    if (data.partnershipType === "hybrid") {
+      if (cash <= 0) ctx.addIssue({ code: "custom", message: "Porsi tunai wajib diisi lebih dari 0.", path: ["cashValue"] });
+      if (barter <= 0) ctx.addIssue({ code: "custom", message: "Porsi barter wajib diisi lebih dari 0.", path: ["barterValue"] });
+      if (!data.barterDesc || data.barterDesc.trim().length < 3) {
+        ctx.addIssue({ code: "custom", message: "Rincian barang/jasa barter wajib diisi.", path: ["barterDesc"] });
+      }
+    }
+  }),
   z.object({ ...base, type: z.literal("progress"), offerId: z.string().min(1, "Pilih penawaran."), progressType: z.enum(progressTypes as [string, ...string[]], { error: "Pilih tipe progress." }) }),
   z.object({ ...base, type: z.literal("program"), programName: z.string().trim().min(3, "Nama program wajib diisi."), kind: z.enum(["program", "barter"], { error: "Pilih jenis." }), start: date, end: date, value: z.coerce.number().min(0, "Nilai tidak boleh negatif.").default(0), participants: z.array(z.string()).default([]) }),
   outcomeSchemaInner(),

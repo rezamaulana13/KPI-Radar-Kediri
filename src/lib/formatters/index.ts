@@ -18,6 +18,6 @@ export const TYPE_LABEL: Record<string, string> = {
   oplah: "Oplah", client: "List Client", program: "Program/Barter", profiling: "Riset Profiling",
   offer: "Penawaran", progress: "Progress", outcome: "Hasil Deal/NO",
 };
-export const ROLE_LABEL: Record<string, string> = { admin: "Super Admin", hrd: "Admin (HRD)", employee: "Pengguna (Karyawan)" };
+export const ROLE_LABEL: Record<string, string> = { admin: "Super Admin", hrd: "Admin (Pemasaran & Sirkulasi)", employee: "Karyawan" };
 export const SCOPE_LABEL: Record<string, string> = { company: "Perusahaan", division: "Divisi", individual: "Individu" };
 export const ROLES_OPTIONS = Object.entries(ROLE_LABEL).map(([value, label]) => ({ value, label }));

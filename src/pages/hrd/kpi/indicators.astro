@@ -5,10 +5,10 @@ import Alert from "../../../components/ui/Alert.astro";
 import { categories, indicators } from "../../../lib/data/store";
 const rows = indicators.map((i) => ({ ...i, category: categories.find((c) => c.id === i.categoryId)?.name, measureLabel: i.measure === "sum" ? "Jumlah nilai" : "Hitung kejadian", dirLabel: i.direction === "benefit" ? "Benefit (makin besar makin baik)" : "Cost", status: i.active ? "active" : "closed" }));
 ---
-<DashboardLayout title="Indikator KPI">
-  <ListPage title="Indikator KPI" description="Definisi, satuan, jenis pengukuran, dan arah setiap indikator." crumbs={[{ label: "HRD" }, { label: "KPI" }]} rows={rows} searchKeys={["name", "code"]}
+<DashboardLayout title="Master Indikator KPI">
+  <ListPage title="Master Indikator KPI" description="Daftar indikator kinerja operasional pemasaran dan sirkulasi: kode, definisi, satuan, metode pengukuran, dan arah capaian." crumbs={[{ label: "Admin Pemasaran" }, { label: "Indikator KPI" }]} rows={rows} searchKeys={["name", "code"]}
     filters={[{ name: "categoryId", label: "Kategori", options: categories.map((c) => ({ value: c.id, label: c.name })) }]}
     columns={[{ key: "code", label: "Kode", type: "mono" }, { key: "name", label: "Indikator" }, { key: "category", label: "Kategori" }, { key: "unit", label: "Satuan" }, { key: "measureLabel", label: "Pengukuran" }, { key: "dirLabel", label: "Arah" }, { key: "status", label: "Status", type: "badge" }]}>
-    <Alert slot="before" tone="warning" title="Indikator contoh">Daftar KPI resmi, rumus, dan satuan wajib dikonfirmasi mitra (PRD §14). Jumlah NO belum dijadikan KPI karena belum diputuskan.</Alert>
+    <Alert slot="before" tone="info" title="Instrumen KPI SIMOKP Radar Kediri">Indikator operasional ini mengintegrasikan sirkulasi oplah bersih terjual (IND-01), omzet kas tunai deal (IND-05), dan nilai barter barang/jasa promosi (IND-07) secara terukur.</Alert>
   </ListPage>
 </DashboardLayout>

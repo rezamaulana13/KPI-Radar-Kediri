@@ -11,7 +11,16 @@ export function contribution(a: Activity, indicatorId: string): number | null {
   const m = mappings.find((x) => x.indicatorId === indicatorId && x.activityType === a.type && (!x.outcome || x.outcome === a.outcome));
   if (!m) return null;
   if (m.field === "count") return 1;
-  return (m.field === "qty" ? a.qty : a.value) ?? 0;
+  if (m.field === "qty") return (a.soldQty ?? a.qty) ?? 0;
+  if (indicatorId === "IND-05") {
+    // Omzet Kas Tunai dari penawaran Deal
+    return (a.cashValue != null ? a.cashValue : a.value) ?? 0;
+  }
+  if (indicatorId === "IND-07") {
+    // Nilai Realisasi Barter
+    return (a.barterValue != null ? a.barterValue : (a.value ?? 0));
+  }
+  return a.value ?? 0;
 }
 
 function inScope(a: Activity, t: KpiTarget): boolean {

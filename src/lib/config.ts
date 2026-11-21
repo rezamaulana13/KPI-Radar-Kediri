@@ -1,12 +1,14 @@
 /**
- * Konfigurasi Ruang Lingkup Sistem (App Scope Config)
- * 
- * - "MKI": Mode Magang Kerja Industri (Sistem Informasi Manajemen Aktivitas & Monitoring Operasional)
- *          Modul SPK disembunyikan agar fokus pada pencatatan lapangan, verifikasi HRD, & target operasional.
- * - "TA":  Mode Tugas Akhir / Skripsi (Sistem Pendukung Keputusan SAW & 5 Fitur Intelligence Lanjutan)
+ * Konfigurasi Utama Sistem Informasi SIMOKP
+ * (Sistem Informasi Manajemen Oplah, Kerja Sama, dan Kinerja Pemasaran)
+ * PT Kediri Intermedia Pers - Jawa Pos Radar Kediri
  */
-export const APP_MODE: "MKI" | "TA" = "MKI";
+export const APP_NAME = "SIMOKP";
+export const APP_FULL_NAME = "Sistem Informasi Manajemen Oplah, Kerja Sama, dan Kinerja Pemasaran";
+export const APP_ORG = "PT Kediri Intermedia Pers (Jawa Pos Radar Kediri)";
 
-export const IS_MKI = APP_MODE === "MKI";
-export const ENABLE_SPK = APP_MODE === "TA";
+export const APP_MODE: "OPERATIONAL" = "OPERATIONAL";
+export const IS_MKI = false;
+export const ENABLE_SPK = false;
+
 

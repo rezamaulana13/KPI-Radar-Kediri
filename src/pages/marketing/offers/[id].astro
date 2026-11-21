@@ -29,9 +29,31 @@ const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
     {st.error && <Alert tone="danger" title="Belum tersimpan">{st.error}</Alert>}
     <div class="grid-3-1">
     <div class="stack">
-      <section class="card"><div class="card-head"><h2>Ringkasan</h2><Badge status={out.status} /></div><div class="card-body"><dl class="kv">
-        <dt>Client</dt><dd>{c.name} · {c.sector} · {c.city}</dd><dt>Kontak</dt><dd>{c.contact} ({c.phone})</dd>
-        <dt>Pemilik</dt><dd>{employeeName(o.ownerId)}</dd><dt>Tanggal penawaran</dt><dd>{dateID(o.date)}</dd><dt>Nilai</dt><dd>{rupiah(o.value)}</dd>
+      <section class="card"><div class="card-head"><h2>Ringkasan Proposal</h2><Badge status={out.status} /></div><div class="card-body"><dl class="kv">
+        <dt>Mitra / Klien</dt><dd>{c.name} · {c.sector} · {c.city}</dd><dt>Kontak</dt><dd>{c.contact} ({c.phone})</dd>
+        <dt>Pemilik / Staf</dt><dd>{employeeName(o.ownerId)}</dd><dt>Tanggal Penawaran</dt><dd>{dateID(o.date)}</dd>
+        <dt>Jenis Kerja Sama</dt>
+        <dd>
+          <span style="font-size: 0.75rem; background: #e0f2fe; color: #0369a1; padding: 0.15rem 0.5rem; border-radius: 999px; text-transform: uppercase; font-weight: 700;">
+            {o.partnershipType || "tunai"}
+          </span>
+        </dd>
+        <dt>Total Komersial</dt><dd><strong>{rupiah(o.value)}</strong></dd>
+        {o.cashValue != null && o.cashValue > 0 && (
+          <><dt>Porsi Kas Tunai</dt><dd style="color: #15803d; font-weight: 600;">{rupiah(o.cashValue)}</dd></>
+        )}
+        {o.barterValue != null && o.barterValue > 0 && (
+          <>
+            <dt>Porsi Nilai Barter</dt><dd style="color: #b45309; font-weight: 600;">{rupiah(o.barterValue)}</dd>
+            {o.barterDesc && <><dt>Rincian Barter</dt><dd style="color: #475569; font-style: italic;">{o.barterDesc}</dd></>}
+          </>
+        )}
+        <dt>Status Realisasi</dt>
+        <dd>
+          <span style="font-size: 0.75rem; background: #f1f5f9; color: #334155; padding: 0.15rem 0.5rem; border-radius: 999px; font-weight: 600;">
+            {o.realizationStatus === "selesai" ? "Selesai Muat & Lunas" : o.realizationStatus === "sebagian" ? "Sebagian Tayang" : "Rencana / Menunggu Jadwal Muat"}
+          </span>
+        </dd>
         {o.note && (<><dt>Catatan</dt><dd>{o.note}</dd></>)}
         {out.activity && (<><dt>Hasil akhir</dt><dd><Badge status={out.status} /> · {dateID(out.activity.date)} · verifikasi: <Badge status={out.activity.status} /></dd></>)}
         {out.activity?.outcome === "no" && (<><dt>Alasan NO</dt><dd><strong>{out.activity.reasonCategory}</strong>. {out.activity.reason}</dd></>)}

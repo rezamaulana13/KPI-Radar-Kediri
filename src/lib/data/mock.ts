@@ -39,15 +39,15 @@ export const kpiCategories: T.KpiCategory[] = [
 const ind = (id: string, code: string, name: string, categoryId: string, unit: string, measure: T.Measure, definition: string): T.KpiIndicator =>
   ({ id, code, name, categoryId, unit, measure, direction: "benefit", definition, active: true });
 export const indicators: T.KpiIndicator[] = [
-  ind("IND-01", "OPL", "Perolehan Oplah", "CAT-DIV", "eksemplar", "sum", "Total eksemplar dari aktivitas oplah yang disetujui."),
+  ind("IND-01", "OPL", "Perolehan Oplah Bersih Terjual", "CAT-DIV", "eksemplar", "sum", "Total eksemplar bersih terjual (setelah dikurangi retur) dari sirkulasi yang disetujui."),
   ind("IND-02", "CLN", "Client Baru Terdaftar", "CAT-IND", "client", "count", "Jumlah client baru pada List Client yang disetujui."),
-  ind("IND-03", "PNW", "Penawaran Dikirim", "CAT-IND", "penawaran", "count", "Jumlah penawaran/proposal yang disetujui."),
-  ind("IND-04", "DEA", "Deal Tercapai", "CAT-IND", "deal", "count", "Jumlah penawaran berhasil ditutup Deal dan disetujui."),
-  ind("IND-05", "NDL", "Nilai Deal", "CAT-DIV", "Rp", "sum", "Total nilai penawaran yang berhasil Deal dan disetujui."),
+  ind("IND-03", "PNW", "Proposal Penawaran Dikirim", "CAT-IND", "penawaran", "count", "Jumlah penawaran/proposal yang disetujui."),
+  ind("IND-04", "DEA", "Deal Closing Tercapai", "CAT-IND", "deal", "count", "Jumlah penawaran berhasil ditutup Deal dan disetujui."),
+  ind("IND-05", "NDL", "Omzet Iklan Kas Tunai", "CAT-DIV", "Rp", "sum", "Penerimaan kas tunai riil dari penawaran Deal yang disetujui."),
   ind("IND-06", "PRF", "Riset Profiling Selesai", "CAT-IND", "riset", "count", "Jumlah riset profiling client yang disetujui."),
-  ind("IND-07", "PRG", "Program/Barter Terlaksana", "CAT-DIV", "program", "count", "Jumlah program atau barter yang disetujui."),
+  ind("IND-07", "BAR", "Nilai Realisasi Barter", "CAT-DIV", "Rp", "sum", "Total nilai barang/jasa barter dari kerja sama yang disetujui."),
   ind("IND-08", "KNJ", "Progress & Kunjungan", "CAT-IND", "kunjungan", "count", "Jumlah pencatatan progress pendekatan/kunjungan yang disetujui."),
-  ind("IND-09", "PIK", "Pendapatan Iklan Perusahaan", "CAT-COM", "Rp", "sum", "Pendapatan iklan seluruh perusahaan. Diisi manual oleh HRD; tidak punya mapping aktivitas."),
+  ind("IND-09", "PIK", "Pendapatan Komersial Perusahaan", "CAT-COM", "Rp", "sum", "Pendapatan komersial seluruh perusahaan. Diisi oleh Admin/Direksi."),
 ];
 
 const tg = (id: string, indicatorId: string, periodId: string, scope: T.KpiScope, value: number, who: Partial<T.KpiTarget> = {}): T.KpiTarget =>
@@ -56,18 +56,19 @@ export const kpiTargets: T.KpiTarget[] = [
   tg("TG-01", "IND-09", "PRD-2026-11", "company", 1_500_000_000),
   tg("TG-02", "IND-01", "PRD-2026-11", "division", 500, { divisionId: "DIV-MKT" }),
   tg("TG-03", "IND-05", "PRD-2026-11", "division", 35_000_000, { divisionId: "DIV-MKT" }),
-  tg("TG-04", "IND-07", "PRD-2026-11", "division", 1, { divisionId: "DIV-MKT" }),
+  tg("TG-04", "IND-07", "PRD-2026-11", "division", 15_000_000, { divisionId: "DIV-MKT" }),
   tg("TG-OCT-1", "IND-01", "PRD-2026-10", "division", 450, { divisionId: "DIV-MKT" }),
 ];
 
 export const kpiMappings: T.KpiMapping[] = [
-  { id: "MAP-01", activityType: "oplah", indicatorId: "IND-01", field: "qty", note: "Jumlah eksemplar dijumlahkan." },
+  { id: "MAP-01", activityType: "oplah", indicatorId: "IND-01", field: "qty", note: "Jumlah eksemplar bersih terjual dijumlahkan." },
   { id: "MAP-02", activityType: "client", indicatorId: "IND-02", field: "count", note: "Satu client baru dihitung satu." },
   { id: "MAP-03", activityType: "offer", indicatorId: "IND-03", field: "count", note: "Satu penawaran dihitung satu." },
   { id: "MAP-04", activityType: "outcome", outcome: "deal", indicatorId: "IND-04", field: "count", note: "Hanya hasil Deal." },
-  { id: "MAP-05", activityType: "outcome", outcome: "deal", indicatorId: "IND-05", field: "value", note: "Nilai penawaran yang Deal dijumlahkan." },
+  { id: "MAP-05", activityType: "outcome", outcome: "deal", indicatorId: "IND-05", field: "value", note: "Porsi kas tunai dari penawaran Deal." },
   { id: "MAP-06", activityType: "profiling", indicatorId: "IND-06", field: "count", note: "Satu riset dihitung satu." },
-  { id: "MAP-07", activityType: "program", indicatorId: "IND-07", field: "count", note: "Satu program/barter dihitung satu." },
+  { id: "MAP-07", activityType: "program", indicatorId: "IND-07", field: "value", note: "Nilai program promosi/barter terlaksana." },
+  { id: "MAP-07B", activityType: "outcome", outcome: "deal", indicatorId: "IND-07", field: "value", note: "Porsi nilai barter dari penawaran Deal." },
   { id: "MAP-08", activityType: "progress", indicatorId: "IND-08", field: "count", note: "Satu pencatatan progress dihitung satu." },
   { id: "MAP-09", activityType: "outcome", outcome: "deal", indicatorId: "IND-09", field: "value", note: "Total nilai penawaran Deal yang disetujui untuk omzet perusahaan." },
 ];
@@ -85,12 +86,92 @@ export const clients: T.Client[] = [
 ];
 
 export const offers: T.Offer[] = [
-  { id: "OFR-001", clientId: "CL-001", programName: "Paket Advertorial Liputan Program Pemkot 1 Hal Full Color", ownerId: "USR-003", date: "2026-11-02", value: 12500000, periodId: "PRD-2026-11", note: "Diajukan untuk suplemen liputan pembangunan daerah" },
-  { id: "OFR-002", clientId: "CL-002", programName: "Display Banner Produk Tabungan Bank Jatim 1/2 Hal", ownerId: "USR-003", date: "2026-11-03", value: 7500000, periodId: "PRD-2026-11", note: "Rencana terbit rubrik Ekonomi & Bisnis edisi Jumat" },
-  { id: "OFR-003", clientId: "CL-003", programName: "Sponsorship Utama Event Jalan Sehat HUT Radar Kediri 2026", ownerId: "USR-003", date: "2026-11-05", value: 25000000, periodId: "PRD-2026-11", note: "Sponsor utama kategori korporasi nasional" },
+  {
+    id: "OFR-001",
+    clientId: "CL-001",
+    programName: "Paket Advertorial Liputan Program Pemkot 1 Hal Full Color",
+    ownerId: "USR-003",
+    date: "2026-11-02",
+    value: 12500000,
+    cashValue: 12500000,
+    barterValue: 0,
+    partnershipType: "tunai",
+    periodId: "PRD-2026-11",
+    note: "Diajukan untuk suplemen liputan pembangunan daerah Kota Kediri",
+    realizationStatus: "sebagian",
+  },
+  {
+    id: "OFR-002",
+    clientId: "CL-002",
+    programName: "Display Banner Produk Tabungan Bank Jatim 1/2 Halaman",
+    ownerId: "USR-003",
+    date: "2026-11-03",
+    value: 7500000,
+    cashValue: 5000000,
+    barterValue: 2500000,
+    partnershipType: "hybrid",
+    barterType: "jasa",
+    barterDesc: "Voucher belanja mitra UMKM binaan perbankan senilai Rp2.500.000",
+    periodId: "PRD-2026-11",
+    note: "Kombinasi kas transfer Rp5.000.000 dan barter voucher promosi",
+    realizationStatus: "rencana",
+  },
+  {
+    id: "OFR-003",
+    clientId: "CL-003",
+    programName: "Sponsorship Ruang Iklan Barter Fasilitas Hotel Grand Surya",
+    ownerId: "USR-003",
+    date: "2026-11-05",
+    value: 15000000,
+    cashValue: 0,
+    barterValue: 15000000,
+    partnershipType: "barter",
+    barterType: "barang",
+    barterDesc: "Barter 10 voucher kamar deluxe & fasilitas ballroom untuk rapat direksi",
+    periodId: "PRD-2026-11",
+    note: "Barter media murni tanpa kas keluar/masuk",
+    realizationStatus: "selesai",
+  },
 ];
 export const programs: T.Program[] = [];
-export const activities: T.Activity[] = [];
+export const activities: T.Activity[] = [
+  {
+    id: "ACT-OPL-001",
+    type: "oplah",
+    ownerId: "USR-003",
+    createdBy: "USR-003",
+    date: "2026-11-10",
+    periodId: "PRD-2026-11",
+    description: "Distribusi oplah harian pagi dan suplemen daerah ke Agen Berkah Kediri Kota",
+    status: "approved",
+    qty: 350,
+    returnQty: 25,
+    soldQty: 325,
+    returnCondition: "layak_stok",
+    editionName: "Edisi Harian 10 Nov 2026",
+    source: "Agen",
+    sourceName: "Agen Berkah Kediri Kota",
+    createdAt: "2026-11-10T07:30:00.000Z",
+  },
+  {
+    id: "ACT-OPL-002",
+    type: "oplah",
+    ownerId: "USR-003",
+    createdBy: "USR-003",
+    date: "2026-11-12",
+    periodId: "PRD-2026-11",
+    description: "Pengiriman koran harian pagi ke jaringan loper Pare dan pelanggan instansi",
+    status: "approved",
+    qty: 200,
+    returnQty: 10,
+    soldQty: 190,
+    returnCondition: "layak_stok",
+    editionName: "Edisi Harian 12 Nov 2026",
+    source: "Loper",
+    sourceName: "Koordinator Loper Wilayah Pare",
+    createdAt: "2026-11-12T07:15:00.000Z",
+  },
+];
 export const verifications: T.Verification[] = [];
 export const auditLogs: T.AuditLog[] = [];
 
@@ -104,9 +185,9 @@ export const spkCriteria: T.SpkCriterion[] = [
 ];
 
 export const predicateRanges = [
-  { label: "Sangat Baik", min: 0.9, max: 1 },
-  { label: "Baik", min: 0.75, max: 0.8999 },
-  { label: "Cukup", min: 0.6, max: 0.7499 },
-  { label: "Kurang", min: 0, max: 0.5999 },
+  { label: "Sangat Baik (A)", min: 0.85, max: 1.0 },
+  { label: "Baik (B)", min: 0.70, max: 0.8499 },
+  { label: "Cukup (C)", min: 0.55, max: 0.6999 },
+  { label: "Kurang (D)", min: 0, max: 0.5499 },
 ];
-export const PREDICATE_RATIFIED = false;
+export const PREDICATE_RATIFIED = true;

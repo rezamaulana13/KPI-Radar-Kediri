@@ -2,10 +2,56 @@
 import DashboardLayout from "../../layouts/DashboardLayout.astro";
 import ListPage from "../../components/ui/ListPage.astro";
 import { db, employeeName } from "../../lib/data/store";
+
+const user = Astro.locals.user!;
+if (!user || user.role !== "admin") {
+  return Astro.redirect("/403");
+}
+
 const rows = db.auditLogs.map((l) => ({ ...l, actor: employeeName(l.actorId) }));
+const totalLogs = rows.length;
+const verifyLogs = rows.filter((r) => r.entity === "verifications" || r.entity === "activities").length;
+const targetLogs = rows.filter((r) => r.entity === "targets" || r.entity === "mappings" || r.entity === "indicators").length;
+const userLogs = rows.filter((r) => r.entity === "users" || r.entity === "employees").length;
 ---
-<DashboardLayout title="Audit Log">
-  <ListPage title="Audit Log" description="Jejak perubahan target, mapping, verifikasi, dan data penting lain." crumbs={[{ label: "Admin" }]} rows={rows} searchKeys={["actor", "action", "detail", "entityId"]}
-    filters={[{ name: "entity", label: "Objek", options: [...new Set(db.auditLogs.map((l) => l.entity))].map((v) => ({ value: v, label: v })) }]}
-    columns={[{ key: "at", label: "Waktu", type: "datetime" }, { key: "actor", label: "Pelaku" }, { key: "action", label: "Aksi", type: "mono" }, { key: "entityId", label: "Objek", type: "mono" }, { key: "detail", label: "Keterangan" }]} />
+
+<DashboardLayout title="Audit Trail &amp; Jejak Sistem">
+  <ListPage
+    title="Audit Trail &amp; Rekam Jejak Sistem"
+    description="Perekaman kronologis otomatis atas seluruh mutasi data: perubahan target operasional, verifikasi aktivitas lapangan, dan mutasi akun untuk memenuhi standar integritas data ISO/IEC 25010."
+    crumbs={[{ label: "Super Admin" }, { label: "Audit Trail" }]}
+    rows={rows}
+    searchKeys={["actor", "action", "detail", "entityId"]}
+    filters={[{ name: "entity", label: "Objek Data", options: [...new Set(db.auditLogs.map((l) => l.entity))].map((v) => ({ value: v, label: v })) }]}
+    columns={[
+      { key: "at", label: "Waktu Pencatatan", type: "datetime" },
+      { key: "actor", label: "Pelaku Aksi" },
+      { key: "action", label: "Kode Aksi", type: "mono" },
+      { key: "entityId", label: "ID Objek", type: "mono" },
+      { key: "detail", label: "Keterangan Operasional" }
+    ]}
+  >
+    <div slot="before" class="stat-grid" style="margin-bottom: 1.5rem;">
+      <div class="stat">
+        <div class="stat-label">Total Log Terekam</div>
+        <div class="stat-value">{totalLogs}</div>
+        <div class="stat-note">Seluruh aksi tersimpan permanen</div>
+      </div>
+      <div class="stat ok">
+        <div class="stat-label">Log Verifikasi Lapangan</div>
+        <div class="stat-value">{verifyLogs}</div>
+        <div class="stat-note">Persetujuan &amp; penolakan berkas</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Log Target &amp; KPI</div>
+        <div class="stat-value">{targetLogs}</div>
+        <div class="stat-note">Penetapan target &amp; pemetaan</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Log Akun &amp; Personel</div>
+        <div class="stat-value">{userLogs}</div>
+        <div class="stat-note">Mutasi peran &amp; hak akses</div>
+      </div>
+    </div>
+  </ListPage>
 </DashboardLayout>

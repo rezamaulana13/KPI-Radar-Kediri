@@ -2,6 +2,7 @@
 import PublicLayout from "../layouts/PublicLayout.astro";
 import Icon from "../components/ui/Icon.astro";
 import { db, activePeriod } from "../lib/data/store";
+import { rupiah, num } from "../lib/formatters";
 
 const user = Astro.locals.user;
 if (!user) {
@@ -9,12 +10,13 @@ if (!user) {
 }
 
 const p = activePeriod();
-const oplahTotal = db.activities
-  .filter((a) => a.type === "oplah" && a.status === "approved" && a.periodId === p.id)
-  .reduce((s, a) => s + (Number(a.qty) || 0), 0);
+const oplahActivities = db.activities.filter((a) => a.type === "oplah" && a.status === "approved" && a.periodId === p.id);
+const oplahSoldTotal = oplahActivities.reduce((s, a) => s + (a.soldQty != null ? a.soldQty : Math.max(0, (Number(a.qty) || 0) - (Number(a.returnQty) || 0))), 0);
+const oplahReturnTotal = oplahActivities.reduce((s, a) => s + (Number(a.returnQty) || 0), 0);
 
 const clientTotal = (db.clients ?? []).length;
 const offerTotal = (db.offers ?? []).length;
+const cashOffers = (db.offers ?? []).reduce((s, o) => s + (o.cashValue || (o.partnershipType === "tunai" ? o.value : 0) || 0), 0);
 const programTotal = (db.programs ?? []).length;
 const profilingTotal = (db.activities ?? []).filter((a) => a.type === "profiling").length;
 ---
@@ -64,8 +66,8 @@ const profilingTotal = (db.activities ?? []).filter((a) => a.type === "profiling
           Pendataan distribusi harian koran Radar Kediri kepada agen, loper, pengecer, dan langganan institusi di 7 wilayah edar selatan Jawa Timur.
         </p>
         <div class="mod-stat">
-          <span class="lbl">Realisasi Oplah Disetujui:</span>
-          <span class="val">{oplahTotal.toLocaleString("id-ID")} eks</span>
+          <span class="lbl">Realisasi Oplah Bersih:</span>
+          <span class="val">{oplahSoldTotal.toLocaleString("id-ID")} eks <small style="font-size:0.75rem;color:#64748b;font-weight:normal;">(Retur: {oplahReturnTotal.toLocaleString("id-ID")} eks)</small></span>
         </div>
         <div class="card-btn-group">
           <a href="/marketing/oplah" class="btn btn-secondary btn-sm">
@@ -118,8 +120,8 @@ const profilingTotal = (db.activities ?? []).filter((a) => a.type === "profiling
           Penerbitan proposal penawaran tarif iklan cetak display, halaman advertorial liputan khusus, paket sponsor suplemen, dan rubrik tematik.
         </p>
         <div class="mod-stat">
-          <span class="lbl">Penawaran Aktif:</span>
-          <span class="val">{offerTotal} Berkas Proposal</span>
+          <span class="lbl">Proposal Komersial:</span>
+          <span class="val">{offerTotal} Berkas <small style="font-size:0.75rem;color:#059669;font-weight:normal;">(Kas: {rupiah(cashOffers)})</small></span>
         </div>
         <div class="card-btn-group">
           <a href="/marketing/offers" class="btn btn-secondary btn-sm">

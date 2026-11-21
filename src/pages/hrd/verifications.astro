@@ -1,27 +1,548 @@
 ---
 import DashboardLayout from "../../layouts/DashboardLayout.astro";
-import ListPage from "../../components/ui/ListPage.astro";
+import PageHeader from "../../components/layout/PageHeader.astro";
+import PeriodFilter from "../../components/ui/PeriodFilter.astro";
 import Alert from "../../components/ui/Alert.astro";
-import { db, employeeName } from "../../lib/data/store";
+import Badge from "../../components/ui/Badge.astro";
+import Icon from "../../components/ui/Icon.astro";
+import { db, employeeName, employee, activePeriod } from "../../lib/data/store";
 import { canVerify } from "../../features/verification/rules";
-import { TYPE_LABEL, STATUS_LABEL } from "../../lib/formatters";
+import { TYPE_LABEL, STATUS_LABEL, dateID, num, rupiah } from "../../lib/formatters";
+import { selectedPeriod } from "../../lib/utils/period";
 
 const u = Astro.locals.user!;
-const rows = db.activities.filter((a) => a.status === "pending").sort((a, b) => a.date.localeCompare(b.date)).map((a) => {
-  const c = canVerify(u, a, db.employees);
-  return { ...a, owner: employeeName(a.ownerId), creator: employeeName(a.createdBy), typeLabel: TYPE_LABEL[a.type], note: c.ok ? "Siap diperiksa" : c.reason, action: c.ok ? "Periksa" : "Tidak dapat" };
-});
+if (!u || (u.role !== "admin" && u.role !== "hrd")) {
+  return Astro.redirect("/login?next=/hrd/verifications");
+}
+
+const p = selectedPeriod(Astro.url);
 const done = Astro.url.searchParams.get("done");
-const as = Astro.url.searchParams.get("as");
 const deleted = Astro.url.searchParams.get("deleted");
+
+// Ambil seluruh aktivitas pada periode yang dipilih
+const periodActs = db.activities.filter((a) => a.periodId === p.id);
+
+// Hitung metrik status
+const count = (s: string) => periodActs.filter((a) => a.status === s).length;
+const pendingCount = count("pending");
+const approvedCount = count("approved");
+const revisionCount = count("revision");
+const rejectedCount = count("rejected");
+
+// Siapkan baris data dengan informasi volume dan komersial lengkap
+const rows = periodActs
+  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  .map((a) => {
+    const c = canVerify(u, a, db.employees);
+    const emp = employee(a.ownerId);
+    return {
+      ...a,
+      ownerName: employeeName(a.ownerId),
+      ownerNip: emp?.nip || "",
+      typeLabel: TYPE_LABEL[a.type] ?? a.type,
+      canAct: c.ok,
+      verifyNote: c.ok ? "Siap diperiksa" : c.reason,
+    };
+  });
 ---
-<DashboardLayout title="Antrean Verifikasi Berkas">
-  <ListPage title="Antrean Verifikasi Berkas Lapangan" description="Daftar laporan kerja dan bukti nota yang diajukan oleh staf pemasaran & sirkulasi. Periksa bukti fisik lalu tentukan apakah disetujui (Deal), diminta revisi, atau ditolak." crumbs={[{ label: "HRD" }, { label: "Antrean Verifikasi" }]} rows={rows} searchKeys={["owner", "description", "id"]}
-    filters={[{ name: "type", label: "Jenis Aktivitas", options: Object.entries(TYPE_LABEL).map(([value, label]) => ({ value, label })) }]}
-    columns={[{ key: "id", label: "ID Berkas", type: "mono", href: (r) => r.action === "Periksa" ? `/hrd/verifications/${r.id}` : undefined }, { key: "date", label: "Tanggal", type: "date" }, { key: "typeLabel", label: "Jenis Kegiatan" }, { key: "owner", label: "Staf Pemasaran" }, { key: "description", label: "Rincian Kegiatan" }, { key: "note", label: "Status Verifikasi" }]}
-    emptyTitle="Antrean Bersih / Kosong" emptyHint="Tidak ada laporan kegiatan yang menunggu verifikasi saat ini. Semua berkas telah diperiksa.">
-    {done && <Alert slot="before" tone="success" title={`Aktivitas ${done} Berhasil Diproses`}>Keputusan verifikasi telah tersimpan dan tercatat di riwayat operasional serta database.</Alert>}
-    {deleted && <Alert slot="before" tone="success" title="Laporan Berhasil Dihapus">Laporan aktivitas {deleted} telah berhasil dihapus secara permanen dari antrean dan database Supabase.</Alert>}
-  </ListPage>
+
+<DashboardLayout title="Antrean Verifikasi Berkas Lapangan">
+  <PageHeader
+    title="Verifikasi Laporan &amp; Bukti Lapangan"
+    description={`Pusat pemeriksaan bukti fisik nota, retur sirkulasi oplah, dan transaksi kemitraan iklan staf pemasaran periode ${p.name}.`}
+    crumbs={[{ label: "Admin Pemasaran" }, { label: "Antrean Verifikasi" }]}
+  >
+    <Fragment slot="actions">
+      <PeriodFilter />
+    </Fragment>
+  </PageHeader>
+
+  {done && (
+    <div class="alert-banner alert-banner-success" style="margin-bottom: 1.5rem;">
+      <Icon name="check" size={18} />
+      <div>
+        <strong>Aktivitas {done} Berhasil Diproses!</strong> Keputusan verifikasi telah tersimpan dan terakumulasi ke perhitungan KPI staf bersangkutan.
+      </div>
+    </div>
+  )}
+
+  {deleted && (
+    <div class="alert-banner alert-banner-success" style="margin-bottom: 1.5rem;">
+      <Icon name="check" size={18} />
+      <div>
+        <strong>Laporan Berhasil Dihapus:</strong> Berkas aktivitas {deleted} telah dihapus permanen dari antrean dan basis data.
+      </div>
+    </div>
+  )}
+
+  <!-- Stat Cards Ringkasan Verifikasi Periode Ini -->
+  <div class="stat-grid-4" style="margin-bottom: 1.5rem;">
+    <div class="stat-box tone-warn">
+      <span class="stat-lbl">Menunggu Verifikasi</span>
+      <span class="stat-val">{pendingCount}</span>
+      <span class="stat-sub">Memerlukan peninjauan berkas</span>
+    </div>
+
+    <div class="stat-box tone-ok">
+      <span class="stat-lbl">Telah Disetujui</span>
+      <span class="stat-val">{approvedCount}</span>
+      <span class="stat-sub">Dihitung sah ke capaian KPI</span>
+    </div>
+
+    <div class="stat-box tone-rev">
+      <span class="stat-lbl">Perlu Revisi Bukti</span>
+      <span class="stat-val">{revisionCount}</span>
+      <span class="stat-sub">Dikembalikan ke staf pelapor</span>
+    </div>
+
+    <div class="stat-box tone-bad">
+      <span class="stat-lbl">Ditolak</span>
+      <span class="stat-val">{rejectedCount}</span>
+      <span class="stat-sub">Tidak memenuhi syarat validasi</span>
+    </div>
+  </div>
+
+  <!-- Filter Status & Pencarian -->
+  <div class="filter-controls-wrap">
+    <div class="filter-tabs-bar">
+      <button type="button" class="filter-tab is-active" data-filter="pending">
+        Menunggu ({pendingCount})
+      </button>
+      <button type="button" class="filter-tab" data-filter="all">
+        Semua Berkas ({rows.length})
+      </button>
+      <button type="button" class="filter-tab" data-filter="approved">
+        Disetujui ({approvedCount})
+      </button>
+      {revisionCount > 0 && (
+        <button type="button" class="filter-tab tab-warn" data-filter="revision">
+          Revisi ({revisionCount})
+        </button>
+      )}
+      {rejectedCount > 0 && (
+        <button type="button" class="filter-tab tab-bad" data-filter="rejected">
+          Ditolak ({rejectedCount})
+        </button>
+      )}
+    </div>
+
+    <div class="search-box-wrap">
+      <input
+        type="text"
+        id="verification-search-input"
+        class="search-input"
+        placeholder="🔍 Cari ID, nama staf, jenis, deskripsi..."
+        aria-label="Cari antrean verifikasi"
+      />
+    </div>
+  </div>
+
+  <!-- Tabel Data Antrean Verifikasi -->
+  <section class="card table-card">
+    <div class="table-responsive">
+      <table class="data-table" id="table-verifications">
+        <thead>
+          <tr>
+            <th style="width: 110px;">ID Berkas</th>
+            <th style="width: 110px;">Tanggal</th>
+            <th style="width: 140px;">Kategori</th>
+            <th style="width: 180px;">Staf Pelapor</th>
+            <th>Uraian Laporan Lapangan</th>
+            <th style="width: 200px; text-align: right;">Volume / Komersial</th>
+            <th style="width: 120px; text-align: center;">Status</th>
+            <th style="width: 120px; text-align: center;">Tindakan</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.length === 0 ? (
+            <tr>
+              <td colspan="8" style="text-align: center; padding: 3rem 1.5rem; color: var(--color-muted);">
+                Tidak ada laporan kegiatan untuk periode {p.name}.
+              </td>
+            </tr>
+          ) : (
+            rows.map((a) => (
+              <tr data-status={a.status} data-search={`${a.id} ${a.ownerName} ${a.typeLabel} ${a.description} ${a.editionName || ''}`.toLowerCase()}>
+                <td>
+                  <span class="mono-id">{a.id}</span>
+                </td>
+                <td>
+                  <span class="date-txt">{dateID(a.date)}</span>
+                </td>
+                <td>
+                  <span class={`type-pill-badge type-${a.type}`}>
+                    {a.typeLabel}
+                  </span>
+                </td>
+                <td>
+                  <div style="font-weight: 700; color: #0f172a;">{a.ownerName}</div>
+                  {a.ownerNip && <div class="muted text-xs">NIP: {a.ownerNip}</div>}
+                </td>
+                <td>
+                  <div class="desc-main">{a.description}</div>
+                  {a.editionName && <div class="muted text-xs" style="margin-top:0.2rem;">Edisi: <strong>{a.editionName}</strong></div>}
+                  {a.sourceName && <div class="muted text-xs">Kanal/Penerima: <strong>{a.sourceName}</strong></div>}
+                </td>
+                <td style="text-align: right;">
+                  {a.type === "oplah" ? (
+                    <div>
+                      <div class="mono text-xs font-bold" style="color: #0369a1;">
+                        {num(a.soldQty ?? a.qty)} eks terjual
+                      </div>
+                      <div class="muted text-xs">
+                        Kirim: {num(a.qty)} | Retur: {num(a.returnQty ?? 0)}
+                      </div>
+                    </div>
+                  ) : a.partnershipType || a.cashValue || a.barterValue ? (
+                    <div>
+                      {(a.cashValue || 0) > 0 && (
+                        <div class="mono text-xs font-bold" style="color: #059669;">
+                          Kas: {rupiah(a.cashValue)}
+                        </div>
+                      )}
+                      {(a.barterValue || 0) > 0 && (
+                        <div class="mono text-xs font-bold" style="color: #6366f1;">
+                          Barter: {rupiah(a.barterValue)}
+                        </div>
+                      )}
+                      {!(a.cashValue || 0) && !(a.barterValue || 0) && a.value && (
+                        <div class="mono text-xs font-bold">{rupiah(a.value)}</div>
+                      )}
+                    </div>
+                  ) : a.value ? (
+                    <div class="mono text-xs font-bold" style="color: #059669;">
+                      {rupiah(a.value)}
+                    </div>
+                  ) : a.qty ? (
+                    <div class="mono text-xs font-bold">
+                      {num(a.qty)} item
+                    </div>
+                  ) : (
+                    <span class="muted text-xs">1 kegiatan</span>
+                  )}
+                </td>
+                <td style="text-align: center;">
+                  <span class={`status-badge st-${a.status}`}>
+                    <span class="badge-dot"></span>
+                    <span>{STATUS_LABEL[a.status] ?? a.status}</span>
+                  </span>
+                </td>
+                <td style="text-align: center;">
+                  <a
+                    href={`/hrd/verifications/${a.id}`}
+                    class="btn btn-primary btn-xs"
+                    style={a.status === "pending" ? "background:#16a34a;border-color:#16a34a;" : ""}
+                  >
+                    {a.status === "pending" ? "Periksa &rarr;" : "Detail &rarr;"}
+                  </a>
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
+  </section>
 </DashboardLayout>
 
+<!-- Client Script untuk Filter Status & Live Search -->
+<script is:inline>
+  document.addEventListener("DOMContentLoaded", function () {
+    const tabs = document.querySelectorAll(".filter-tabs-bar .filter-tab");
+    const rows = document.querySelectorAll("#table-verifications tbody tr");
+    const searchInput = document.getElementById("verification-search-input");
+    let currentFilter = "pending";
+
+    // Inisialisasi awal: tampilkan status pending sebagai default
+    function applyFilters() {
+      const q = (searchInput?.value || "").toLowerCase().trim();
+
+      rows.forEach((r) => {
+        const matchesStatus = currentFilter === "all" || r.dataset.status === currentFilter;
+        const matchesQuery = !q || (r.dataset.search || "").includes(q);
+
+        if (matchesStatus && matchesQuery) {
+          r.style.display = "";
+        } else {
+          r.style.display = "none";
+        }
+      });
+    }
+
+    applyFilters();
+
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        tabs.forEach((t) => t.classList.remove("is-active"));
+        tab.classList.add("is-active");
+        currentFilter = tab.dataset.filter || "pending";
+        applyFilters();
+      });
+    });
+
+    if (searchInput) {
+      searchInput.addEventListener("input", applyFilters);
+    }
+  });
+</script>
+
+<style>
+  /* Alert Banner */
+  .alert-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1.25rem;
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+  }
+
+  .alert-banner-success {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #166534;
+  }
+
+  /* Grid 4 Stat Box */
+  .stat-grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+  }
+
+  @media (max-width: 900px) {
+    .stat-grid-4 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 500px) {
+    .stat-grid-4 {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .stat-box {
+    background: #ffffff;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    border-left: 4px solid var(--color-primary-800);
+  }
+
+  .stat-box.tone-warn { border-left-color: #f59e0b; }
+  .stat-box.tone-ok { border-left-color: #10b981; }
+  .stat-box.tone-rev { border-left-color: #6366f1; }
+  .stat-box.tone-bad { border-left-color: #ef4444; }
+
+  .stat-lbl {
+    font-size: var(--text-xs);
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.25rem;
+  }
+
+  .stat-val {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--color-primary-900);
+    line-height: 1.1;
+    margin-bottom: 0.25rem;
+  }
+
+  .tone-warn .stat-val { color: #b45309; }
+  .tone-ok .stat-val { color: #047857; }
+  .tone-rev .stat-val { color: #3730a3; }
+  .tone-bad .stat-val { color: #b91c1c; }
+
+  .stat-sub {
+    font-size: 0.75rem;
+    color: var(--color-muted);
+  }
+
+  /* Filter Controls */
+  .filter-controls-wrap {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+  }
+
+  .filter-tabs-bar {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .filter-tab {
+    padding: 0.45rem 0.95rem;
+    background: #f1f5f9;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .filter-tab:hover {
+    background: #e2e8f0;
+    color: var(--color-primary-900);
+  }
+
+  .filter-tab.is-active {
+    background: var(--color-primary-900);
+    color: #ffffff;
+    border-color: var(--color-primary-900);
+  }
+
+  .filter-tab.tab-warn { color: #b45309; }
+  .filter-tab.tab-warn.is-active { background: #d97706; border-color: #d97706; color: #fff; }
+
+  .filter-tab.tab-bad { color: #b91c1c; }
+  .filter-tab.tab-bad.is-active { background: #dc2626; border-color: #dc2626; color: #fff; }
+
+  .search-box-wrap {
+    min-width: 280px;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 0.45rem 0.75rem;
+    font-size: var(--text-xs);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: #ffffff;
+  }
+
+  .search-input:focus {
+    outline: none;
+    border-color: var(--color-primary-800);
+    box-shadow: 0 0 0 2px rgba(18, 52, 90, 0.15);
+  }
+
+  /* Table Card */
+  .table-card {
+    background: #ffffff;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+
+  .table-responsive {
+    overflow-x: auto;
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--text-sm);
+    text-align: left;
+  }
+
+  .data-table th {
+    background: #f8fafc;
+    padding: 0.85rem 1rem;
+    font-size: var(--text-xs);
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .data-table td {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--color-border);
+    vertical-align: middle;
+  }
+
+  .data-table tbody tr:hover {
+    background: #fafbfd;
+  }
+
+  .mono-id {
+    font-family: monospace;
+    font-size: var(--text-xs);
+    font-weight: 700;
+    color: var(--color-primary-800);
+    background: #f1f5f9;
+    padding: 0.15rem 0.45rem;
+    border-radius: var(--radius-sm);
+  }
+
+  .date-txt {
+    font-size: var(--text-xs);
+    color: #475569;
+    font-weight: 550;
+    white-space: nowrap;
+  }
+
+  .type-pill-badge {
+    display: inline-block;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  .type-oplah { background: #e0f2fe; color: #0369a1; }
+  .type-client { background: #dbeafe; color: #1d4ed8; }
+  .type-offer { background: #f3e8ff; color: #7e22ce; }
+  .type-progress { background: #e0e7ff; color: #4338ca; }
+  .type-profiling { background: #fef3c7; color: #b45309; }
+  .type-program { background: #ccfbf1; color: #0f766e; }
+  .type-outcome { background: #dcfce7; color: #15803d; }
+
+  .desc-main {
+    font-size: var(--text-sm);
+    color: #1e293b;
+    line-height: 1.4;
+    max-width: 24rem;
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+
+  .badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+
+  .st-approved { background: #dcfce7; color: #15803d; }
+  .st-approved .badge-dot { background: #16a34a; }
+
+  .st-pending { background: #fef3c7; color: #b45309; }
+  .st-pending .badge-dot { background: #d97706; }
+
+  .st-revision { background: #fee2e2; color: #b91c1c; }
+  .st-revision .badge-dot { background: #dc2626; }
+
+  .st-rejected { background: #f1f5f9; color: #64748b; }
+  .st-rejected .badge-dot { background: #94a3b8; }
+
+  .btn-xs {
+    padding: 0.35rem 0.75rem;
+    font-size: var(--text-xs);
+    font-weight: 600;
+  }
+</style>

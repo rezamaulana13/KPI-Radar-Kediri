@@ -36,8 +36,8 @@ const filterDefs = [
     name: "role",
     label: "Peran",
     options: [
-      { value: "employee", label: "Pengguna (Karyawan)" },
-      { value: "hrd", label: "Admin (HRD)" },
+      { value: "employee", label: "Karyawan (Staf Lapangan)" },
+      { value: "hrd", label: "Admin (Pemasaran & Sirkulasi)" },
     ],
   },
 ];
@@ -47,9 +47,9 @@ const t = applyTable(rawRows, url, { searchKeys: ["name", "email", "nip"], filte
 
 <DashboardLayout title="Pengelolaan Akun Pengguna">
   <PageHeader
-    title="Pengelolaan Pengguna"
-    description="Super Admin mengelola status akun (aktif/nonaktif) dan menetapkan peran operasional antara Admin (HRD) atau Karyawan."
-    crumbs={[{ label: "Admin" }, { label: "Pengguna" }]}
+    title="Pengelolaan Akun Pengguna"
+    description="Super Admin mengelola status akun (aktif/nonaktif) dan menetapkan peran operasional antara Admin (Pemasaran & Sirkulasi) atau Karyawan."
+    crumbs={[{ label: "Super Admin" }, { label: "Pengguna" }]}
   />
 
   {updatedName && updatedStatus && (
@@ -128,10 +128,10 @@ const t = applyTable(rawRows, url, { searchKeys: ["name", "email", "nip"], filte
                       name="role"
                       class="compact-select"
                       onchange="this.form.submit()"
-                      title="Ubah peran antara Karyawan atau Admin (HRD)"
+                      title="Ubah peran antara Karyawan atau Admin (Pemasaran & Sirkulasi)"
                     >
                       <option value="employee" selected={r.role === "employee"}>Karyawan</option>
-                      <option value="hrd" selected={r.role === "hrd"}>Admin (HRD)</option>
+                      <option value="hrd" selected={r.role === "hrd"}>Admin (Pemasaran)</option>
                     </select>
                   </form>
 

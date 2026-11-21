@@ -1,0 +1,1198 @@
+# PRD — SIMOKP
+## Sistem Informasi Manajemen Oplah, Kerja Sama, dan Kinerja Pemasaran
+
+**Versi:** 1.0  
+**Status:** Rancangan kebutuhan produk  
+**Platform:** Responsive Web Application  
+**Target pengguna:** Direktur, Super Admin, dan Karyawan  
+**Jenis sistem:** Sistem informasi manajemen internal perusahaan media/koran
+
+---
+
+# 1. Ringkasan Produk
+
+## 1.1 Nama Produk
+
+**SIMOKP — Sistem Informasi Manajemen Oplah, Kerja Sama, dan Kinerja Pemasaran.**
+
+## 1.2 Deskripsi Produk
+
+SIMOKP merupakan aplikasi berbasis web untuk membantu perusahaan media atau penerbit surat kabar mengelola kegiatan operasional dan pemasaran secara terintegrasi.
+
+Sistem mencakup pengelolaan:
+
+1. Oplah dan produksi koran.
+2. Distribusi koran.
+3. Penjualan dan retur koran.
+4. Persediaan koran.
+5. Klien dan mitra bisnis.
+6. Kerja sama komersial.
+7. Kerja sama barter.
+8. Kerja sama tunai dan kombinasi.
+9. Kegiatan event dan promosi.
+10. Kinerja serta target karyawan pemasaran.
+11. Tagihan, pembayaran, dan piutang.
+12. Laporan manajemen.
+
+Sistem diharapkan menggantikan proses pencatatan manual, spreadsheet yang terpisah, dan laporan yang sulit dikonsolidasikan.
+
+## 1.3 Permasalahan yang Ingin Diselesaikan
+
+- Data oplah dan distribusi belum terpusat.
+- Jumlah koran yang dicetak, dikirim, terjual, dan dikembalikan sulit direkonsiliasi.
+- Nilai kerja sama tunai dan barter belum terdokumentasi secara konsisten.
+- Proposal kerja sama sulit dipantau status persetujuannya.
+- Realisasi kerja sama sering tidak terdokumentasi secara lengkap.
+- Target dan pencapaian karyawan pemasaran sulit dibandingkan.
+- Data omzet, barter, tagihan, dan pembayaran berpotensi tercampur.
+- Pimpinan membutuhkan laporan yang cepat, akurat, dan dapat ditelusuri.
+- Riwayat perubahan data dan keputusan persetujuan perlu terdokumentasi.
+
+## 1.4 Tujuan Produk
+
+1. Menyatukan data operasional dan pemasaran dalam satu sistem.
+2. Memudahkan pengawasan oplah dan distribusi.
+3. Memastikan seluruh kerja sama memiliki proposal, persetujuan, dan bukti realisasi.
+4. Mengukur omzet tunai dan nilai kerja sama barter secara terpisah.
+5. Menyediakan laporan kinerja karyawan.
+6. Meningkatkan akurasi laporan perusahaan.
+7. Menyediakan audit trail untuk aktivitas penting.
+8. Mempermudah pengambilan keputusan oleh Admin/Direktur.
+
+---
+
+# 2. Pengguna dan Role
+
+SIMOKP menggunakan tiga role utama.
+
+## 2.1 Super Admin
+
+Tanggung jawab:
+- Mengelola akun pengguna.
+- Mengaktifkan dan menonaktifkan akun.
+- Membuat dan mengatur role.
+- Mengatur permission.
+- Mengatur divisi.
+- Mengelola data master.
+- Mengatur konfigurasi aplikasi.
+- Melihat audit log.
+- Melakukan pemeliharaan sistem.
+
+Super Admin memiliki kewenangan administratif teknis. Role ini tidak otomatis menjadi pemberi persetujuan transaksi bisnis.
+
+## 2.2 Admin
+
+Admin merangkap sebagai Direktur sekaligus Kepala Pemasaran.
+
+Tanggung jawab:
+- Mengawasi seluruh aktivitas perusahaan.
+- Melihat seluruh data operasional.
+- Mengelola klien dan mitra.
+- Mengawasi aktivitas pemasaran.
+- Memeriksa proposal kerja sama.
+- Menyetujui, menolak, atau meminta revisi proposal.
+- Mengelola target dan KPI karyawan.
+- Memantau oplah dan distribusi.
+- Memantau penjualan dan retur.
+- Memantau keuangan dan piutang.
+- Melihat seluruh laporan manajemen.
+
+## 2.3 Karyawan
+
+Karyawan menggunakan satu role utama, tetapi hak aksesnya dibedakan berdasarkan divisi dan permission.
+
+Divisi yang disiapkan:
+- Pemasaran.
+- Sirkulasi.
+- Keuangan.
+- Redaksi (opsional).
+- Divisi lainnya (dapat ditambahkan melalui pengaturan).
+
+Contoh:
+- Karyawan pemasaran dapat mengelola klien dan proposal.
+- Karyawan sirkulasi dapat mengelola distribusi dan retur.
+- Karyawan keuangan dapat mengelola tagihan dan pembayaran.
+- Karyawan redaksi dapat mengelola jadwal terbit dan bukti publikasi jika modul tersebut diaktifkan.
+
+## 2.4 Prinsip Pengaturan Hak Akses
+
+Role, divisi, dan permission harus dipisahkan.
+
+- Role menentukan kelompok pengguna.
+- Divisi menentukan area pekerjaan.
+- Permission menentukan tindakan yang boleh dilakukan.
+- Kepemilikan data menentukan data mana yang boleh diakses.
+
+Satu karyawan dapat memiliki permission tambahan tanpa perlu membuat role baru.
+
+## 2.5 Matriks Hak Akses
+
+| Fitur | Super Admin | Admin | Karyawan |
+|---|---|---|---|
+| Mengelola akun | Ya | Tidak | Tidak |
+| Mengatur role | Ya | Tidak | Tidak |
+| Mengatur permission | Ya | Tidak | Tidak |
+| Mengelola data master | Ya | Sesuai kewenangan | Terbatas |
+| Melihat seluruh laporan | Ya | Ya | Sesuai divisi |
+| Mengelola klien | Administratif | Ya | Sesuai permission |
+| Membuat proposal | Tidak secara operasional | Ya | Ya |
+| Mengajukan proposal | Tidak | Ya* | Ya |
+| Menyetujui proposal | Tidak | Ya | Tidak |
+| Mengelola oplah | Administratif | Ya | Sesuai divisi |
+| Mengelola keuangan | Administratif | Ya | Sesuai divisi |
+| Mengelola KPI | Tidak wajib | Ya | Melihat KPI sendiri |
+| Melihat audit log | Ya | Sesuai permission | Tidak |
+
+\*Admin tidak boleh menyetujui proposal yang dibuat atau diajukannya sendiri. Kebijakan pengganti untuk kasus tersebut harus ditentukan perusahaan, misalnya persetujuan oleh pejabat lain yang diberi kewenangan khusus.
+
+---
+
+# 3. Ruang Lingkup Produk
+
+## 3.1 Modul Utama
+
+1. Dashboard.
+2. Manajemen pengguna.
+3. Manajemen divisi dan permission.
+4. Data master.
+5. Manajemen oplah.
+6. Distribusi koran.
+7. Penjualan dan retur.
+8. Persediaan koran.
+9. CRM klien dan mitra.
+10. Proposal kerja sama.
+11. Persetujuan kerja sama.
+12. Realisasi kerja sama.
+13. Manajemen event.
+14. Target dan KPI pemasaran.
+15. Keuangan.
+16. Laporan dan analitik.
+17. Notifikasi.
+18. Audit log.
+
+## 3.2 Di Luar Ruang Lingkup Versi Awal
+
+- Aplikasi mobile native Android/iOS.
+- Integrasi otomatis dengan mesin cetak.
+- Integrasi perbankan otomatis.
+- Payroll dan absensi karyawan.
+- Akuntansi lengkap/general ledger.
+- Sistem editorial dan penerbitan digital penuh.
+- Integrasi marketplace.
+- Portal publik untuk klien.
+- Otomatisasi pajak dan pelaporan perpajakan.
+
+Fitur di luar ruang lingkup dapat dikembangkan pada fase berikutnya.
+
+---
+
+# 4. Modul Dashboard
+
+## 4.1 Dashboard Admin
+
+Menampilkan ringkasan seluruh aktivitas perusahaan.
+
+Komponen:
+- Total oplah periode berjalan.
+- Total koran terdistribusi.
+- Total koran terjual.
+- Total retur.
+- Sisa persediaan.
+- Total omzet tunai.
+- Total nilai kerja sama barter.
+- Jumlah proposal menunggu persetujuan.
+- Jumlah kerja sama aktif.
+- Jumlah kerja sama selesai.
+- Piutang belum dibayar.
+- Pencapaian target pemasaran.
+- Grafik omzet bulanan.
+- Grafik oplah dan penjualan.
+- Grafik pencapaian karyawan.
+- Aktivitas terbaru.
+
+Filter:
+- Hari ini.
+- Minggu ini.
+- Bulan ini.
+- Kuartal.
+- Tahun.
+- Rentang tanggal khusus.
+
+## 4.2 Dashboard Karyawan
+
+Dashboard disesuaikan berdasarkan divisi.
+
+Karyawan pemasaran:
+- Jumlah prospek.
+- Jumlah klien aktif.
+- Proposal yang dibuat.
+- Proposal yang menunggu keputusan.
+- Kerja sama yang sedang berjalan.
+- Omzet tunai pribadi.
+- Nilai barter pribadi.
+- Pencapaian target.
+- Jadwal realisasi terdekat.
+
+Karyawan sirkulasi:
+- Oplah periode berjalan.
+- Distribusi hari ini.
+- Penjualan.
+- Retur.
+- Persediaan.
+- Transaksi yang perlu dilengkapi.
+
+Karyawan keuangan:
+- Tagihan yang perlu dibuat.
+- Pembayaran yang perlu dicatat.
+- Piutang jatuh tempo.
+- Pembayaran yang perlu diverifikasi.
+
+---
+
+# 5. Modul Oplah dan Sirkulasi
+
+## 5.1 Tujuan
+
+Mengelola siklus produksi koran mulai dari pencetakan, distribusi, penjualan, retur, hingga rekonsiliasi persediaan.
+
+## 5.2 Data Edisi Koran
+
+Field:
+- ID edisi.
+- Nama edisi.
+- Tanggal terbit.
+- Nomor edisi.
+- Keterangan.
+- Status.
+- Dibuat oleh.
+- Waktu pembuatan.
+
+## 5.3 Data Produksi/Cetak
+
+Field:
+- Nomor produksi.
+- Edisi.
+- Tanggal produksi.
+- Jumlah cetak.
+- Jumlah cetak tambahan.
+- Jumlah cetak rusak.
+- Jumlah cetak layak distribusi.
+- Lokasi percetakan.
+- Biaya cetak (opsional).
+- Catatan.
+- Petugas input.
+
+Aturan:
+- Jumlah cetak tidak boleh negatif.
+- Produksi yang sudah divalidasi tidak boleh dihapus langsung.
+- Koreksi dilakukan melalui transaksi penyesuaian.
+- Semua perubahan dicatat dalam audit log.
+
+## 5.4 Modul Distribusi
+
+Mencatat pengiriman koran ke:
+- Agen.
+- Pengecer.
+- Pelanggan langsung.
+- Institusi.
+- Mitra.
+- Distribusi gratis/promosi.
+- Kanal lainnya.
+
+Field:
+- Nomor distribusi.
+- Tanggal.
+- Edisi.
+- Tujuan distribusi.
+- Jenis kanal.
+- Nama agen/pelanggan.
+- Jumlah dikirim.
+- Harga jual (jika berbayar).
+- Status distribusi.
+- Petugas.
+- Bukti serah terima.
+- Catatan.
+
+Kanal distribusi harus dapat dikonfigurasi.
+
+**Catatan keputusan:** penggunaan agen/pengecer dan penjualan langsung merupakan asumsi awal. Perlu dikonfirmasi apakah seluruh kanal tersebut benar-benar digunakan perusahaan.
+
+## 5.5 Modul Penjualan
+
+Field:
+- Nomor transaksi.
+- Tanggal.
+- Edisi.
+- Tujuan penjualan.
+- Jumlah terjual.
+- Harga satuan.
+- Total penjualan.
+- Status pembayaran.
+- Petugas.
+
+Rumus:
+
+Total penjualan = jumlah terjual × harga satuan.
+
+Penjualan berbayar harus dipisahkan dari distribusi gratis atau barter.
+
+## 5.6 Modul Retur
+
+Field:
+- Nomor retur.
+- Tanggal.
+- Edisi.
+- Agen/pelanggan.
+- Jumlah dikirim sebelumnya.
+- Jumlah dikembalikan.
+- Kondisi koran.
+- Jumlah layak stok kembali.
+- Jumlah rusak.
+- Petugas.
+- Bukti.
+- Catatan.
+
+Validasi:
+- Retur tidak boleh melebihi jumlah yang dikirim dikurangi retur sebelumnya.
+- Retur harus mengacu pada transaksi distribusi.
+- Koran rusak tidak otomatis masuk persediaan layak jual.
+
+## 5.7 Modul Persediaan
+
+Sistem mencatat pergerakan:
+- Stok awal.
+- Hasil produksi.
+- Distribusi keluar.
+- Retur masuk.
+- Distribusi gratis.
+- Penyesuaian stok.
+- Stok akhir.
+
+Rumus dasar:
+
+Stok akhir = stok awal + produksi + retur layak stok - distribusi keluar - penyesuaian keluar.
+
+Sistem harus membedakan:
+- Stok fisik.
+- Stok siap distribusi.
+- Stok rusak.
+- Stok dalam perjalanan jika fitur tersebut diaktifkan.
+
+Semua pergerakan stok harus memiliki referensi transaksi.
+
+---
+
+# 6. Modul CRM Klien dan Mitra
+
+## 6.1 Tujuan
+
+Menyimpan seluruh informasi calon klien, pelanggan, pengiklan, dan mitra kerja sama.
+
+## 6.2 Data Klien
+
+Field:
+- Kode klien.
+- Nama perusahaan/instansi.
+- Nama kontak.
+- Jabatan kontak.
+- Nomor telepon.
+- WhatsApp.
+- Email.
+- Alamat.
+- Kota.
+- Kategori industri.
+- Sumber prospek.
+- Karyawan penanggung jawab.
+- Status klien.
+- Catatan.
+
+Kategori:
+- Perusahaan.
+- Pemerintahan.
+- Pendidikan.
+- Komunitas.
+- Event organizer.
+- UMKM.
+- Individu.
+- Lainnya.
+
+Status:
+- Prospek.
+- Dihubungi.
+- Negosiasi.
+- Aktif.
+- Tidak aktif.
+- Tidak tertarik.
+
+## 6.3 Riwayat Interaksi
+
+Sistem menyimpan:
+- Tanggal komunikasi.
+- Jenis komunikasi.
+- Ringkasan pembicaraan.
+- Hasil tindak lanjut.
+- Jadwal follow-up.
+- Petugas.
+
+## 6.4 Riwayat Kerja Sama
+
+Setiap klien memiliki daftar:
+- Proposal.
+- Kontrak.
+- Kerja sama berjalan.
+- Kerja sama selesai.
+- Nilai tunai.
+- Nilai barter.
+- Tagihan.
+- Pembayaran.
+- Dokumen pendukung.
+
+---
+
+# 7. Modul Kerja Sama dan Barter
+
+## 7.1 Tujuan
+
+Mengelola seluruh penawaran dan kerja sama komersial secara terstruktur.
+
+## 7.2 Jenis Kerja Sama
+
+Sistem mendukung:
+
+1. Tunai: seluruh nilai kerja sama dibayar dengan uang.
+2. Barter barang: pertukaran dengan produk/barang.
+3. Barter jasa: pertukaran dengan layanan.
+4. Hybrid: kombinasi uang dan barter.
+5. Kerja sama promosi/event.
+6. Kerja sama iklan.
+7. Sponsorship.
+8. Jenis lainnya yang dapat dikonfigurasi.
+
+## 7.3 Data Proposal
+
+Field:
+- Nomor proposal.
+- Tanggal pengajuan.
+- Klien.
+- Penanggung jawab.
+- Jenis kerja sama.
+- Judul kerja sama.
+- Latar belakang.
+- Tujuan.
+- Deskripsi penawaran.
+- Nilai tunai.
+- Nilai barter.
+- Total nilai komersial.
+- Rincian barang/jasa barter.
+- Manfaat bagi perusahaan.
+- Kewajiban perusahaan.
+- Kewajiban mitra.
+- Jadwal pelaksanaan.
+- Masa berlaku.
+- Lampiran.
+- Status.
+- Catatan pengajuan.
+
+Rumus:
+
+Total nilai komersial = nilai tunai + nilai barter yang disepakati.
+
+Nilai barter harus memiliki rincian dasar penilaian dan bukti atau dokumen pendukung.
+
+## 7.4 Rate Card
+
+Sistem dapat menyimpan daftar harga produk komersial.
+
+Contoh:
+- Iklan halaman depan.
+- Iklan halaman dalam.
+- Iklan kolom.
+- Advertorial.
+- Publikasi event.
+- Sponsorship.
+- Paket promosi.
+- Produk promosi lainnya.
+
+Field:
+- Kode produk.
+- Nama produk.
+- Deskripsi.
+- Ukuran/volume.
+- Harga normal.
+- Satuan.
+- Masa berlaku harga.
+- Status aktif.
+
+Rate card digunakan sebagai referensi penawaran, bukan harga final yang tidak dapat dinegosiasikan.
+
+## 7.5 Alur Persetujuan
+
+Status:
+1. Draft.
+2. Diajukan.
+3. Dalam pemeriksaan.
+4. Perlu revisi.
+5. Disetujui.
+6. Ditolak.
+7. Berjalan.
+8. Selesai.
+9. Dibatalkan.
+
+Alur:
+- Karyawan membuat proposal.
+- Karyawan mengajukan proposal.
+- Admin menerima notifikasi.
+- Admin memeriksa isi dan nilai kerja sama.
+- Admin menyetujui, menolak, atau meminta revisi.
+- Keputusan dicatat.
+- Proposal yang disetujui dapat dilanjutkan menjadi kerja sama aktif.
+
+Tidak ada persetujuan otomatis.
+
+## 7.6 Aturan Persetujuan
+
+- Pengaju tidak dapat menyetujui proposal sendiri.
+- Hanya pengguna dengan permission `partnership.approve` yang dapat menyetujui.
+- Admin wajib mengisi catatan jika menolak atau meminta revisi.
+- Perubahan nilai setelah persetujuan harus melalui revisi dan persetujuan ulang.
+- Setiap keputusan menyimpan pengguna, tanggal, waktu, dan catatan.
+- Proposal yang ditolak tidak dapat diubah menjadi aktif tanpa pengajuan baru atau mekanisme pengajuan ulang yang tercatat.
+
+## 7.7 Realisasi Kerja Sama
+
+Realisasi harus dipisahkan dari komitmen proposal.
+
+Field:
+- Nomor realisasi.
+- Proposal terkait.
+- Tanggal realisasi.
+- Jenis kewajiban.
+- Deskripsi aktivitas.
+- Nilai yang direalisasikan.
+- Persentase realisasi.
+- Bukti pelaksanaan.
+- Petugas.
+- Status verifikasi.
+- Catatan.
+
+Jenis realisasi:
+- Pembayaran tunai.
+- Penyerahan barang.
+- Pelaksanaan jasa.
+- Pemasangan iklan.
+- Publikasi.
+- Promosi.
+- Aktivitas event.
+- Kewajiban lainnya.
+
+Sistem harus membedakan:
+- Nilai yang dijanjikan.
+- Nilai yang sudah direalisasikan.
+- Nilai yang belum direalisasikan.
+
+Rumus:
+
+Sisa komitmen = nilai komitmen - nilai realisasi yang tervalidasi.
+
+Untuk barter, penilaian realisasi harus mengikuti nilai yang disepakati dan bukti serah terima.
+
+---
+
+# 8. Modul Event
+
+## 8.1 Tujuan
+
+Mencatat event yang berkaitan dengan pemasaran, promosi, dan kerja sama.
+
+Field:
+- Nama event.
+- Penyelenggara.
+- Lokasi.
+- Tanggal mulai.
+- Tanggal selesai.
+- Penanggung jawab.
+- Proposal terkait.
+- Klien/mitra.
+- Jenis dukungan.
+- Anggaran.
+- Target pengunjung (opsional).
+- Status.
+- Dokumentasi.
+- Evaluasi.
+
+Status:
+- Perencanaan.
+- Persiapan.
+- Berlangsung.
+- Selesai.
+- Dibatalkan.
+
+## 8.2 Kebutuhan Event
+
+- Daftar kebutuhan.
+- PIC.
+- Tenggat waktu.
+- Status pelaksanaan.
+- Bukti pemenuhan.
+- Catatan.
+
+## 8.3 Evaluasi Event
+
+- Hasil kegiatan.
+- Jumlah peserta aktual.
+- Hasil promosi.
+- Nilai kerja sama.
+- Dokumentasi.
+- Catatan evaluasi.
+
+---
+
+# 9. Modul Target dan KPI Pemasaran
+
+## 9.1 Tujuan
+
+Mengukur pencapaian karyawan pemasaran secara transparan.
+
+## 9.2 Jenis Target
+
+Target wajib dipisahkan:
+
+1. Target omzet tunai.
+2. Target nilai barter.
+3. Target jumlah klien baru.
+4. Target jumlah proposal.
+5. Target jumlah kerja sama disetujui.
+6. Target realisasi kerja sama.
+
+## 9.3 Data Target
+
+Field:
+- Periode.
+- Karyawan.
+- Divisi.
+- Jenis target.
+- Nilai target.
+- Satuan.
+- Status.
+- Penetap target.
+- Tanggal penetapan.
+
+## 9.4 Pencapaian
+
+Sumber pencapaian harus berasal dari transaksi yang memenuhi aturan validasi.
+
+Contoh:
+- Omzet tunai berasal dari transaksi tunai yang disetujui sesuai kebijakan perusahaan.
+- Pembayaran yang diterima dapat dilaporkan sebagai kas masuk.
+- Nilai barter dihitung terpisah berdasarkan realisasi yang telah diverifikasi.
+- Proposal draft atau ditolak tidak dihitung sebagai pencapaian.
+- Kerja sama yang baru disetujui belum otomatis dihitung sebagai realisasi.
+
+Rumus:
+
+Persentase pencapaian = (pencapaian / target) × 100%.
+
+Jika target nol atau belum ditentukan, sistem menampilkan status belum ditetapkan, bukan membagi dengan nol.
+
+## 9.5 Dashboard KPI
+
+Menampilkan:
+- Target omzet.
+- Realisasi omzet.
+- Persentase pencapaian omzet.
+- Target barter.
+- Realisasi barter.
+- Persentase pencapaian barter.
+- Jumlah klien baru.
+- Jumlah proposal.
+- Jumlah kerja sama disetujui.
+- Jumlah kerja sama selesai.
+
+KPI harus dapat difilter berdasarkan karyawan dan periode.
+
+---
+
+# 10. Modul Keuangan
+
+## 10.1 Tujuan
+
+Mengelola administrasi tagihan dan pembayaran yang berkaitan dengan transaksi komersial.
+
+Modul ini merupakan administrasi keuangan operasional, bukan pengganti sistem akuntansi penuh.
+
+## 10.2 Invoice/Tagihan
+
+Field:
+- Nomor invoice.
+- Klien.
+- Proposal/kontrak.
+- Tanggal invoice.
+- Jatuh tempo.
+- Nilai tagihan.
+- Pajak jika berlaku.
+- Total tagihan.
+- Status.
+- Lampiran.
+
+Status:
+- Draft.
+- Diterbitkan.
+- Sebagian dibayar.
+- Lunas.
+- Jatuh tempo.
+- Dibatalkan.
+
+## 10.3 Pembayaran
+
+Field:
+- Nomor pembayaran.
+- Invoice terkait.
+- Tanggal pembayaran.
+- Nominal.
+- Metode pembayaran.
+- Referensi transaksi.
+- Bukti pembayaran.
+- Petugas.
+- Status verifikasi.
+
+Metode:
+- Transfer bank.
+- Tunai.
+- Metode lainnya.
+
+## 10.4 Piutang
+
+Sistem menampilkan:
+- Total piutang.
+- Piutang belum jatuh tempo.
+- Piutang jatuh tempo.
+- Piutang sebagian dibayar.
+- Piutang lunas.
+
+Rumus:
+
+Sisa piutang = total invoice - total pembayaran tervalidasi.
+
+Pembayaran yang belum diverifikasi tidak mengurangi piutang tervalidasi.
+
+## 10.5 Pemisahan Tunai dan Barter
+
+Barter tidak boleh otomatis dicatat sebagai penerimaan uang.
+
+Contoh:
+- Komitmen tunai: Rp5.000.000.
+- Komitmen barter: Rp3.000.000.
+- Total nilai komersial: Rp8.000.000.
+
+Laporan harus tetap menunjukkan Rp5.000.000 sebagai nilai tunai dan Rp3.000.000 sebagai nilai barter.
+
+---
+
+# 11. Modul Laporan
+
+## 11.1 Laporan Oplah
+
+- Oplah per edisi.
+- Oplah per tanggal.
+- Jumlah produksi.
+- Jumlah distribusi.
+- Penjualan.
+- Retur.
+- Stok akhir.
+- Perbandingan antarperiode.
+
+## 11.2 Laporan Pemasaran
+
+- Prospek.
+- Klien aktif.
+- Proposal.
+- Proposal disetujui.
+- Proposal ditolak.
+- Kerja sama aktif.
+- Kerja sama selesai.
+- Realisasi kerja sama.
+
+## 11.3 Laporan Komersial
+
+- Omzet tunai.
+- Nilai barter.
+- Nilai hybrid.
+- Nilai komitmen.
+- Nilai realisasi.
+- Nilai sisa komitmen.
+
+## 11.4 Laporan Kinerja
+
+- Target dan pencapaian per karyawan.
+- Perbandingan antarpegawai.
+- Pencapaian omzet.
+- Pencapaian barter.
+- Jumlah klien baru.
+- Konversi proposal.
+
+## 11.5 Laporan Keuangan
+
+- Invoice.
+- Pembayaran.
+- Piutang.
+- Piutang jatuh tempo.
+- Pembayaran per periode.
+- Rekap transaksi.
+
+## 11.6 Fitur Laporan
+
+- Filter tanggal.
+- Filter karyawan.
+- Filter divisi.
+- Filter klien.
+- Filter edisi.
+- Filter status.
+- Ekspor Excel.
+- Ekspor PDF.
+- Cetak.
+- Ringkasan grafik.
+
+Semua laporan harus memiliki definisi perhitungan yang konsisten.
+
+---
+
+# 12. Modul Notifikasi
+
+Notifikasi internal untuk:
+- Proposal baru diajukan.
+- Proposal disetujui.
+- Proposal ditolak.
+- Proposal diminta revisi.
+- Jadwal realisasi mendekat.
+- Kewajiban kerja sama belum dipenuhi.
+- Invoice diterbitkan.
+- Invoice jatuh tempo.
+- Pembayaran dicatat.
+- Target KPI belum tercapai.
+- Persediaan mencapai batas minimum.
+
+Notifikasi dapat dibaca dan ditandai sudah dibaca.
+
+---
+
+# 13. Modul Audit Log
+
+Audit log menyimpan:
+- Pengguna.
+- Waktu.
+- Modul.
+- Aksi.
+- ID data.
+- Data sebelum perubahan.
+- Data sesudah perubahan.
+- Alasan perubahan jika diwajibkan.
+- Alamat IP jika tersedia dan sesuai kebijakan privasi.
+
+Aktivitas yang wajib dicatat:
+- Login penting dan kegagalan autentikasi.
+- Pembuatan dan perubahan akun.
+- Perubahan permission.
+- Pengajuan proposal.
+- Keputusan persetujuan.
+- Perubahan nilai kerja sama.
+- Validasi distribusi.
+- Validasi retur.
+- Pencatatan pembayaran.
+- Penyesuaian stok.
+- Perubahan target KPI.
+
+Audit log tidak boleh diubah oleh pengguna biasa.
+
+---
+
+# 14. Data Master
+
+Data master yang dikelola:
+- Pengguna.
+- Divisi.
+- Role.
+- Permission.
+- Edisi koran.
+- Produk komersial.
+- Rate card.
+- Klien.
+- Kategori klien.
+- Agen/pengecer.
+- Kanal distribusi.
+- Jenis kerja sama.
+- Jenis barter.
+- Metode pembayaran.
+- Status transaksi.
+- Pengaturan perusahaan.
+
+Data master yang sudah digunakan transaksi tidak boleh dihapus sembarangan. Gunakan status aktif/nonaktif.
+
+---
+
+# 15. Aturan Bisnis Global
+
+1. Semua data penting memiliki ID unik.
+2. Setiap transaksi memiliki nomor dokumen unik.
+3. Nilai uang menggunakan tipe decimal, bukan floating point.
+4. Tanggal transaksi menggunakan zona waktu perusahaan.
+5. Semua data memiliki created_at dan updated_at.
+6. Transaksi tervalidasi tidak dihapus secara langsung.
+7. Koreksi transaksi menggunakan mekanisme pembatalan atau penyesuaian.
+8. Proposal harus melalui proses pengajuan sebelum disetujui.
+9. Pengaju tidak boleh menyetujui proposal sendiri.
+10. Nilai barter harus disimpan terpisah dari nilai tunai.
+11. Komitmen dan realisasi harus disimpan terpisah.
+12. Distribusi gratis tidak dihitung sebagai penjualan tunai.
+13. Retur harus mengacu pada distribusi sebelumnya.
+14. Pembayaran harus mengacu pada invoice atau transaksi yang relevan.
+15. Hak akses diperiksa di backend.
+16. Perubahan data penting dicatat dalam audit log.
+17. Penghapusan data historis harus dibatasi.
+18. Laporan harus menggunakan data tervalidasi sesuai definisi masing-masing.
+
+---
+
+# 16. Struktur Database Konseptual
+
+Database utama direkomendasikan menggunakan PostgreSQL.
+
+## 16.1 Tabel Pengguna dan Hak Akses
+
+- users
+- roles
+- user_roles
+- permissions
+- role_permissions
+- user_permissions
+- departments
+- employee_profiles
+
+## 16.2 Tabel Oplah
+
+- newspaper_editions
+- print_batches
+- distribution_channels
+- distribution_transactions
+- distribution_items
+- sales_transactions
+- sales_items
+- return_transactions
+- return_items
+- inventory_movements
+- inventory_adjustments
+
+## 16.3 Tabel CRM dan Kerja Sama
+
+- clients
+- client_contacts
+- client_interactions
+- rate_cards
+- rate_card_items
+- partnerships
+- partnership_items
+- partnership_approvals
+- partnership_obligations
+- partnership_realizations
+- partnership_documents
+
+## 16.4 Tabel Event
+
+- events
+- event_partnerships
+- event_tasks
+- event_documents
+- event_evaluations
+
+## 16.5 Tabel KPI
+
+- kpi_periods
+- employee_targets
+- employee_performances
+- kpi_adjustments
+
+## 16.6 Tabel Keuangan
+
+- invoices
+- invoice_items
+- payments
+- payment_allocations
+- receivables
+
+Piutang dapat dihitung dari invoice dan pembayaran. Jika disimpan sebagai tabel terpisah, nilainya harus konsisten melalui proses transaksi yang terkontrol.
+
+## 16.7 Tabel Sistem
+
+- notifications
+- audit_logs
+- attachments
+- system_settings
+
+## 16.8 Relasi Konseptual
+
+- Satu user dapat memiliki satu atau lebih role.
+- Satu user terhubung ke satu divisi utama.
+- Satu role memiliki banyak permission.
+- Satu klien memiliki banyak interaksi.
+- Satu klien memiliki banyak proposal.
+- Satu proposal memiliki banyak item dan kewajiban.
+- Satu proposal memiliki riwayat persetujuan.
+- Satu proposal memiliki banyak realisasi.
+- Satu edisi memiliki banyak batch produksi.
+- Satu edisi memiliki banyak transaksi distribusi.
+- Satu transaksi distribusi dapat memiliki banyak retur.
+- Satu proposal dapat memiliki banyak invoice.
+- Satu invoice dapat menerima beberapa pembayaran.
+- Satu karyawan memiliki banyak target dan catatan pencapaian.
+
+---
+
+# 17. Kebutuhan Non-Fungsional
+
+## 17.1 Keamanan
+
+- Password disimpan menggunakan hashing yang aman.
+- Autentikasi berbasis session atau token yang aman.
+- Proteksi CSRF jika menggunakan cookie session.
+- Validasi input di backend.
+- Proteksi SQL injection melalui parameterized query/ORM.
+- Rate limiting pada login.
+- Pembatasan akses berdasarkan permission.
+- File upload divalidasi tipe dan ukuran.
+- Dokumen privat tidak boleh diakses publik tanpa otorisasi.
+- Audit log untuk aktivitas penting.
+- Backup database terjadwal.
+
+## 17.2 Kinerja
+
+Target awal:
+- Halaman dashboard utama idealnya tampil dalam 3 detik pada kondisi jaringan dan server normal.
+- Daftar data menggunakan pagination.
+- Filter dan pencarian dilakukan melalui backend.
+- Query laporan besar dioptimalkan.
+- Grafik tidak mengambil seluruh data transaksi jika agregasi cukup.
+
+## 17.3 Responsivitas
+
+- Desktop: pengalaman utama untuk administrasi dan laporan.
+- Tablet: mendukung pengelolaan data.
+- Mobile: mendukung input dan pemantauan ringkas.
+
+## 17.4 Ketersediaan dan Backup
+
+- Backup database otomatis.
+- Backup file dokumen.
+- Prosedur pemulihan data.
+- Monitoring error.
+- Log aplikasi.
+- Rencana pemulihan jika server mengalami gangguan.
+
+## 17.5 Aksesibilitas
+
+- Kontras warna memadai.
+- Label input jelas.
+- Form dapat digunakan dengan keyboard.
+- Status tidak hanya dibedakan dengan warna.
+- Pesan error mudah dipahami.
+
+---
+
+# 18. Kriteria Penerimaan
+
+Produk dianggap memenuhi kebutuhan dasar apabila:
+
+1. Super Admin dapat mengelola akun dan permission.
+2. Admin dapat melihat seluruh ringkasan perusahaan.
+3. Karyawan hanya dapat mengakses fitur yang diizinkan.
+4. Proposal dapat dibuat, diajukan, dan diputuskan Admin.
+5. Pengaju tidak dapat menyetujui proposal sendiri.
+6. Perubahan nilai proposal setelah persetujuan memerlukan persetujuan ulang.
+7. Nilai tunai dan barter ditampilkan terpisah.
+8. Realisasi kerja sama dapat dicatat dengan bukti.
+9. Oplah, distribusi, penjualan, dan retur dapat direkonsiliasi.
+10. Persediaan diperbarui melalui pergerakan stok.
+11. KPI dapat dibandingkan berdasarkan target dan realisasi.
+12. Invoice dan pembayaran dapat dicatat.
+13. Piutang dihitung berdasarkan pembayaran tervalidasi.
+14. Laporan dapat difilter dan diekspor.
+15. Aktivitas penting masuk audit log.
+16. Aplikasi dapat digunakan pada desktop dan mobile.
+
+---
+
+# 19. Tahapan Pengembangan
+
+## Fase 1 — Fondasi Sistem
+- Setup proyek.
+- Database.
+- Login dan autentikasi.
+- Manajemen pengguna.
+- Role, divisi, dan permission.
+- Audit log dasar.
+- Layout dashboard.
+
+## Fase 2 — Oplah dan Sirkulasi
+- Edisi koran.
+- Produksi.
+- Distribusi.
+- Penjualan.
+- Retur.
+- Persediaan.
+- Laporan oplah.
+
+## Fase 3 — CRM dan Kerja Sama
+- Klien.
+- Interaksi klien.
+- Rate card.
+- Proposal.
+- Approval.
+- Barter dan hybrid.
+- Realisasi.
+
+## Fase 4 — KPI dan Keuangan
+- Target karyawan.
+- Pencapaian KPI.
+- Invoice.
+- Pembayaran.
+- Piutang.
+- Laporan pemasaran dan keuangan.
+
+## Fase 5 — Penyempurnaan
+- Event.
+- Notifikasi.
+- Dashboard lanjutan.
+- Ekspor laporan.
+- Pengujian keamanan.
+- Optimasi performa.
+- Backup dan pemulihan.
+
+---
+
+# 20. Risiko dan Hal yang Perlu Dikonfirmasi
+
+Sebelum implementasi final, perusahaan perlu mengonfirmasi:
+
+1. Apakah distribusi menggunakan agen, pengecer, penjualan langsung, atau semua kanal?
+2. Apakah pencatatan penjualan dilakukan per eksemplar, per agen, atau keduanya?
+3. Apakah retur koran dapat dijual kembali atau seluruh retur dianggap tidak layak jual?
+4. Apakah Admin selalu menjadi satu-satunya pejabat yang menyetujui kerja sama?
+5. Jika Admin membuat proposal sendiri, siapa yang berwenang menyetujuinya?
+6. Apakah nilai barter dihitung berdasarkan harga pasar, harga kesepakatan, atau nilai internal perusahaan?
+7. Apakah karyawan keuangan perlu memverifikasi pembayaran sebelum tercatat sebagai pembayaran sah?
+8. Apakah perusahaan membutuhkan pengelolaan beberapa kantor/cabang?
+9. Apakah perusahaan membutuhkan pengelolaan beberapa surat kabar atau hanya satu merek penerbitan?
+10. Apakah laporan perlu mendukung tahun buku yang berbeda dari tahun kalender?
+
+---
+
+# 21. Definisi Keberhasilan
+
+SIMOKP dinilai berhasil apabila:
+
+- Seluruh modul utama menggunakan satu sumber data.
+- Proses proposal dapat ditelusuri dari pengajuan hingga realisasi.
+- Laporan tunai dan barter tidak tercampur.
+- Data oplah dapat direkonsiliasi.
+- Karyawan dapat memahami target dan pencapaian.
+- Admin dapat memantau perusahaan melalui dashboard.
+- Pengguna hanya dapat mengakses data sesuai kewenangannya.
+- Riwayat perubahan dan keputusan dapat diperiksa.

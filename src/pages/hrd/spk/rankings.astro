@@ -5,6 +5,8 @@ import { listSnapshots } from "../../../features/spk/snapshots";
 import { computeSaw } from "../../../features/spk/saw";
 import { altName } from "../../../features/spk/build-input";
 import { period, employeeName } from "../../../lib/data/store";
+import { ENABLE_SPK } from "../../../lib/config";
+if (!ENABLE_SPK) return Astro.redirect("/hrd/kpi/achievements");
 const rows = listSnapshots().map((s) => {
   const r = computeSaw(s.criteria, s.alternatives.map((a) => ({ id: a.employeeId, values: a.values })));
   return { id: s.id, periode: period(s.periodId)?.name, version: `v${s.version}`, createdAt: s.createdAt, by: employeeName(s.createdBy), top: `${altName(r.ranking[0].id)} (${r.ranking[0].score.toFixed(3)})`, n: s.alternatives.length };

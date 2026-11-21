@@ -36,6 +36,12 @@ let myTargets: any[] = [];
 let divRows: any[] = [];
 let avgPercent: number | null = null;
 let approvalRate = 0;
+let userCash = 0;
+let userBarter = 0;
+let userSentOplah = 0;
+let userReturnOplah = 0;
+let userSoldOplah = 0;
+let userReturnRate = "0.0";
 const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Jakarta" });
 
 if (user && user.role === "employee") {
@@ -63,6 +69,25 @@ if (user && user.role === "employee") {
   const measurable = myTargets.filter((r) => r.percent != null);
   avgPercent = measurable.length ? Math.round(measurable.reduce((s, r) => s + Math.min(r.percent!, 100), 0) / measurable.length) : null;
   approvalRate = mine.length > 0 ? Math.round((mine.filter((a) => a.status === "approved").length / mine.length) * 100) : 0;
+
+  // 3 Pilar SIMOKP Karyawan
+  const approvedActs = mine.filter((a) => a.status === "approved");
+  userCash = approvedActs
+    .filter((a) => a.type === "outcome" && a.outcome === "deal")
+    .reduce((s, a) => s + (a.cashValue != null ? a.cashValue : (a.value || 0)), 0);
+  userBarter = approvedActs
+    .filter((a) => (a.type === "outcome" && a.outcome === "deal" && (a.barterValue || 0) > 0) || a.type === "program")
+    .reduce((s, a) => s + (a.barterValue != null ? a.barterValue : 0), 0);
+  userSentOplah = approvedActs
+    .filter((a) => a.type === "oplah")
+    .reduce((s, a) => s + (a.qty || 0), 0);
+  userReturnOplah = approvedActs
+    .filter((a) => a.type === "oplah")
+    .reduce((s, a) => s + (a.returnQty || 0), 0);
+  userSoldOplah = approvedActs
+    .filter((a) => a.type === "oplah")
+    .reduce((s, a) => s + (a.soldQty != null ? a.soldQty : Math.max(0, (a.qty || 0) - (a.returnQty || 0))), 0);
+  userReturnRate = userSentOplah > 0 ? ((userReturnOplah / userSentOplah) * 100).toFixed(1) : "0.0";
 }
 
 const count = (list: typeof mine, s: string) => list.filter((a) => a.status === s).length;
@@ -126,10 +151,10 @@ const count = (list: typeof mine, s: string) => list.filter((a) => a.status === 
             <span>Sistem Informasi Terintegrasi · Jawa Pos Radar Kediri</span>
           </div>
 
-          <h1>Portal Pencatatan Aktivitas &amp; Evaluasi Kinerja Karyawan</h1>
+          <h1>SIMOKP — Sistem Informasi Manajemen Oplah, Kerja Sama &amp; Kinerja Pemasaran</h1>
           
           <p>
-            Platform resmi PT Kediri Intermedia Pers untuk monitoring progres kerja harian tim marketing, sirkulasi oplah, verifikasi berkas oleh HRD, serta transparansi evaluasi capaian kinerja berkala yang objektif, akuntabel, dan terukur.
+            Platform resmi PT Kediri Intermedia Pers (Jawa Pos Radar Kediri) untuk integrasi sirkulasi oplah cetak, tata kelola proposal kerja sama komersial &amp; barter, serta pengukuran kinerja pemasaran berbasis Key Performance Indicators (KPI).
           </p>
 
           <div class="landing-hero-btns">
@@ -165,12 +190,35 @@ const count = (list: typeof mine, s: string) => list.filter((a) => a.status === 
   <!-- KONTEN KHUSUS KARYAWAN: WORKSPACE LANDING PAGE INTERAKTIF -->
   {user && user.role === "employee" ? (
     <>
-      <!-- Bar Statistik Ringkasan Karyawan -->
+      <!-- Bar Statistik Ringkasan SIMOKP Karyawan -->
       <section class="landing-metrics">
-        <div class="metrics-container">
+        <div class="metrics-container" style="margin-bottom: 1.25rem;">
+          <div class="metric-item">
+            <span class="metric-number" style="color: #065f46;">{rupiah(userCash)}</span>
+            <span class="metric-label">Omzet Kas Tunai Saya</span>
+            <span class="metric-desc">Penerimaan riil dari penawaran deal disetujui</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-number" style="color: #3730a3;">{rupiah(userBarter)}</span>
+            <span class="metric-label">Nilai Realisasi Barter</span>
+            <span class="metric-desc">Kerja sama barang/jasa promosi non-tunai</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-number" style="color: #0369a1;">{num(userSoldOplah)} <small style="font-size:0.9rem;font-weight:600;">Eks</small></span>
+            <span class="metric-label">Oplah Bersih Terjual</span>
+            <span class="metric-desc">Distribusi terverifikasi (Retur: {userReturnRate}%)</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-number" style="color: var(--color-primary-900);">{avgPercent != null ? `${avgPercent}%` : "—"}</span>
+            <span class="metric-label">Capaian Target KPI</span>
+            <span class="metric-desc"><a href="/kinerja" style="color: var(--color-primary-800); text-decoration: underline; font-weight: 600;">Buka Rapor Kinerja &rarr;</a></span>
+          </div>
+        </div>
+
+        <div class="metrics-container" style="border-top: 1px dashed var(--color-border); padding-top: 1.25rem;">
           <div class="metric-item">
             <span class="metric-number">{mine.length}</span>
-            <span class="metric-label">Total Aktivitas Periode Ini</span>
+            <span class="metric-label">Total Aktivitas Bulan Ini</span>
             <span class="metric-desc">Semua laporan kegiatan yang telah dicatat</span>
           </div>
           <div class="metric-item">
@@ -184,11 +232,11 @@ const count = (list: typeof mine, s: string) => list.filter((a) => a.status === 
             <span class="metric-desc">Sedang dalam antrean pemeriksaan HRD</span>
           </div>
           <div class="metric-item">
-            <span class="metric-number" style={count(mine, "revision") > 0 ? "color: var(--color-danger);" : ""}>
-              {count(mine, "revision")}
+            <span class="metric-number" style={count(mine, "revision") + count(mine, "rejected") > 0 ? "color: var(--color-danger);" : ""}>
+              {count(mine, "revision") + count(mine, "rejected")}
             </span>
-            <span class="metric-label">Perlu Revisi</span>
-            <span class="metric-desc">{count(mine, "revision") > 0 ? "Ada catatan perbaikan dari verifikator" : "Tidak ada revisi pending"}</span>
+            <span class="metric-label">Perlu Revisi / Ditolak</span>
+            <span class="metric-desc">{count(mine, "revision") > 0 ? `${count(mine, "revision")} laporan perlu perbaikan bukti` : "Tidak ada revisi pending"}</span>
           </div>
         </div>
       </section>
@@ -456,9 +504,40 @@ const count = (list: typeof mine, s: string) => list.filter((a) => a.status === 
                         <div style="font-weight: 500; font-size: var(--text-sm); line-height: 1.4;">{a.description}</div>
                       </td>
                       <td style="white-space: nowrap;">
-                        {a.qty && <span class="mono text-xs font-bold">{num(a.qty)} eks</span>}
-                        {a.value && <span class="mono text-xs font-bold" style="color:#059669;">{rupiah(a.value)}</span>}
-                        {!a.qty && !a.value && <span class="muted text-xs">—</span>}
+                        {a.type === "oplah" ? (
+                          <div>
+                            <span class="mono text-xs font-bold" style="color:#0284c7;">
+                              {num(a.soldQty ?? a.qty)} eks terjual
+                            </span>
+                            {a.returnQty != null && a.returnQty > 0 && (
+                              <div class="muted text-xs">
+                                Retur: {num(a.returnQty)} ({a.returnCondition === "layak_stok" ? "Layak" : "Rusak"})
+                              </div>
+                            )}
+                          </div>
+                        ) : a.partnershipType || a.cashValue || a.barterValue ? (
+                          <div>
+                            {(a.cashValue || 0) > 0 && (
+                              <div class="mono text-xs font-bold" style="color:#059669;">
+                                Kas: {rupiah(a.cashValue)}
+                              </div>
+                            )}
+                            {(a.barterValue || 0) > 0 && (
+                              <div class="mono text-xs font-bold" style="color:#6366f1;">
+                                Barter: {rupiah(a.barterValue)}
+                              </div>
+                            )}
+                            {!(a.cashValue || 0) && !(a.barterValue || 0) && a.value && (
+                              <div class="mono text-xs font-bold">{rupiah(a.value)}</div>
+                            )}
+                          </div>
+                        ) : a.value ? (
+                          <span class="mono text-xs font-bold" style="color:#059669;">{rupiah(a.value)}</span>
+                        ) : a.qty ? (
+                          <span class="mono text-xs font-bold">{num(a.qty)} item</span>
+                        ) : (
+                          <span class="muted text-xs">1 kegiatan</span>
+                        )}
                       </td>
                       <td>
                         <Badge status={a.status} />

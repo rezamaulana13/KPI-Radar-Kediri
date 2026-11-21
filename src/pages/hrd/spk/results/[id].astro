@@ -7,6 +7,8 @@ import { computeSaw } from "../../../../features/spk/saw";
 import { altName } from "../../../../features/spk/build-input";
 import { period, employeeName } from "../../../../lib/data/store";
 import { num, dateTimeID } from "../../../../lib/formatters";
+import { ENABLE_SPK } from "../../../../lib/config";
+if (!ENABLE_SPK) return Astro.redirect("/hrd/kpi/achievements");
 
 const s = getSnapshot(Astro.params.id!);
 if (!s) return new Response(null, { status: 404 });

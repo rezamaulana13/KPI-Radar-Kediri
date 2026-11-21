@@ -5,7 +5,7 @@ import { categories, indicators } from "../../../lib/data/store";
 import { SCOPE_LABEL } from "../../../lib/formatters";
 const rows = categories.map((c) => ({ ...c, scopeLabel: SCOPE_LABEL[c.scope], count: indicators.filter((i) => i.categoryId === c.id).length }));
 ---
-<DashboardLayout title="Kategori KPI">
-  <ListPage title="Kategori KPI" description="KPI dibedakan menurut cakupan: perusahaan, divisi, dan individu." crumbs={[{ label: "HRD" }, { label: "KPI" }]} rows={rows}
+<DashboardLayout title="Master Kategori KPI">
+  <ListPage title="Master Kategori KPI" description="Pengelompokan KPI menurut cakupan tanggung jawab: Korporat (Perusahaan), Tim (Divisi), dan Personal (Individu Staf)." crumbs={[{ label: "Admin Pemasaran" }, { label: "Kategori KPI" }]} rows={rows}
     columns={[{ key: "name", label: "Kategori" }, { key: "scopeLabel", label: "Cakupan" }, { key: "description", label: "Keterangan" }, { key: "count", label: "Indikator", type: "number" }]} />
 </DashboardLayout>

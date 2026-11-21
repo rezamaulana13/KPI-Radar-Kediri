@@ -9,6 +9,12 @@ import { selectedPeriod } from "../../../lib/utils/period";
 import { sawAlternatives, altName } from "../../../features/spk/build-input";
 import { computeSaw, validateWeights } from "../../../features/spk/saw";
 import { num } from "../../../lib/formatters";
+import { ENABLE_SPK } from "../../../lib/config";
+
+if (!ENABLE_SPK) {
+  return Astro.redirect("/hrd/kpi/achievements");
+}
+
 const p = selectedPeriod(Astro.url);
 const criteria = db.criteria;
 const alts = sawAlternatives(p.id, criteria);
