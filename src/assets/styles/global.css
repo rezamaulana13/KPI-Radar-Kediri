@@ -133,6 +133,98 @@ legend { font-family: var(--font-display); font-weight: 650; color: var(--color-
   min-height: calc(100vh - 4.25rem - 18rem);
 }
 
+/* Responsif Komponen UI (StatCard, Tabel, Filter, KV) untuk Layar Smartphone / Android */
+@media (max-width: 768px) {
+  .stat-grid,
+  .stat-grid-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.65rem !important;
+    margin-bottom: var(--space-4) !important;
+  }
+  .stat,
+  .stat-box {
+    padding: 0.75rem 0.65rem !important;
+    border-left-width: 3.5px !important;
+  }
+  .stat .stat-value,
+  .stat-val {
+    font-size: 1.25rem !important;
+    margin-bottom: 0.15rem !important;
+    line-height: 1.2 !important;
+  }
+  .stat .stat-label,
+  .stat-lbl {
+    font-size: 0.7rem !important;
+    margin-bottom: 0.15rem !important;
+  }
+  .stat .stat-note,
+  .stat-sub {
+    font-size: 0.65rem !important;
+    line-height: 1.25 !important;
+  }
+  .kv {
+    grid-template-columns: 1fr !important;
+    gap: 0.25rem !important;
+  }
+  .kv dt {
+    font-weight: 700;
+    color: var(--color-muted);
+    font-size: 0.75rem;
+    margin-top: 0.45rem;
+  }
+  .kv dd {
+    margin: 0;
+    font-size: 0.85rem;
+  }
+  .filter-controls-wrap {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.65rem !important;
+  }
+  .filter-tabs-bar {
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    padding-bottom: 0.35rem !important;
+    -webkit-overflow-scrolling: touch !important;
+    width: 100% !important;
+  }
+  .search-box-wrap {
+    min-width: 100% !important;
+    width: 100% !important;
+  }
+  .filter-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding: 0.65rem !important;
+    gap: 0.5rem !important;
+  }
+  .filter-bar .field {
+    min-width: 100% !important;
+    width: 100% !important;
+    flex: 1 1 100% !important;
+  }
+  .table-wrap,
+  .user-table-card {
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  .table th,
+  .table td,
+  .user-table th,
+  .user-table td {
+    padding: 0.55rem 0.65rem !important;
+    font-size: 0.78rem !important;
+  }
+  .pagination {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 0.65rem !important;
+    text-align: center !important;
+    padding: 0.75rem 0.5rem !important;
+  }
+}
+
 @media print {
   .pub-navbar, .pub-footer, .sidebar, .topbar, .btn:not(.btn-print), form, [data-no-print] {
     display: none !important;
