@@ -1,6 +1,7 @@
 ---
 import "../assets/styles/global.css";
 import Icon from "../components/ui/Icon.astro";
+import MobileBottomNav from "../components/layout/MobileBottomNav.astro";
 import { ROLE_LABEL, initials } from "../lib/formatters";
 import { employee, divisionName, positions, notificationsFor } from "../lib/data/store";
 
@@ -1028,6 +1029,7 @@ if (user) {
         });
       }
     </script>
+    <MobileBottomNav role={user?.role} />
   </body>
 </html>
 
