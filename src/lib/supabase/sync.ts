@@ -78,7 +78,8 @@ export async function syncSaveActivity(a: T.Activity): Promise<boolean> {
       }
     }
 
-    const payload = {
+    // 1. Coba simpan dengan kolom lengkap terlebih dahulu
+    const fullPayload = {
       id: a.id,
       type: a.type,
       owner_id: ownerId,
@@ -113,12 +114,62 @@ export async function syncSaveActivity(a: T.Activity): Promise<boolean> {
       created_at: a.createdAt ?? new Date().toISOString(),
     };
 
-    const { error } = await supabase.from("marketing_activities").upsert(payload);
-    if (error) {
-      console.error("[Supabase Sync] Gagal menyimpan aktivitas:", error.message);
+    const { error: fullError } = await supabase.from("marketing_activities").upsert(fullPayload);
+    if (!fullError) {
+      console.log(`[Supabase Sync] Aktivitas ${a.id} berhasil tersimpan ke Supabase (skema penuh).`);
+      return true;
+    }
+
+    // 2. Fallback Adaptif jika tabel belum memiliki kolom-kolom baru (PGRST204)
+    console.warn(`[Supabase Sync] Skema penuh gagal (${fullError.message}), menyimpan via fallback kompatibel...`);
+    const meta: Record<string, any> = {};
+    if (a.returnQty != null) meta.returnQty = a.returnQty;
+    if (a.soldQty != null) meta.soldQty = a.soldQty;
+    if (a.returnCondition) meta.returnCondition = a.returnCondition;
+    if (a.editionName) meta.editionName = a.editionName;
+    if (a.partnershipType) meta.partnershipType = a.partnershipType;
+    if (a.barterType) meta.barterType = a.barterType;
+    if (a.cashValue != null) meta.cashValue = a.cashValue;
+    if (a.barterValue != null) meta.barterValue = a.barterValue;
+    if (a.barterDesc) meta.barterDesc = a.barterDesc;
+    if (a.realizationStatus) meta.realizationStatus = a.realizationStatus;
+    if (a.proofUrl) meta.proofUrl = a.proofUrl;
+
+    let safeDesc = a.description;
+    if (Object.keys(meta).length > 0 && !safeDesc.includes("[meta:")) {
+      safeDesc = `${safeDesc} [meta:${JSON.stringify(meta)}]`;
+    }
+
+    const safePayload = {
+      id: a.id,
+      type: a.type,
+      owner_id: ownerId,
+      created_by: createdBy,
+      activity_date: a.date,
+      period_id: a.periodId,
+      description: safeDesc,
+      status: a.status,
+      client_id: a.clientId ?? null,
+      offer_id: a.offerId ?? null,
+      program_id: a.programId ?? null,
+      qty: a.qty ?? null,
+      value: a.value ?? null,
+      source: a.source ?? null,
+      source_name: a.sourceName ?? null,
+      progress_type: a.progressType ?? null,
+      potential: a.potential ?? null,
+      outcome: a.outcome ?? null,
+      reason_category: a.reasonCategory ?? null,
+      reason: a.reason ?? null,
+      created_at: a.createdAt ?? new Date().toISOString(),
+    };
+
+    const { error: safeError } = await supabase.from("marketing_activities").upsert(safePayload);
+    if (safeError) {
+      console.error("[Supabase Sync] Gagal menyimpan aktivitas via fallback:", safeError.message);
       return false;
     }
-    console.log(`[Supabase Sync] Aktivitas ${a.id} berhasil tersimpan ke Supabase.`);
+    console.log(`[Supabase Sync] Aktivitas ${a.id} berhasil tersimpan ke Supabase via fallback adaptif.`);
     return true;
   } catch (err) {
     console.error("[Supabase Sync] Exception saat simpan aktivitas:", err);
@@ -328,40 +379,52 @@ export async function hydrateFromSupabase(): Promise<void> {
 
       // d. Sinkronisasi Aktivitas
       if (dbActs && dbActs.length > 0) {
-        db.activities = dbActs.map((a: any) => ({
-          id: a.id,
-          type: a.type,
-          ownerId: a.owner_id,
-          createdBy: a.created_by,
-          date: a.activity_date,
-          periodId: a.period_id,
-          description: a.description,
-          status: a.status,
-          clientId: a.client_id,
-          offerId: a.offer_id,
-          programId: a.program_id,
-          qty: a.qty ? Number(a.qty) : undefined,
-          value: a.value ? Number(a.value) : undefined,
-          source: a.source,
-          sourceName: a.source_name,
-          progressType: a.progress_type,
-          potential: a.potential,
-          outcome: a.outcome,
-          reasonCategory: a.reason_category,
-          reason: a.reason,
-          returnQty: a.return_qty != null ? Number(a.return_qty) : undefined,
-          soldQty: a.sold_qty != null ? Number(a.sold_qty) : undefined,
-          returnCondition: a.return_condition,
-          editionName: a.edition_name,
-          partnershipType: a.partnership_type,
-          barterType: a.barter_type,
-          cashValue: a.cash_value != null ? Number(a.cash_value) : undefined,
-          barterValue: a.barter_value != null ? Number(a.barter_value) : undefined,
-          barterDesc: a.barter_desc,
-          realizationStatus: a.realization_status,
-          proofUrl: a.proof_url,
-          createdAt: a.created_at,
-        }));
+        db.activities = dbActs.map((a: any) => {
+          let desc = a.description || "";
+          let meta: any = {};
+          const metaMatch = desc.match(/\s*\[meta:(.+?)\]$/);
+          if (metaMatch) {
+            try {
+              meta = JSON.parse(metaMatch[1]);
+              desc = desc.replace(metaMatch[0], "").trim();
+            } catch {}
+          }
+
+          return {
+            id: a.id,
+            type: a.type,
+            ownerId: a.owner_id,
+            createdBy: a.created_by,
+            date: a.activity_date,
+            periodId: a.period_id,
+            description: desc,
+            status: a.status,
+            clientId: a.client_id,
+            offerId: a.offer_id,
+            programId: a.program_id,
+            qty: a.qty ? Number(a.qty) : (meta.qty ? Number(meta.qty) : undefined),
+            value: a.value ? Number(a.value) : (meta.value ? Number(meta.value) : undefined),
+            source: a.source,
+            sourceName: a.source_name,
+            progressType: a.progress_type,
+            potential: a.potential,
+            outcome: a.outcome,
+            reasonCategory: a.reason_category,
+            reason: a.reason,
+            returnQty: a.return_qty != null ? Number(a.return_qty) : meta.returnQty,
+            soldQty: a.sold_qty != null ? Number(a.sold_qty) : meta.soldQty,
+            returnCondition: a.return_condition || meta.returnCondition,
+            editionName: a.edition_name || meta.editionName,
+            partnershipType: a.partnership_type || meta.partnershipType,
+            barterType: a.barter_type || meta.barterType,
+            cashValue: a.cash_value != null ? Number(a.cash_value) : meta.cashValue,
+            barterValue: a.barter_value != null ? Number(a.barter_value) : meta.barterValue,
+            barterDesc: a.barter_desc || meta.barterDesc,
+            realizationStatus: a.realization_status || meta.realizationStatus,
+            proofUrl: a.proof_url || meta.proofUrl,
+            createdAt: a.created_at,
+          };
+        });
       }
 
       // e. Sinkronisasi Verifikasi
@@ -486,6 +549,7 @@ export async function syncUpdateUserProfile(
 
 // 10. PAKSA MUAT ULANG DATA DARI SUPABASE (RE-HYDRATE)
 export async function forceRehydrate(): Promise<void> {
-  hasHydrated = false;
+  gState.__rk_hydrated = false;
+  gState.__rk_hydrating = null;
   await hydrateFromSupabase();
 }
