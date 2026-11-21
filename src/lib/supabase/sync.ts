@@ -391,7 +391,33 @@ export async function syncUpdateUser(
   }
 }
 
-// 8. PAKSA MUAT ULANG DATA DARI SUPABASE (RE-HYDRATE)
+// 8. SINKRONISASI UPDATE JABATAN / ATASAN KARYAWAN OLEH HRD / ADMIN
+export async function syncUpdateEmployee(
+  employeeId: string,
+  data: { positionId?: string; supervisorId?: string | null }
+): Promise<boolean> {
+  const supabase = createSupabaseAdminClient();
+  if (!supabase || !isValidUUID(employeeId)) return false;
+
+  try {
+    const patch: Record<string, any> = {};
+    if (data.positionId) patch.position_id = data.positionId;
+    if (data.supervisorId !== undefined) patch.supervisor_id = data.supervisorId;
+
+    const { error } = await supabase.from("users").update(patch).eq("id", employeeId);
+    if (error) {
+      console.error("[Supabase Sync] Gagal update posisi karyawan di Supabase:", error.message);
+      return false;
+    }
+    console.log(`[Supabase Sync] Posisi/atasan karyawan ${employeeId} berhasil diperbarui di Supabase.`);
+    return true;
+  } catch (err) {
+    console.error("[Supabase Sync] Exception saat update karyawan:", err);
+    return false;
+  }
+}
+
+// 9. PAKSA MUAT ULANG DATA DARI SUPABASE (RE-HYDRATE)
 export async function forceRehydrate(): Promise<void> {
   hasHydrated = false;
   await hydrateFromSupabase();

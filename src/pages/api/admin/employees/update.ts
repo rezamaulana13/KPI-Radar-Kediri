@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
 import { db } from "../../../../lib/data/store";
+import { syncUpdateEmployee } from "../../../../lib/supabase/sync";
 
 export const POST: APIRoute = async ({ request, locals, redirect }) => {
   const currentAdmin = locals.user;
@@ -24,6 +25,9 @@ export const POST: APIRoute = async ({ request, locals, redirect }) => {
   const oldPos = emp.positionId;
   emp.positionId = positionId;
   emp.supervisorId = supervisorId;
+
+  // Sinkronkan ke database Supabase
+  await syncUpdateEmployee(emp.id, { positionId, supervisorId });
 
   // Catat Audit Log
   db.auditLogs.unshift({
