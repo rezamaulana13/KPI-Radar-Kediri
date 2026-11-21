@@ -417,10 +417,19 @@ if (user) {
 
       .pub-mobile-menu {
         display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
         background: #ffffff;
         border-bottom: 1px solid var(--color-border);
-        padding: 1rem 1.5rem 1.25rem;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+        padding: 1rem 1.25rem 1.5rem;
+        box-shadow: 0 16px 36px -6px rgba(14, 40, 68, 0.22);
+        max-height: calc(100vh - var(--public-nav-height) - 70px);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        z-index: 1050;
+        animation: dropdownFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
       }
 
       .pub-mobile-menu.is-open {
@@ -990,10 +999,41 @@ if (user) {
         const mobileBtn = document.getElementById("btn-mobile-toggle");
         const mobileMenu = document.getElementById("pub-mobile-menu");
         if (mobileBtn && mobileMenu) {
-          mobileBtn.onclick = () => {
+          mobileBtn.onclick = (e) => {
+            e.stopPropagation();
             const isOpen = mobileMenu.classList.toggle("is-open");
+            mobileBtn.classList.toggle("is-active", isOpen);
             mobileBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
           };
+
+          // Tutup menu mobile ketika klik di luar
+          document.addEventListener("click", (e) => {
+            if (!mobileMenu.contains(e.target) && !mobileBtn.contains(e.target)) {
+              if (mobileMenu.classList.contains("is-open")) {
+                mobileMenu.classList.remove("is-open");
+                mobileBtn.classList.remove("is-active");
+                mobileBtn.setAttribute("aria-expanded", "false");
+              }
+            }
+          });
+
+          // Tutup menu mobile ketika salah satu tautan di dalamnya diklik
+          mobileMenu.querySelectorAll("a, button").forEach((el) => {
+            el.addEventListener("click", () => {
+              mobileMenu.classList.remove("is-open");
+              mobileBtn.classList.remove("is-active");
+              mobileBtn.setAttribute("aria-expanded", "false");
+            });
+          });
+
+          // Tutup otomatis saat layar di-scroll agar tidak menutupi konten
+          window.addEventListener("scroll", () => {
+            if (mobileMenu.classList.contains("is-open")) {
+              mobileMenu.classList.remove("is-open");
+              mobileBtn.classList.remove("is-active");
+              mobileBtn.setAttribute("aria-expanded", "false");
+            }
+          }, { passive: true });
         }
 
         // 2. Avatar Dropdown Popover Toggle
@@ -1030,6 +1070,20 @@ if (user) {
         if (bar) {
           bar.classList.remove("is-done");
           bar.classList.add("is-loading");
+        }
+        const mobileMenu = document.getElementById("pub-mobile-menu");
+        const mobileBtn = document.getElementById("btn-mobile-toggle");
+        if (mobileMenu) mobileMenu.classList.remove("is-open");
+        if (mobileBtn) {
+          mobileBtn.classList.remove("is-active");
+          mobileBtn.setAttribute("aria-expanded", "false");
+        }
+        const userDropdown = document.getElementById("pub-user-dropdown");
+        const avatarBtn = document.getElementById("pub-user-avatar-btn");
+        if (userDropdown) userDropdown.classList.remove("is-open");
+        if (avatarBtn) {
+          avatarBtn.classList.remove("is-active");
+          avatarBtn.setAttribute("aria-expanded", "false");
         }
       });
       document.addEventListener("astro:page-load", () => {
