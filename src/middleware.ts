@@ -11,7 +11,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   await hydrateFromSupabase();
   context.locals.user = await getCurrentUser(context);
-  if (PUBLIC_PATHS.includes(pathname) || pathname === "/") return next();
+  if (PUBLIC_PATHS.includes(pathname)) return next();
 
   if (!context.locals.user) {
     if (isApi) return Response.json({ error: "Sesi berakhir. Silakan masuk kembali." }, { status: 401 });

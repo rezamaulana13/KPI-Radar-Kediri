@@ -17,10 +17,15 @@ export const positions: T.Position[] = [
   { id: "POS-ADM", name: "Admin Operasional Marketing", level: "Staf" },
 ];
 
-const e = (id: string, nip: string, name: string, role: T.Role, divisionId: string, positionId: string, supervisorId: string | null, lastLogin: string): T.Employee => ({
-  id, nip, name, email: `${name.toLowerCase().split(" ")[0]}@radarkediri.example`, role, divisionId, positionId, supervisorId, active: true, lastLogin,
+const e = (id: string, nip: string, name: string, role: T.Role, divisionId: string, positionId: string, supervisorId: string | null, lastLogin: string, email?: string): T.Employee => ({
+  id, nip, name, email: email || `${name.toLowerCase().split(" ")[0]}@radarkediri.example`, role, divisionId, positionId, supervisorId, active: true, lastLogin,
 });
-export const employees: T.Employee[] = [];
+export const employees: T.Employee[] = [
+  e("81b8993a-e523-4595-9d21-2e4b1753e1ac", "RK-5760", "Reza Maulana", "admin", "DIV-MKT", "POS-MGR", null, "2026-11-21T07:00:00.000Z", "rezamaulanaply@gmail.com"),
+  e("0fd19390-ff21-474b-9475-3ec2616ea816", "RK-4020", "HRD Radar Kediri", "hrd", "DIV-MKT", "POS-SPV", null, "2026-11-21T07:00:00.000Z", "hrdradarkediri@gmail.com"),
+  e("7f48b651-5109-4aa9-9937-d45352916b06", "RK-2340", "fara dilla", "employee", "DIV-MKT", "POS-EXM", "0fd19390-ff21-474b-9475-3ec2616ea816", "2026-11-21T07:00:00.000Z", "faradilla@gmail.com"),
+  e("cdda2ff0-6ea1-44d1-a6d5-ed89e9a9b411", "RK-8098", "memet", "employee", "DIV-MKT", "POS-OPL", "0fd19390-ff21-474b-9475-3ec2616ea816", "2026-11-21T07:00:00.000Z", "memet13@gmail.com"),
+];
 
 export const periods: T.Period[] = [
   { id: "PRD-2026-12", name: "Desember 2026", start: "2026-12-01", end: "2026-12-31", status: "draft" },
