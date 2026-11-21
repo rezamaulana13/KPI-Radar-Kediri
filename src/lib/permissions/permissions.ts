@@ -59,7 +59,7 @@ export const NAV: Record<Role, NavGroup[]> = {
         { label: "Beranda", href: "/", icon: "home" },
         { label: "Modul Marketing", href: "/modul-marketing", icon: "briefcase" },
         { label: "Riwayat Aktivitas", href: "/aktivitas-saya", icon: "clipboard" },
-        { label: "Capaian Target", href: "/kinerja", icon: "chart" },
+        { label: "Profil & Capaian KPI", href: "/profile", icon: "user" },
         { label: "Alur Kerja & SOP", href: "/alur-kerja", icon: "document" },
       ],
     },

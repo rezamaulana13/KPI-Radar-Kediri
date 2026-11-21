@@ -610,7 +610,7 @@ if (user) {
               <a class={`pub-menu-link ${activeNav === "beranda" ? "is-active" : ""}`} href="/">Beranda</a>
               <a class={`pub-menu-link ${activeNav === "modul-marketing" ? "is-active" : ""}`} href="/modul-marketing">Modul Marketing</a>
               <a class={`pub-menu-link ${activeNav === "aktivitas-saya" ? "is-active" : ""}`} href="/aktivitas-saya">Aktivitas Saya</a>
-              <a class={`pub-menu-link ${activeNav === "kinerja" ? "is-active" : ""}`} href="/kinerja">Capaian Target</a>
+              <a class={`pub-menu-link ${activeNav === "profile" ? "is-active" : ""}`} href="/profile">Profil &amp; Target</a>
               <a class={`pub-menu-link ${activeNav === "alur-kerja" ? "is-active" : ""}`} href="/alur-kerja">Alur Kerja &amp; SOP</a>
             </>
           ) : (
@@ -681,6 +681,10 @@ if (user) {
                   <div class="dropdown-links">
                     {user.role === "employee" ? (
                       <>
+                        <a href="/profile" class="dropdown-item" role="menuitem">
+                          <span class="dropdown-item-icon"><Icon name="user" size={17} /></span>
+                          <span>Profil &amp; Capaian KPI</span>
+                        </a>
                         <a href="/modul-marketing" class="dropdown-item" role="menuitem">
                           <span class="dropdown-item-icon"><Icon name="folder" size={17} /></span>
                           <span>Modul Marketing</span>
@@ -688,14 +692,6 @@ if (user) {
                         <a href="/aktivitas-saya" class="dropdown-item" role="menuitem">
                           <span class="dropdown-item-icon"><Icon name="clipboard" size={17} /></span>
                           <span>Aktivitas Saya</span>
-                        </a>
-                        <a href="/kinerja" class="dropdown-item" role="menuitem">
-                          <span class="dropdown-item-icon"><Icon name="chart" size={17} /></span>
-                          <span>Kinerja KPI Saya</span>
-                        </a>
-                        <a href="/modul-marketing" class="dropdown-item" role="menuitem">
-                          <span class="dropdown-item-icon"><Icon name="folder" size={17} /></span>
-                          <span>Modul Marketing</span>
                         </a>
                         <a href="/alur-kerja" class="dropdown-item" role="menuitem">
                           <span class="dropdown-item-icon"><Icon name="file" size={17} /></span>
@@ -710,10 +706,6 @@ if (user) {
                             </svg>
                           </span>
                           <span>Unduh Rekap Excel (.xlsx)</span>
-                        </a>
-                        <a href="/profile" class="dropdown-item" role="menuitem">
-                          <span class="dropdown-item-icon"><Icon name="settings" size={17} /></span>
-                          <span>Pengaturan Akun</span>
                         </a>
                       </>
                     ) : (
@@ -842,13 +834,9 @@ if (user) {
               <Icon name="clipboard" size={18} />
               <span>Aktivitas Saya</span>
             </a>
-            <a class={`pub-mobile-link ${activeNav === "kinerja" ? "is-active" : ""}`} href="/kinerja">
-              <Icon name="chart" size={18} />
-              <span>Kinerja KPI</span>
-            </a>
-            <a class={`pub-mobile-link ${activeNav === "modul-marketing" ? "is-active" : ""}`} href="/modul-marketing">
-              <Icon name="folder" size={18} />
-              <span>Modul Marketing</span>
+            <a class={`pub-mobile-link ${activeNav === "profile" ? "is-active" : ""}`} href="/profile">
+              <Icon name="user" size={18} />
+              <span>Profil &amp; Capaian Target</span>
             </a>
             <a class={`pub-mobile-link ${activeNav === "alur-kerja" ? "is-active" : ""}`} href="/alur-kerja">
               <Icon name="file" size={18} />

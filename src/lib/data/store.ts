@@ -278,7 +278,7 @@ export function notificationsFor(v: Viewer) {
         tone: "info",
         title: `Target Kerja Baru Ditetapkan`,
         body: `HRD telah menetapkan target personal: ${ind?.name ?? t.indicatorId} sebanyak ${t.value} ${ind?.unit ?? ""}.`,
-        href: "/kinerja",
+        href: "/profile#kpi",
         at: (t as any).createdAt ?? `${db.periods.find((p) => p.id === t.periodId)?.start ?? "2026-11-01"}T07:00:00.000Z`,
       });
     });
