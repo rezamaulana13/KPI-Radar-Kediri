@@ -57,10 +57,9 @@ export const NAV: Record<Role, NavGroup[]> = {
       title: "Menu Karyawan",
       items: [
         { label: "Beranda", href: "/", icon: "home" },
-        { label: "Catat Aktivitas", href: "/catat-aktivitas", icon: "plus" },
+        { label: "Modul Marketing", href: "/modul-marketing", icon: "briefcase" },
         { label: "Riwayat Aktivitas", href: "/aktivitas-saya", icon: "clipboard" },
         { label: "Capaian Target", href: "/kinerja", icon: "chart" },
-        { label: "Modul Marketing", href: "/modul-marketing", icon: "briefcase" },
         { label: "Alur Kerja & SOP", href: "/alur-kerja", icon: "document" },
       ],
     },

@@ -2,18 +2,137 @@
 import DashboardLayout from "../../layouts/DashboardLayout.astro";
 import PublicLayout from "../../layouts/PublicLayout.astro";
 import ListPage from "../../components/ui/ListPage.astro";
+import Alert from "../../components/ui/Alert.astro";
 import { db, employeeName, client, visibleEmployeeIds } from "../../lib/data/store";
+import { takeFormState } from "../../lib/utils/flash";
+
 const u = Astro.locals.user!;
 const ids = visibleEmployeeIds(u);
-const rows = db.activities.filter((a) => a.type === "profiling" && ids.includes(a.ownerId)).sort((a, b) => b.date.localeCompare(a.date)).map((a) => ({ ...a, owner: employeeName(a.ownerId), clientName: client(a.clientId)?.name }));
+const rows = db.activities
+  .filter((a) => a.type === "profiling" && ids.includes(a.ownerId))
+  .sort((a, b) => b.date.localeCompare(a.date))
+  .map((a) => ({
+    ...a,
+    owner: employeeName(a.ownerId),
+    clientName: client(a.clientId)?.name || "—"
+  }));
+
+const created = Astro.url.searchParams.get("created");
+const st = takeFormState(Astro.cookies, Astro.url);
+const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Jakarta" });
+const clientList = db.clients.filter((c) => ids.includes(c.ownerId));
+const availableClients = clientList.length > 0 ? clientList : db.clients;
+
 const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
 ---
-<Layout title="Riset Profiling">
+
+<Layout title="Riset Profiling Mitra">
   <div class={u.role === "employee" ? "pub-page-container" : ""}>
-    <ListPage title="Riset Profiling Mitra" description="Hasil riset kebutuhan dan potensi promosi client." crumbs={[{ label: "Beranda", href: "/" }, { label: "Profiling" }]} rows={rows} searchKeys={["clientName", "description", "owner"]}
+    {created && (
+      <div style="margin-bottom: 1.25rem;">
+        <Alert tone="success" title="Riset Profiling Berhasil Dicatat">
+          Hasil riset profiling dengan ID <strong>{created}</strong> telah berhasil disimpan dan diteruskan ke antrean verifikasi HRD.
+        </Alert>
+      </div>
+    )}
+    {st.error && (
+      <div style="margin-bottom: 1.25rem;">
+        <Alert tone="danger" title="Gagal Menyimpan Riset">
+          {st.error}
+        </Alert>
+      </div>
+    )}
+
+    <ListPage
+      title="Riset Profiling Mitra"
+      description="Hasil riset mendalam kebutuhan, potensi anggaran promosi, dan pemetaan stakeholder klien."
+      crumbs={[{ label: "Beranda", href: "/" }, { label: "Profiling" }]}
+      rows={rows}
+      searchKeys={["clientName", "description", "owner"]}
       filters={[{ name: "potential", label: "Potensi", options: ["Tinggi", "Sedang", "Rendah"].map((s) => ({ value: s, label: s })) }]}
-      columns={[{ key: "date", label: "Tanggal", type: "date" }, { key: "clientName", label: "Client" }, { key: "owner", label: "Pemilik" }, { key: "potential", label: "Potensi" }, { key: "description", label: "Hasil riset" }, { key: "status", label: "Status", type: "badge" }]}>
-      {u.role !== "hrd" && <a slot="actions" class="btn btn-primary" href="/catat-aktivitas?type=profiling">Catat Riset</a>}
+      columns={[
+        { key: "date", label: "Tanggal Riset", type: "date" },
+        { key: "clientName", label: "Mitra / Klien" },
+        { key: "owner", label: "Riset Oleh" },
+        { key: "potential", label: "Potensi Nilai" },
+        { key: "description", label: "Hasil Analisis Riset" },
+        { key: "status", label: "Status", type: "badge" }
+      ]}
+    >
+      {u.role !== "hrd" && (
+        <button
+          slot="actions"
+          type="button"
+          class="btn btn-primary"
+          onclick="document.getElementById('modal-input-profiling')?.showModal()"
+        >
+          + Catat Riset Profiling
+        </button>
+      )}
     </ListPage>
+
+    <!-- Modal Pop-Up Dialog Input Profiling Baru -->
+    <dialog id="modal-input-profiling" class="activity-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <h3 class="modal-title">Catat Riset Profiling Klien</h3>
+            <p class="modal-subtitle">Indikator IND-06: Riset Profiling Mitra &amp; Analisis Kebutuhan Iklan</p>
+          </div>
+          <button type="button" class="modal-close" onclick="this.closest('dialog').close()">&times;</button>
+        </div>
+        <form method="post" action="/api/activities" class="modal-body">
+          <input type="hidden" name="type" value="profiling" />
+          <input type="hidden" name="ownerId" value={u.id} />
+          <input type="hidden" name="redirectTo" value="/marketing/profiling" />
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <div class="field">
+              <label class="form-label" for="prof-date">Tanggal Riset <span class="req">*</span></label>
+              <input type="date" id="prof-date" name="date" class="form-control" value={today} max={today} required />
+              <span class="form-hint">Tanggal observasi atau riset</span>
+            </div>
+            <div class="field">
+              <label class="form-label" for="prof-client">Pilih Mitra / Klien <span class="req">*</span></label>
+              <select id="prof-client" name="clientId" class="form-control" required>
+                <option value="">-- Pilih Klien Terdaftar --</option>
+                {availableClients.map((c) => (
+                  <option value={c.id}>{c.name} ({c.city})</option>
+                ))}
+              </select>
+              <span class="form-hint">Mitra yang diriset</span>
+            </div>
+          </div>
+
+          <div class="field" style="margin-bottom: 1rem;">
+            <label class="form-label" for="prof-pot">Tingkat Potensi Kerja Sama <span class="req">*</span></label>
+            <select id="prof-pot" name="potential" class="form-control" required>
+              <option value="Tinggi">Tinggi (Anggaran Besar / Momentum Dekat)</option>
+              <option value="Sedang" selected>Sedang (Anggaran Reguler)</option>
+              <option value="Rendah">Rendah (Eksplorasi Awal)</option>
+            </select>
+            <span class="form-hint">Klasifikasi peluang kesepakatan komersial</span>
+          </div>
+
+          <div class="field" style="margin-bottom: 1.25rem;">
+            <label class="form-label" for="prof-desc">Hasil Riset &amp; Rekomendasi Pendekatan <span class="req">*</span></label>
+            <textarea id="prof-desc" name="description" class="form-control" rows="3" placeholder="Rangkuman profil lembaga, pemegang keputusan anggaran, event terdekat yang bisa didanai, dan format pendekatan (minimal 10 karakter)..." required></textarea>
+            <span class="form-hint">Data ini diperlukan HRD untuk verifikasi ketercapaian riset</span>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="this.closest('dialog').close()">Batal</button>
+            <button type="submit" class="btn btn-primary">Simpan Riset Profiling</button>
+          </div>
+        </form>
+      </div>
+    </dialog>
   </div>
 </Layout>
+
+<script is:inline>
+  if (new URLSearchParams(window.location.search).get('action') === 'new') {
+    const dlg = document.getElementById('modal-input-profiling');
+    if (dlg && typeof dlg.showModal === 'function') dlg.showModal();
+  }
+</script>

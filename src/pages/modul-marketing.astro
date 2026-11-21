@@ -44,9 +44,9 @@ const profilingTotal = (db.activities ?? []).filter((a) => a.type === "profiling
         </p>
       </div>
       <div class="header-actions">
-        <a href="/catat-aktivitas" class="btn btn-primary">
-          <Icon name="plus" size={16} />
-          <span>Catat Aktivitas Baru</span>
+        <a href="/aktivitas-saya" class="btn btn-secondary">
+          <Icon name="clipboard" size={16} />
+          <span>Riwayat Aktivitas &rarr;</span>
         </a>
       </div>
     </div>
@@ -73,7 +73,7 @@ const profilingTotal = (db.activities ?? []).filter((a) => a.type === "profiling
           <a href="/marketing/oplah" class="btn btn-secondary btn-sm">
             <span>Buka Data Oplah &rarr;</span>
           </a>
-          <a href="/catat-aktivitas?type=oplah" class="btn btn-primary btn-sm">
+          <a href="/marketing/oplah?action=new" class="btn btn-primary btn-sm">
             <Icon name="plus" size={14} />
             <span>Input Oplah</span>
           </a>
@@ -100,7 +100,7 @@ const profilingTotal = (db.activities ?? []).filter((a) => a.type === "profiling
           <a href="/marketing/clients" class="btn btn-secondary btn-sm">
             <span>Database Klien &rarr;</span>
           </a>
-          <a href="/catat-aktivitas?type=client" class="btn btn-primary btn-sm">
+          <a href="/marketing/clients?action=new" class="btn btn-primary btn-sm">
             <Icon name="plus" size={14} />
             <span>Tambah Klien</span>
           </a>
@@ -127,7 +127,7 @@ const profilingTotal = (db.activities ?? []).filter((a) => a.type === "profiling
           <a href="/marketing/offers" class="btn btn-secondary btn-sm">
             <span>Daftar Proposal &rarr;</span>
           </a>
-          <a href="/catat-aktivitas?type=offer" class="btn btn-primary btn-sm">
+          <a href="/marketing/offers?action=new" class="btn btn-primary btn-sm">
             <Icon name="plus" size={14} />
             <span>Buat Penawaran</span>
           </a>
@@ -151,13 +151,13 @@ const profilingTotal = (db.activities ?? []).filter((a) => a.type === "profiling
           <span class="val">IND-04 (Deal Closing)</span>
         </div>
         <div class="card-btn-group">
-          <a href="/catat-aktivitas?type=progress" class="btn btn-secondary btn-sm" style="flex: 1; justify-content: center;">
-            <Icon name="plus" size={14} />
-            <span>Catat Progres Kunjungan</span>
+          <a href="/marketing/offers" class="btn btn-secondary btn-sm" style="flex: 1; justify-content: center;">
+            <Icon name="clipboard" size={14} />
+            <span>Daftar Proposal &amp; Progres</span>
           </a>
-          <a href="/catat-aktivitas?type=outcome" class="btn btn-primary btn-sm" style="flex: 1; justify-content: center;">
+          <a href="/marketing/offers" class="btn btn-primary btn-sm" style="flex: 1; justify-content: center;">
             <Icon name="check" size={14} />
-            <span>Closing Deal</span>
+            <span>Detail Penawaran &rarr;</span>
           </a>
         </div>
       </div>
@@ -182,7 +182,7 @@ const profilingTotal = (db.activities ?? []).filter((a) => a.type === "profiling
           <a href="/marketing/profiling" class="btn btn-secondary btn-sm">
             <span>Buka Data Riset &rarr;</span>
           </a>
-          <a href="/catat-aktivitas?type=profiling" class="btn btn-primary btn-sm">
+          <a href="/marketing/profiling?action=new" class="btn btn-primary btn-sm">
             <Icon name="plus" size={14} />
             <span>Input Profiling</span>
           </a>
@@ -209,7 +209,7 @@ const profilingTotal = (db.activities ?? []).filter((a) => a.type === "profiling
           <a href="/marketing/programs" class="btn btn-secondary btn-sm">
             <span>Daftar Program &rarr;</span>
           </a>
-          <a href="/catat-aktivitas?type=program" class="btn btn-primary btn-sm">
+          <a href="/marketing/programs?action=new" class="btn btn-primary btn-sm">
             <Icon name="plus" size={14} />
             <span>Usulkan Program</span>
           </a>

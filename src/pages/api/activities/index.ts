@@ -16,7 +16,7 @@ export const POST: APIRoute = async ({ request, locals, redirect, cookies }) => 
     cookies.set("rk_form", JSON.stringify({ error, fields, values: raw }), { path: "/", maxAge: 60, httpOnly: true, sameSite: "lax" });
     const failUrl = back.startsWith("/marketing/offers/")
       ? `${back}?retry=1`
-      : (back === "/catat-aktivitas" || back === "/" || back.startsWith("/#") ? "/catat-aktivitas?retry=1" : `${back}?retry=1`);
+      : (back === "/catat-aktivitas" || back === "/" || back.startsWith("/#") ? "/modul-marketing?retry=1" : `${back}?retry=1`);
     return redirect(failUrl);
   };
   const parsed = activitySchema.safeParse(raw);

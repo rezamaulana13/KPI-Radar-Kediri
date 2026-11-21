@@ -120,18 +120,15 @@ const count = (list: typeof mine, s: string) => list.filter((a) => a.status === 
           </p>
 
           <div class="landing-hero-btns">
-            <a class="btn btn-primary btn-hero" href="/catat-aktivitas">
-              <Icon name="plus" size={18} />
-              <span>Catat Kegiatan Baru</span>
+            <a class="btn btn-primary btn-hero" href="/modul-marketing">
+              <Icon name="briefcase" size={18} />
+              <span>Buka Modul Marketing</span>
             </a>
             <a class="btn btn-secondary btn-hero" href="/aktivitas-saya">
               <span>Riwayat Saya ({mine.length})</span>
             </a>
             <a class="btn btn-secondary btn-hero" href="/kinerja">
               <span>Capaian Target</span>
-            </a>
-            <a class="btn btn-secondary btn-hero" href="/modul-marketing">
-              <span>Data Marketing</span>
             </a>
           </div>
 
@@ -270,7 +267,7 @@ const count = (list: typeof mine, s: string) => list.filter((a) => a.status === 
               <p>Pencatatan sirkulasi distribusi koran harian dari agen, loper, dan pelanggan eceran di seluruh wilayah liputan.</p>
             </div>
             <div class="module-footer" style="display:flex;gap:0.5rem;">
-              <a href="/catat-aktivitas?type=oplah" class="btn btn-primary btn-sm" style="flex:1;justify-content:center;">
+              <a href="/marketing/oplah?action=new" class="btn btn-primary btn-sm" style="flex:1;justify-content:center;">
                 <Icon name="plus" size={14} /> <span>Input Oplah</span>
               </a>
               <a href="/marketing/oplah" class="btn btn-secondary btn-sm" title="Buka data oplah">
@@ -287,7 +284,7 @@ const count = (list: typeof mine, s: string) => list.filter((a) => a.status === 
               <p>Pendaftaran calon pemasang iklan dari dinas pemerintahan (OPD), perusahaan swasta, dan UMKM baru.</p>
             </div>
             <div class="module-footer" style="display:flex;gap:0.5rem;">
-              <a href="/catat-aktivitas?type=client" class="btn btn-primary btn-sm" style="flex:1;justify-content:center;">
+              <a href="/marketing/clients?action=new" class="btn btn-primary btn-sm" style="flex:1;justify-content:center;">
                 <Icon name="plus" size={14} /> <span>Tambah Klien</span>
               </a>
               <a href="/marketing/clients" class="btn btn-secondary btn-sm" title="Database klien">
@@ -304,7 +301,7 @@ const count = (list: typeof mine, s: string) => list.filter((a) => a.status === 
               <p>Pengajuan proposal tarif iklan cetak display, advertorial khusus, paket liputan, maupun sponsorship event.</p>
             </div>
             <div class="module-footer" style="display:flex;gap:0.5rem;">
-              <a href="/catat-aktivitas?type=offer" class="btn btn-primary btn-sm" style="flex:1;justify-content:center;">
+              <a href="/marketing/offers?action=new" class="btn btn-primary btn-sm" style="flex:1;justify-content:center;">
                 <Icon name="plus" size={14} /> <span>Buat Penawaran</span>
               </a>
               <a href="/marketing/offers" class="btn btn-secondary btn-sm" title="Daftar proposal penawaran">
@@ -321,11 +318,11 @@ const count = (list: typeof mine, s: string) => list.filter((a) => a.status === 
               <p>Dokumentasi aktivitas pertemuan prospek, presentasi penawaran, serta negosiasi lanjutan dengan mitra.</p>
             </div>
             <div class="module-footer" style="display:flex;gap:0.5rem;">
-              <a href="/catat-aktivitas?type=progress" class="btn btn-primary btn-sm" style="flex:1;justify-content:center;">
-                <Icon name="plus" size={14} /> <span>Catat Kunjungan</span>
+              <a href="/marketing/offers" class="btn btn-primary btn-sm" style="flex:1;justify-content:center;">
+                <Icon name="clipboard" size={14} /> <span>Daftar Prospek</span>
               </a>
-              <a href="/catat-aktivitas?type=outcome" class="btn btn-secondary btn-sm" title="Closing deal">
-                <span>Deal &rarr;</span>
+              <a href="/marketing/offers" class="btn btn-secondary btn-sm" title="Closing deal">
+                <span>Detail &rarr;</span>
               </a>
             </div>
           </div>
@@ -338,7 +335,7 @@ const count = (list: typeof mine, s: string) => list.filter((a) => a.status === 
               <p>Analisis profil potensi anggaran promosi klien, segmentasi pembaca, serta preferensi media mitra.</p>
             </div>
             <div class="module-footer" style="display:flex;gap:0.5rem;">
-              <a href="/catat-aktivitas?type=profiling" class="btn btn-primary btn-sm" style="flex:1;justify-content:center;">
+              <a href="/marketing/profiling?action=new" class="btn btn-primary btn-sm" style="flex:1;justify-content:center;">
                 <Icon name="plus" size={14} /> <span>Input Profiling</span>
               </a>
               <a href="/marketing/profiling" class="btn btn-secondary btn-sm" title="Data riset pasar">
@@ -355,7 +352,7 @@ const count = (list: typeof mine, s: string) => list.filter((a) => a.status === 
               <p>Pencatatan kegiatan kolaborasi promosi barter media partner, event festival, dan kerjasama sponsorship.</p>
             </div>
             <div class="module-footer" style="display:flex;gap:0.5rem;">
-              <a href="/catat-aktivitas?type=program" class="btn btn-primary btn-sm" style="flex:1;justify-content:center;">
+              <a href="/marketing/programs?action=new" class="btn btn-primary btn-sm" style="flex:1;justify-content:center;">
                 <Icon name="plus" size={14} /> <span>Buat Program</span>
               </a>
               <a href="/marketing/programs" class="btn btn-secondary btn-sm" title="Daftar program event">
@@ -457,8 +454,8 @@ const count = (list: typeof mine, s: string) => list.filter((a) => a.status === 
             Laporan kegiatan terbaru Anda pada periode <strong>{p.name}</strong>.
           </p>
           <div style="display: flex; justify-content: center; gap: 0.65rem; margin-top: 1.25rem; flex-wrap: wrap;">
-            <a href="/catat-aktivitas" class="btn btn-primary btn-sm">
-              <Icon name="plus" size={14} /> <span>Catat Aktivitas</span>
+            <a href="/modul-marketing" class="btn btn-primary btn-sm">
+              <Icon name="briefcase" size={14} /> <span>Buka Modul Marketing</span>
             </a>
             <a href="/aktivitas-saya" class="btn btn-secondary btn-sm">
               <span>Buka Semua Riwayat ({mine.length}) &rarr;</span>
@@ -476,8 +473,8 @@ const count = (list: typeof mine, s: string) => list.filter((a) => a.status === 
               <p class="muted text-sm" style="max-width: 42ch; margin: 0 auto 1.5rem;">
                 Gunakan Pusat Aksi Cepat di atas untuk mencatat kegiatan kerja harian Anda seperti Oplah, Klien Baru, atau Penawaran Iklan.
               </p>
-              <a href="/catat-aktivitas" class="btn btn-primary btn-sm">
-                <Icon name="plus" size={14} /> <span>Catat Aktivitas Pertama</span>
+              <a href="/modul-marketing" class="btn btn-primary btn-sm">
+                <Icon name="plus" size={14} /> <span>Pilih Modul Marketing</span>
               </a>
             </div>
           ) : (

@@ -2,18 +2,140 @@
 import DashboardLayout from "../../layouts/DashboardLayout.astro";
 import PublicLayout from "../../layouts/PublicLayout.astro";
 import ListPage from "../../components/ui/ListPage.astro";
+import Alert from "../../components/ui/Alert.astro";
 import { db, employeeName, visibleEmployeeIds } from "../../lib/data/store";
+import { takeFormState } from "../../lib/utils/flash";
+
 const u = Astro.locals.user!;
 const ids = visibleEmployeeIds(u);
 const rows = db.clients.filter((c) => ids.includes(c.ownerId)).map((c) => ({ ...c, owner: employeeName(c.ownerId), offers: db.offers.filter((o) => o.clientId === c.id).length }));
+
+const created = Astro.url.searchParams.get("created");
+const st = takeFormState(Astro.cookies, Astro.url);
+const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Jakarta" });
+
 const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
 ---
-<Layout title="Database Klien">
+
+<Layout title="Database Klien & Mitra">
   <div class={u.role === "employee" ? "pub-page-container" : ""}>
-    <ListPage title="Database Klien &amp; Mitra" description="Daftar client instansi pemerintah (OPD), swasta, dan calon client Marketing." crumbs={[{ label: "Beranda", href: "/" }, { label: "Klien" }]} rows={rows} searchKeys={["name", "sector", "contact", "city"]}
+    {created && (
+      <div style="margin-bottom: 1.25rem;">
+        <Alert tone="success" title="Klien Baru Berhasil Didaftarkan">
+          Data mitra/klien baru dengan ID <strong>{created}</strong> telah berhasil disimpan dan diteruskan ke antrean verifikasi HRD.
+        </Alert>
+      </div>
+    )}
+    {st.error && (
+      <div style="margin-bottom: 1.25rem;">
+        <Alert tone="danger" title="Gagal Menyimpan Data Klien">
+          {st.error}
+        </Alert>
+      </div>
+    )}
+
+    <ListPage
+      title="Database Klien &amp; Mitra"
+      description="Daftar client instansi pemerintah (OPD), swasta, dan calon client Marketing Jawa Pos Radar Kediri."
+      crumbs={[{ label: "Beranda", href: "/" }, { label: "Klien" }]}
+      rows={rows}
+      searchKeys={["name", "sector", "contact", "city"]}
       filters={[{ name: "sector", label: "Sektor", options: [...new Set(db.clients.map((c) => c.sector))].map((s) => ({ value: s, label: s })) }]}
-      columns={[{ key: "name", label: "Client" }, { key: "sector", label: "Sektor" }, { key: "contact", label: "Kontak" }, { key: "phone", label: "Telepon", type: "mono" }, { key: "city", label: "Kota" }, { key: "owner", label: "Pemegang" }, { key: "offers", label: "Penawaran", type: "number" }]}>
-      {u.role !== "hrd" && <a slot="actions" class="btn btn-primary" href="/catat-aktivitas?type=client">Tambah Klien</a>}
+      columns={[
+        { key: "name", label: "Client / Mitra" },
+        { key: "sector", label: "Sektor" },
+        { key: "contact", label: "Nama Kontak (PIC)" },
+        { key: "phone", label: "Telepon / WA", type: "mono" },
+        { key: "city", label: "Kota / Wilayah" },
+        { key: "owner", label: "Pemegang Akun" },
+        { key: "offers", label: "Proposal", type: "number" }
+      ]}
+    >
+      {u.role !== "hrd" && (
+        <button
+          slot="actions"
+          type="button"
+          class="btn btn-primary"
+          onclick="document.getElementById('modal-input-client')?.showModal()"
+        >
+          + Tambah Klien Baru
+        </button>
+      )}
     </ListPage>
+
+    <!-- Modal Pop-Up Dialog Input Klien Baru -->
+    <dialog id="modal-input-client" class="activity-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <h3 class="modal-title">Daftarkan Klien / Mitra Baru</h3>
+            <p class="modal-subtitle">Indikator IND-02: Penambahan Calon Mitra Kerja Sama &amp; Pemasang Iklan</p>
+          </div>
+          <button type="button" class="modal-close" onclick="this.closest('dialog').close()">&times;</button>
+        </div>
+        <form method="post" action="/api/activities" class="modal-body">
+          <input type="hidden" name="type" value="client" />
+          <input type="hidden" name="ownerId" value={u.id} />
+          <input type="hidden" name="redirectTo" value="/marketing/clients" />
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <div class="field">
+              <label class="form-label" for="client-date">Tanggal Pendaftaran <span class="req">*</span></label>
+              <input type="date" id="client-date" name="date" class="form-control" value={today} max={today} required />
+              <span class="form-hint">Tanggal inisiasi kontak klien</span>
+            </div>
+            <div class="field">
+              <label class="form-label" for="client-name">Nama Instansi / Klien <span class="req">*</span></label>
+              <input type="text" id="client-name" name="clientName" class="form-control" placeholder="Contoh: Dinas Kominfo Kab Kediri" required />
+              <span class="form-hint">Nama resmi perusahaan atau dinas</span>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <div class="field">
+              <label class="form-label" for="client-sector">Sektor Industri / Kategori <span class="req">*</span></label>
+              <input type="text" id="client-sector" name="sector" class="form-control" placeholder="Contoh: OPD Pemkab / Perbankan / Pendidikan" required />
+              <span class="form-hint">Kategori bidang usaha atau instansi</span>
+            </div>
+            <div class="field">
+              <label class="form-label" for="client-city">Kota / Wilayah Operasional <span class="req">*</span></label>
+              <input type="text" id="client-city" name="city" class="form-control" placeholder="Contoh: Kota Kediri / Pare / Nganjuk" required />
+              <span class="form-hint">Wilayah domisili klien</span>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <div class="field">
+              <label class="form-label" for="client-contact">Nama Kontak (PIC) <span class="req">*</span></label>
+              <input type="text" id="client-contact" name="contact" class="form-control" placeholder="Contoh: Bpk. Haryono (Kasubag Humas)" required />
+              <span class="form-hint">Penanggung jawab / pengambil keputusan</span>
+            </div>
+            <div class="field">
+              <label class="form-label" for="client-phone">Nomor Telepon / WhatsApp <span class="req">*</span></label>
+              <input type="text" id="client-phone" name="phone" class="form-control" placeholder="Contoh: 081234567890" required />
+              <span class="form-hint">Nomor aktif untuk follow-up</span>
+            </div>
+          </div>
+
+          <div class="field" style="margin-bottom: 1.25rem;">
+            <label class="form-label" for="client-desc">Catatan Profiling &amp; Potensi Kerja Sama <span class="req">*</span></label>
+            <textarea id="client-desc" name="description" class="form-control" rows="3" placeholder="Jelaskan kebutuhan publikasi, profil anggaran promosi, atau hasil kontak awal (minimal 10 karakter)..." required></textarea>
+            <span class="form-hint">Informasi ini membantu HRD memverifikasi validitas data mitra</span>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="this.closest('dialog').close()">Batal</button>
+            <button type="submit" class="btn btn-primary">Daftarkan Klien Baru</button>
+          </div>
+        </form>
+      </div>
+    </dialog>
   </div>
 </Layout>
+
+<script is:inline>
+  if (new URLSearchParams(window.location.search).get('action') === 'new') {
+    const dlg = document.getElementById('modal-input-client');
+    if (dlg && typeof dlg.showModal === 'function') dlg.showModal();
+  }
+</script>

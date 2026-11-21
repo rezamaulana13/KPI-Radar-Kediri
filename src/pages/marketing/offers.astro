@@ -3,8 +3,10 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
 import PublicLayout from "../../layouts/PublicLayout.astro";
 import ListPage from "../../components/ui/ListPage.astro";
 import StatCard from "../../components/dashboard/StatCard.astro";
+import Alert from "../../components/ui/Alert.astro";
 import { db, employeeName, client, offerOutcome, progressOf, visibleEmployeeIds } from "../../lib/data/store";
 import { rupiah, num } from "../../lib/formatters";
+import { takeFormState } from "../../lib/utils/flash";
 
 const u = Astro.locals.user!;
 const ids = visibleEmployeeIds(u);
@@ -34,11 +36,32 @@ const totalBarter = rows.reduce((s, r) => s + r.barterValue, 0);
 const totalCommercial = totalCash + totalBarter;
 const dealCount = rows.filter((r) => r.outcome === "deal").length;
 
+const created = Astro.url.searchParams.get("created");
+const st = takeFormState(Astro.cookies, Astro.url);
+const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Jakarta" });
+const clientList = db.clients.filter((c) => ids.includes(c.ownerId));
+const availableClients = clientList.length > 0 ? clientList : db.clients;
+
 const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
 ---
 
 <Layout title="Proposal & Kerja Sama Komersial">
   <div class={u.role === "employee" ? "pub-page-container" : ""}>
+    {created && (
+      <div style="margin-bottom: 1.25rem;">
+        <Alert tone="success" title="Proposal Berhasil Diajukan">
+          Proposal penawaran iklan dengan ID <strong>{created}</strong> telah berhasil disimpan dan sedang menunggu verifikasi HRD.
+        </Alert>
+      </div>
+    )}
+    {st.error && (
+      <div style="margin-bottom: 1.25rem;">
+        <Alert tone="danger" title="Gagal Menyimpan Proposal">
+          {st.error}
+        </Alert>
+      </div>
+    )}
+
     <ListPage
       title="Proposal &amp; Kerja Sama Komersial"
       description="Tata kelola penawaran iklan dan sponsorship dengan pemisahan tegas antara kas tunai dan nilai barter."
@@ -78,9 +101,14 @@ const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
       ]}
     >
       {u.role === "employee" && (
-        <a slot="actions" class="btn btn-primary" href="/catat-aktivitas?type=offer">
+        <button
+          slot="actions"
+          type="button"
+          class="btn btn-primary"
+          onclick="document.getElementById('modal-input-offer')?.showModal()"
+        >
           + Buat Proposal Baru
-        </a>
+        </button>
       )}
 
       <div slot="before" class="stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
@@ -90,5 +118,130 @@ const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
         <StatCard label="Proposal Deal Closing" value={num(dealCount)} tone="ok" note={`${rows.length} total penawaran`} />
       </div>
     </ListPage>
+
+    <!-- Modal Pop-Up Dialog Input Proposal Baru -->
+    <dialog id="modal-input-offer" class="activity-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <h3 class="modal-title">Buat Proposal Penawaran Iklan</h3>
+            <p class="modal-subtitle">Indikator IND-03: Penawaran Iklan, Display, Adv, &amp; Sponsorship</p>
+          </div>
+          <button type="button" class="modal-close" onclick="this.closest('dialog').close()">&times;</button>
+        </div>
+        <form method="post" action="/api/activities" class="modal-body">
+          <input type="hidden" name="type" value="offer" />
+          <input type="hidden" name="ownerId" value={u.id} />
+          <input type="hidden" name="redirectTo" value="/marketing/offers" />
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <div class="field">
+              <label class="form-label" for="offer-date">Tanggal Proposal <span class="req">*</span></label>
+              <input type="date" id="offer-date" name="date" class="form-control" value={today} max={today} required />
+              <span class="form-hint">Tanggal berkas proposal diserahkan</span>
+            </div>
+            <div class="field">
+              <label class="form-label" for="offer-client">Pilih Mitra / Klien <span class="req">*</span></label>
+              <select id="offer-client" name="clientId" class="form-control" required>
+                <option value="">-- Pilih Klien Terdaftar --</option>
+                {availableClients.map((c) => (
+                  <option value={c.id}>{c.name} ({c.city})</option>
+                ))}
+              </select>
+              <span class="form-hint">Klien penerima penawaran</span>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <div class="field">
+              <label class="form-label" for="offer-program">Nama Program / Paket Iklan <span class="req">*</span></label>
+              <input type="text" id="offer-program" name="programName" class="form-control" placeholder="Contoh: Paket Display HUT 1 Halaman Full Color" required />
+              <span class="form-hint">Paket atau edisi tayang</span>
+            </div>
+            <div class="field">
+              <label class="form-label" for="offer-partnership">Jenis Kerja Sama <span class="req">*</span></label>
+              <select id="offer-partnership" name="partnershipType" class="form-control" required>
+                <option value="tunai" selected>Tunai (Kas Uang Masuk)</option>
+                <option value="barter">Barter (Barang / Jasa)</option>
+                <option value="hybrid">Hybrid (Kombinasi Kas + Barter)</option>
+              </select>
+              <span class="form-hint">Bentuk kompensasi transaksi</span>
+            </div>
+          </div>
+
+          <!-- Nilai Transaksi -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <div class="field" id="wrap-cash">
+              <label class="form-label" for="offer-cash">Nilai Kas Tunai (Rp) <span class="req">*</span></label>
+              <input type="number" id="offer-cash" name="cashValue" class="form-control" min="0" placeholder="Contoh: 15000000" />
+              <span class="form-hint">Nominal transfer / kas masuk</span>
+            </div>
+            <div class="field" id="wrap-barter" style="display: none;">
+              <label class="form-label" for="offer-barter">Nilai Valuasi Barter (Rp)</label>
+              <input type="number" id="offer-barter" name="barterValue" class="form-control" min="0" placeholder="Contoh: 5000000" />
+              <span class="form-hint">Nilai ekuivalen barang/jasa</span>
+            </div>
+          </div>
+
+          <div class="field" id="wrap-barter-desc" style="display: none; margin-bottom: 1rem;">
+            <label class="form-label" for="offer-barter-desc">Rincian Komoditas / Jasa Barter <span class="req">*</span></label>
+            <textarea id="offer-barter-desc" name="barterDesc" class="form-control" rows="2" placeholder="Contoh: Voucher penginapan hotel 10 kamar x 2 malam untuk reward pembaca Radar Kediri..."></textarea>
+            <span class="form-hint">Spesifikasi barang/jasa barter yang disepakati</span>
+          </div>
+
+          <div class="field" style="margin-bottom: 1.25rem;">
+            <label class="form-label" for="offer-desc">Deskripsi Proposal / Catatan Negosiasi <span class="req">*</span></label>
+            <textarea id="offer-desc" name="description" class="form-control" rows="3" placeholder="Jelaskan isi proposal penawaran, paket halaman, dan poin-poin penting kesepakatan (minimal 10 karakter)..." required></textarea>
+            <span class="form-hint">Data ini diperlukan HRD untuk validasi pengajuan proposal</span>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="this.closest('dialog').close()">Batal</button>
+            <button type="submit" class="btn btn-primary">Simpan Proposal Baru</button>
+          </div>
+        </form>
+      </div>
+    </dialog>
   </div>
 </Layout>
+
+<script is:inline>
+  const pTypeSelect = document.getElementById('offer-partnership');
+  const wrapCash = document.getElementById('wrap-cash');
+  const wrapBarter = document.getElementById('wrap-barter');
+  const wrapBarterDesc = document.getElementById('wrap-barter-desc');
+  const cashInput = document.getElementById('offer-cash');
+  const barterInput = document.getElementById('offer-barter');
+
+  function updatePartnershipFields() {
+    if (!pTypeSelect) return;
+    const v = pTypeSelect.value;
+    if (v === 'tunai') {
+      if (wrapCash) wrapCash.style.display = 'block';
+      if (wrapBarter) wrapBarter.style.display = 'none';
+      if (wrapBarterDesc) wrapBarterDesc.style.display = 'none';
+      if (cashInput) cashInput.required = true;
+      if (barterInput) barterInput.required = false;
+    } else if (v === 'barter') {
+      if (wrapCash) wrapCash.style.display = 'none';
+      if (wrapBarter) wrapBarter.style.display = 'block';
+      if (wrapBarterDesc) wrapBarterDesc.style.display = 'block';
+      if (cashInput) cashInput.required = false;
+      if (barterInput) barterInput.required = true;
+    } else { // hybrid
+      if (wrapCash) wrapCash.style.display = 'block';
+      if (wrapBarter) wrapBarter.style.display = 'block';
+      if (wrapBarterDesc) wrapBarterDesc.style.display = 'block';
+      if (cashInput) cashInput.required = true;
+      if (barterInput) barterInput.required = true;
+    }
+  }
+
+  pTypeSelect?.addEventListener('change', updatePartnershipFields);
+  updatePartnershipFields();
+
+  if (new URLSearchParams(window.location.search).get('action') === 'new') {
+    const dlg = document.getElementById('modal-input-offer');
+    if (dlg && typeof dlg.showModal === 'function') dlg.showModal();
+  }
+</script>

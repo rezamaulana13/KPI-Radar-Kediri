@@ -2,18 +2,143 @@
 import DashboardLayout from "../../layouts/DashboardLayout.astro";
 import PublicLayout from "../../layouts/PublicLayout.astro";
 import ListPage from "../../components/ui/ListPage.astro";
+import Alert from "../../components/ui/Alert.astro";
 import { db, employeeName, client, visibleEmployeeIds } from "../../lib/data/store";
+import { takeFormState } from "../../lib/utils/flash";
+
 const u = Astro.locals.user!;
 const ids = visibleEmployeeIds(u);
-const rows = db.programs.filter((p) => ids.includes(p.ownerId)).map((p) => ({ ...p, owner: employeeName(p.ownerId), kindLabel: p.kind === "barter" ? "Barter" : "Program", participants: p.participantClientIds.map((c) => client(c)?.name).join(", ") || "—" }));
+const rows = db.programs.filter((p) => ids.includes(p.ownerId)).map((p) => ({
+  ...p,
+  owner: employeeName(p.ownerId),
+  kindLabel: p.kind === "barter" ? "Barter" : "Program Event",
+  participants: p.participantClientIds.map((c) => client(c)?.name).join(", ") || "—"
+}));
+
+const created = Astro.url.searchParams.get("created");
+const st = takeFormState(Astro.cookies, Astro.url);
+const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Jakarta" });
+
 const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
 ---
+
 <Layout title="Program & Barter Kerjasama">
   <div class={u.role === "employee" ? "pub-page-container" : ""}>
-    <ListPage title="Program &amp; Barter" description="Program kerja sama sponsorship dan barter publikasi dengan client." crumbs={[{ label: "Beranda", href: "/" }, { label: "Program" }]} rows={rows} searchKeys={["name", "participants"]}
-      filters={[{ name: "kind", label: "Jenis", options: [{ value: "program", label: "Program" }, { value: "barter", label: "Barter" }] }]}
-      columns={[{ key: "name", label: "Nama" }, { key: "kindLabel", label: "Jenis" }, { key: "start", label: "Mulai", type: "date" }, { key: "end", label: "Selesai", type: "date" }, { key: "participants", label: "Peserta" }, { key: "value", label: "Nilai", type: "rupiah" }, { key: "status", label: "Status", type: "badge" }]}>
-      {u.role !== "hrd" && <a slot="actions" class="btn btn-primary" href="/catat-aktivitas?type=program">Catat Program</a>}
+    {created && (
+      <div style="margin-bottom: 1.25rem;">
+        <Alert tone="success" title="Program Kemitraan Berhasil Dicatat">
+          Program kemitraan dengan ID <strong>{created}</strong> telah berhasil disimpan dan diteruskan ke antrean verifikasi HRD.
+        </Alert>
+      </div>
+    )}
+    {st.error && (
+      <div style="margin-bottom: 1.25rem;">
+        <Alert tone="danger" title="Gagal Menyimpan Program">
+          {st.error}
+        </Alert>
+      </div>
+    )}
+
+    <ListPage
+      title="Program &amp; Barter"
+      description="Program kerja sama sponsorship, event organizer, dan barter publikasi dengan klien/mitra."
+      crumbs={[{ label: "Beranda", href: "/" }, { label: "Program" }]}
+      rows={rows}
+      searchKeys={["name", "participants"]}
+      filters={[{ name: "kind", label: "Jenis", options: [{ value: "program", label: "Program Event" }, { value: "barter", label: "Barter Publikasi" }] }]}
+      columns={[
+        { key: "name", label: "Nama Program / Event" },
+        { key: "kindLabel", label: "Jenis" },
+        { key: "start", label: "Tanggal Mulai", type: "date" },
+        { key: "end", label: "Tanggal Selesai", type: "date" },
+        { key: "participants", label: "Mitra / Peserta" },
+        { key: "value", label: "Nilai (Rp)", type: "rupiah" },
+        { key: "status", label: "Status", type: "badge" }
+      ]}
+    >
+      {u.role !== "hrd" && (
+        <button
+          slot="actions"
+          type="button"
+          class="btn btn-primary"
+          onclick="document.getElementById('modal-input-program')?.showModal()"
+        >
+          + Catat Program Baru
+        </button>
+      )}
     </ListPage>
+
+    <!-- Modal Pop-Up Dialog Input Program Baru -->
+    <dialog id="modal-input-program" class="activity-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <h3 class="modal-title">Catat Program &amp; Kemitraan Baru</h3>
+            <p class="modal-subtitle">Indikator IND-07: Realisasi Program Event, Sponsorship &amp; Barter Promosi</p>
+          </div>
+          <button type="button" class="modal-close" onclick="this.closest('dialog').close()">&times;</button>
+        </div>
+        <form method="post" action="/api/activities" class="modal-body">
+          <input type="hidden" name="type" value="program" />
+          <input type="hidden" name="ownerId" value={u.id} />
+          <input type="hidden" name="redirectTo" value="/marketing/programs" />
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <div class="field">
+              <label class="form-label" for="prog-date">Tanggal Pencatatan <span class="req">*</span></label>
+              <input type="date" id="prog-date" name="date" class="form-control" value={today} max={today} required />
+              <span class="form-hint">Tanggal inisiasi program kerja</span>
+            </div>
+            <div class="field">
+              <label class="form-label" for="prog-kind">Jenis Program <span class="req">*</span></label>
+              <select id="prog-kind" name="kind" class="form-control" required>
+                <option value="program">Program Event / Kemitraan</option>
+                <option value="barter">Barter Publikasi Media</option>
+              </select>
+              <span class="form-hint">Format kerja sama</span>
+            </div>
+          </div>
+
+          <div class="field" style="margin-bottom: 1rem;">
+            <label class="form-label" for="prog-name">Nama Program / Kegiatan <span class="req">*</span></label>
+            <input type="text" id="prog-name" name="programName" class="form-control" placeholder="Contoh: Kediri School Contest XVI / Gebyar UMKM Pare" required />
+            <span class="form-hint">Judul resmi event atau agenda promosi</span>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <div class="field">
+              <label class="form-label" for="prog-start">Tanggal Mulai <span class="req">*</span></label>
+              <input type="date" id="prog-start" name="start" class="form-control" value={today} required />
+            </div>
+            <div class="field">
+              <label class="form-label" for="prog-end">Tanggal Selesai <span class="req">*</span></label>
+              <input type="date" id="prog-end" name="end" class="form-control" value={today} required />
+            </div>
+            <div class="field">
+              <label class="form-label" for="prog-val">Nilai Estimasi (Rp) <span class="req">*</span></label>
+              <input type="number" id="prog-val" name="value" class="form-control" min="0" placeholder="Contoh: 25000000" required />
+            </div>
+          </div>
+
+          <div class="field" style="margin-bottom: 1.25rem;">
+            <label class="form-label" for="prog-desc">Deskripsi Agenda &amp; Bentuk Kemitraan <span class="req">*</span></label>
+            <textarea id="prog-desc" name="description" class="form-control" rows="3" placeholder="Rincian sponsorship, mitra yang digandeng, dan cakupan promosi (minimal 10 karakter)..." required></textarea>
+            <span class="form-hint">Informasi untuk kelengkapan berkas verifikasi HRD</span>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="this.closest('dialog').close()">Batal</button>
+            <button type="submit" class="btn btn-primary">Simpan Program Baru</button>
+          </div>
+        </form>
+      </div>
+    </dialog>
   </div>
 </Layout>
+
+<script is:inline>
+  if (new URLSearchParams(window.location.search).get('action') === 'new') {
+    const dlg = document.getElementById('modal-input-program');
+    if (dlg && typeof dlg.showModal === 'function') dlg.showModal();
+  }
+</script>

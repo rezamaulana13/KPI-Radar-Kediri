@@ -3,9 +3,11 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
 import PublicLayout from "../../layouts/PublicLayout.astro";
 import ListPage from "../../components/ui/ListPage.astro";
 import StatCard from "../../components/dashboard/StatCard.astro";
+import Alert from "../../components/ui/Alert.astro";
 import { db, employeeName, visibleEmployeeIds } from "../../lib/data/store";
 import { num } from "../../lib/formatters";
 import { oplahSources } from "../../lib/data/mock";
+import { takeFormState } from "../../lib/utils/flash";
 
 const u = Astro.locals.user!;
 const ids = visibleEmployeeIds(u);
@@ -31,11 +33,30 @@ const approvedSold = all.filter((a) => a.status === "approved").reduce((t, a) =>
 const pendingCount = all.filter((a) => a.status === "pending").length;
 const returnRate = totalSent > 0 ? ((totalReturn / totalSent) * 100).toFixed(1) + "%" : "0%";
 
+const created = Astro.url.searchParams.get("created");
+const st = takeFormState(Astro.cookies, Astro.url);
+const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Jakarta" });
+
 const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
 ---
 
 <Layout title="Sirkulasi Oplah & Retur Koran">
   <div class={u.role === "employee" ? "pub-page-container" : ""}>
+    {created && (
+      <div style="margin-bottom: 1.25rem;">
+        <Alert tone="success" title="Pencatatan Oplah Berhasil Disimpan">
+          Laporan sirkulasi oplah dengan ID <strong>{created}</strong> telah berhasil diajukan dan sedang menunggu verifikasi HRD.
+        </Alert>
+      </div>
+    )}
+    {st.error && (
+      <div style="margin-bottom: 1.25rem;">
+        <Alert tone="danger" title="Gagal Menyimpan Oplah">
+          {st.error}
+        </Alert>
+      </div>
+    )}
+
     <ListPage
       title="Sirkulasi Oplah & Retur Koran"
       description="Monitoring siklus distribusi oplah harian, pencatatan koran retur, dan rekonsiliasi eksemplar terjual riil."
@@ -58,9 +79,14 @@ const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
       ]}
     >
       {u.role === "employee" && (
-        <a slot="actions" class="btn btn-primary" href="/catat-aktivitas?type=oplah">
+        <button
+          slot="actions"
+          type="button"
+          class="btn btn-primary"
+          onclick="document.getElementById('modal-input-oplah')?.showModal()"
+        >
           + Catat Sirkulasi / Retur
-        </a>
+        </button>
       )}
 
       <div slot="before" class="stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
@@ -70,5 +96,113 @@ const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
         <StatCard label="Menunggu Verifikasi" value={num(pendingCount)} tone={pendingCount > 0 ? "warn" : "ok"} note="Perlu validasi admin" />
       </div>
     </ListPage>
+
+    <!-- Modal Pop-Up Dialog Input Oplah -->
+    <dialog id="modal-input-oplah" class="activity-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <h3 class="modal-title">Catat Sirkulasi &amp; Retur Koran</h3>
+            <p class="modal-subtitle">Indikator IND-01: Eksemplar Bersih Terjual (Dikirim &minus; Retur)</p>
+          </div>
+          <button type="button" class="modal-close" onclick="this.closest('dialog').close()">&times;</button>
+        </div>
+        <form method="post" action="/api/activities" class="modal-body">
+          <input type="hidden" name="type" value="oplah" />
+          <input type="hidden" name="ownerId" value={u.id} />
+          <input type="hidden" name="redirectTo" value="/marketing/oplah" />
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <div class="field">
+              <label class="form-label" for="oplah-date">Tanggal Distribusi <span class="req">*</span></label>
+              <input type="date" id="oplah-date" name="date" class="form-control" value={today} max={today} required />
+              <span class="form-hint">Tanggal distribusi koran pagi</span>
+            </div>
+            <div class="field">
+              <label class="form-label" for="oplah-edition">Edisi Koran</label>
+              <input type="text" id="oplah-edition" name="editionName" class="form-control" placeholder="Contoh: Edisi Harian Radar Kediri" />
+              <span class="form-hint">Nomor / nama edisi koran terbit</span>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <div class="field">
+              <label class="form-label" for="oplah-source">Kanal Distribusi <span class="req">*</span></label>
+              <select id="oplah-source" name="source" class="form-control" required>
+                <option value="">-- Pilih Kanal Distribusi --</option>
+                {oplahSources.map((s) => <option value={s}>{s}</option>)}
+              </select>
+              <span class="form-hint">Jalur peredaran / agen</span>
+            </div>
+            <div class="field">
+              <label class="form-label" for="oplah-sourceName">Nama Agen / Mitra Penerima <span class="req">*</span></label>
+              <input type="text" id="oplah-sourceName" name="sourceName" class="form-control" placeholder="Contoh: Agen Sumber Rejeki Kediri" required />
+              <span class="form-hint">Entitas penerima distribusi</span>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <div class="field">
+              <label class="form-label" for="oplah-qty">Eksemplar Dikirim <span class="req">*</span></label>
+              <input type="number" id="oplah-qty" name="qty" class="form-control" min="1" step="1" placeholder="150" required />
+              <span class="form-hint">Total yang dikirim</span>
+            </div>
+            <div class="field">
+              <label class="form-label" for="oplah-returnQty">Eksemplar Retur</label>
+              <input type="number" id="oplah-returnQty" name="returnQty" class="form-control" min="0" step="1" value="0" />
+              <span class="form-hint">Retur koran tidak laku</span>
+            </div>
+            <div class="field">
+              <label class="form-label" for="oplah-returnCond">Kondisi Retur</label>
+              <select id="oplah-returnCond" name="returnCondition" class="form-control">
+                <option value="layak_stok">Layak Stok</option>
+                <option value="rusak">Rusak / Afkir</option>
+              </select>
+              <span class="form-hint">Kelayakan simpan koran</span>
+            </div>
+          </div>
+
+          <!-- Live Rekonsiliasi Card -->
+          <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+            <div>
+              <span style="font-size: 0.75rem; font-weight: 700; color: #166534; text-transform: uppercase;">Estimasi Laku Terjual:</span>
+              <div style="font-size: 1.15rem; font-weight: 700; color: #14532d;" id="oplah-calc-display">0 eksemplar</div>
+            </div>
+            <div style="font-size: 0.8125rem; color: #15803d; font-weight: 600;">Oplah laku masuk perhitungan target KPI</div>
+          </div>
+
+          <div class="field" style="margin-bottom: 1.25rem;">
+            <label class="form-label" for="oplah-desc">Deskripsi Laporan Lapangan <span class="req">*</span></label>
+            <textarea id="oplah-desc" name="description" class="form-control" rows="3" placeholder="Rincian proses pengiriman, titik temu agen, dan kendala lapangan (minimal 10 karakter)..." required></textarea>
+            <span class="form-hint">Jelaskan kegiatan distribusi lapangan secara ringkas dan faktual</span>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="this.closest('dialog').close()">Batal</button>
+            <button type="submit" class="btn btn-primary">Simpan &amp; Ajukan ke HRD</button>
+          </div>
+        </form>
+      </div>
+    </dialog>
   </div>
 </Layout>
+
+<script is:inline>
+  const qInput = document.getElementById('oplah-qty');
+  const rInput = document.getElementById('oplah-returnQty');
+  const calcDisplay = document.getElementById('oplah-calc-display');
+  function recalcOplah() {
+    if (!qInput || !rInput || !calcDisplay) return;
+    const q = Math.max(0, parseInt(qInput.value, 10) || 0);
+    const r = Math.max(0, parseInt(rInput.value, 10) || 0);
+    const sold = Math.max(0, q - r);
+    calcDisplay.textContent = `${sold.toLocaleString('id-ID')} eksemplar`;
+  }
+  qInput?.addEventListener('input', recalcOplah);
+  rInput?.addEventListener('input', recalcOplah);
+
+  if (new URLSearchParams(window.location.search).get('action') === 'new') {
+    const dlg = document.getElementById('modal-input-oplah');
+    if (dlg && typeof dlg.showModal === 'function') dlg.showModal();
+  }
+</script>

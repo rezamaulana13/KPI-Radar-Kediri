@@ -7,7 +7,7 @@ import { employee, divisionName, positions, notificationsFor } from "../lib/data
 
 interface Props {
   title: string;
-  activeNav?: "beranda" | "catat-aktivitas" | "aktivitas-saya" | "kinerja" | "modul-marketing" | "alur-kerja" | "fitur" | "layanan-modul" | "tentang" | "bantuan";
+  activeNav?: "beranda" | "aktivitas-saya" | "kinerja" | "modul-marketing" | "alur-kerja" | "fitur" | "layanan-modul" | "tentang" | "bantuan";
   description?: string;
 }
 
@@ -605,10 +605,9 @@ if (user) {
           {user?.role === "employee" ? (
             <>
               <a class={`pub-menu-link ${activeNav === "beranda" ? "is-active" : ""}`} href="/">Beranda</a>
-              <a class={`pub-menu-link ${activeNav === "catat-aktivitas" ? "is-active" : ""}`} href="/catat-aktivitas">Catat Aktivitas</a>
+              <a class={`pub-menu-link ${activeNav === "modul-marketing" ? "is-active" : ""}`} href="/modul-marketing">Modul Marketing</a>
               <a class={`pub-menu-link ${activeNav === "aktivitas-saya" ? "is-active" : ""}`} href="/aktivitas-saya">Aktivitas Saya</a>
               <a class={`pub-menu-link ${activeNav === "kinerja" ? "is-active" : ""}`} href="/kinerja">Capaian Target</a>
-              <a class={`pub-menu-link ${activeNav === "modul-marketing" ? "is-active" : ""}`} href="/modul-marketing">Modul Marketing</a>
               <a class={`pub-menu-link ${activeNav === "alur-kerja" ? "is-active" : ""}`} href="/alur-kerja">Alur Kerja &amp; SOP</a>
             </>
           ) : (
@@ -679,9 +678,9 @@ if (user) {
                   <div class="dropdown-links">
                     {user.role === "employee" ? (
                       <>
-                        <a href="/catat-aktivitas" class="dropdown-item" role="menuitem">
-                          <span class="dropdown-item-icon"><Icon name="plus" size={17} /></span>
-                          <span>Catat Aktivitas Baru</span>
+                        <a href="/modul-marketing" class="dropdown-item" role="menuitem">
+                          <span class="dropdown-item-icon"><Icon name="folder" size={17} /></span>
+                          <span>Modul Marketing</span>
                         </a>
                         <a href="/aktivitas-saya" class="dropdown-item" role="menuitem">
                           <span class="dropdown-item-icon"><Icon name="clipboard" size={17} /></span>
@@ -832,9 +831,9 @@ if (user) {
               <Icon name="home" size={18} />
               <span>Beranda</span>
             </a>
-            <a class={`pub-mobile-link ${activeNav === "catat-aktivitas" ? "is-active" : ""}`} href="/catat-aktivitas">
-              <Icon name="plus" size={18} />
-              <span>Catat Aktivitas</span>
+            <a class={`pub-mobile-link ${activeNav === "modul-marketing" ? "is-active" : ""}`} href="/modul-marketing">
+              <Icon name="folder" size={18} />
+              <span>Modul Marketing</span>
             </a>
             <a class={`pub-mobile-link ${activeNav === "aktivitas-saya" ? "is-active" : ""}`} href="/aktivitas-saya">
               <Icon name="clipboard" size={18} />
