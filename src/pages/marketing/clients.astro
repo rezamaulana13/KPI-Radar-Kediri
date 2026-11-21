@@ -69,10 +69,13 @@ const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
       <div class="modal-content">
         <div class="modal-header">
           <div>
+            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem;">
+              <span style="font-size:0.7rem;font-weight:700;background:#eff6ff;color:#1d4ed8;padding:0.2rem 0.55rem;border-radius:999px;border:1px solid #bfdbfe;letter-spacing:0.04em;">IND-02 DATABASE MITRA</span>
+            </div>
             <h3 class="modal-title">Daftarkan Klien / Mitra Baru</h3>
             <p class="modal-subtitle">Indikator IND-02: Penambahan Calon Mitra Kerja Sama &amp; Pemasang Iklan</p>
           </div>
-          <button type="button" class="modal-close" onclick="this.closest('dialog').close()">&times;</button>
+          <button type="button" class="modal-close" onclick="this.closest('dialog').close()" title="Tutup Pop-up">&times;</button>
         </div>
         <form method="post" action="/api/activities" style="display: flex; flex-direction: column; flex: 1; overflow: hidden; margin: 0;">
           <input type="hidden" name="type" value="client" />

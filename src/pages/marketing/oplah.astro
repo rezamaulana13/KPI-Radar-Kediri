@@ -103,10 +103,13 @@ const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
       <div class="modal-content">
         <div class="modal-header">
           <div>
+            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem;">
+              <span style="font-size:0.7rem;font-weight:700;background:#eff6ff;color:#1d4ed8;padding:0.2rem 0.55rem;border-radius:999px;border:1px solid #bfdbfe;letter-spacing:0.04em;">IND-01 SIRKULASI</span>
+            </div>
             <h3 class="modal-title">Catat Sirkulasi &amp; Retur Koran</h3>
-            <p class="modal-subtitle">Indikator IND-01: Eksemplar Bersih Terjual (Dikirim &minus; Retur)</p>
+            <p class="modal-subtitle">Indikator IND-01: Eksemplar Bersih Terjual (Koran Terkirim &minus; Retur)</p>
           </div>
-          <button type="button" class="modal-close" onclick="this.closest('dialog').close()">&times;</button>
+          <button type="button" class="modal-close" onclick="this.closest('dialog').close()" title="Tutup Pop-up">&times;</button>
         </div>
         <form method="post" action="/api/activities" style="display: flex; flex-direction: column; flex: 1; overflow: hidden; margin: 0;">
           <input type="hidden" name="type" value="oplah" />
@@ -114,7 +117,7 @@ const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
           <input type="hidden" name="redirectTo" value="/marketing/oplah" />
 
           <div class="modal-body">
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.15rem; margin-bottom: 1.15rem;">
               <div class="field">
                 <label class="form-label" for="oplah-date">Tanggal Distribusi <span class="req">*</span></label>
                 <input type="date" id="oplah-date" name="date" class="form-control" value={today} max={today} required />
@@ -127,7 +130,7 @@ const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
               </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.15rem; margin-bottom: 1.15rem;">
               <div class="field">
                 <label class="form-label" for="oplah-source">Kanal Distribusi <span class="req">*</span></label>
                 <select id="oplah-source" name="source" class="form-control" required>
@@ -143,11 +146,11 @@ const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
               </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1.15rem; margin-bottom: 1.15rem;">
               <div class="field">
                 <label class="form-label" for="oplah-qty">Eksemplar Dikirim <span class="req">*</span></label>
                 <input type="number" id="oplah-qty" name="qty" class="form-control" min="1" step="1" placeholder="150" required />
-                <span class="form-hint">Total yang dikirim</span>
+                <span class="form-hint">Total eksemplar yang dikirim</span>
               </div>
               <div class="field">
                 <label class="form-label" for="oplah-returnQty">Eksemplar Retur</label>
@@ -164,13 +167,18 @@ const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
               </div>
             </div>
 
-            <!-- Live Rekonsiliasi Card -->
-            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+            <!-- Live Rekonsiliasi Card (Luxury Upgrade) -->
+            <div style="background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); border: 1.5px solid #a7f3d0; border-radius: 12px; padding: 0.95rem 1.25rem; margin-bottom: 1.15rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.08);">
               <div>
-                <span style="font-size: 0.75rem; font-weight: 700; color: #166534; text-transform: uppercase;">Estimasi Laku Terjual:</span>
-                <div style="font-size: 1.15rem; font-weight: 700; color: #14532d;" id="oplah-calc-display">0 eksemplar</div>
+                <span style="font-size: 0.725rem; font-weight: 700; color: #166534; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 0.2rem;">Estimasi Bersih Laku Terjual:</span>
+                <div style="font-size: 1.45rem; font-weight: 800; color: #14532d; line-height: 1.1;" id="oplah-calc-display">0 eksemplar</div>
               </div>
-              <div style="font-size: 0.8125rem; color: #15803d; font-weight: 600;">Oplah laku masuk perhitungan target KPI</div>
+              <div style="display: flex; align-items: center; gap: 0.4rem; background: #ffffff; padding: 0.35rem 0.75rem; border-radius: 999px; border: 1px solid #bbf7d0; font-size: 0.75rem; color: #15803d; font-weight: 700;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span>Masuk Perhitungan Target KPI</span>
+              </div>
             </div>
 
             <div class="field" style="margin-bottom: 1rem;">
