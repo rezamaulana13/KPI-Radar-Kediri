@@ -4,6 +4,7 @@ import Sidebar from "../components/layout/Sidebar.astro";
 import Topbar from "../components/layout/Topbar.astro";
 import MobileBottomNav from "../components/layout/MobileBottomNav.astro";
 const { title } = Astro.props as { title: string };
+const user = Astro.locals.user;
 ---
 <!doctype html>
 <html lang="id">
@@ -27,6 +28,6 @@ const { title } = Astro.props as { title: string };
       document.querySelectorAll("[data-confirm-open]").forEach((b) => b.addEventListener("click", (e) => { e.preventDefault(); document.getElementById(b.dataset.confirmOpen)?.showModal(); }));
       document.querySelector(".nav-open")?.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); const t = document.getElementById("nav-toggle"); t.checked = !t.checked; } });
     </script>
-    <MobileBottomNav />
+    <MobileBottomNav role={user?.role} />
   </body>
 </html>
