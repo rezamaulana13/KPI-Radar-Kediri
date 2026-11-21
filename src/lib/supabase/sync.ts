@@ -284,15 +284,17 @@ export async function hydrateFromSupabase(): Promise<void> {
         supabase.from("activity_verifications").select("*"),
       ]);
 
-      // a. Sinkronisasi Periode
+      // a. Sinkronisasi Periode (Hanya periode bulanan resmi, tanpa triwulan)
       if (dbPeriods && dbPeriods.length > 0) {
-        db.periods = dbPeriods.map((p: any) => ({
-          id: p.id,
-          name: p.name,
-          start: p.start_date,
-          end: p.end_date,
-          status: p.status,
-        }));
+        db.periods = dbPeriods
+          .filter((p: any) => !p.name?.toLowerCase().includes("triwulan") && !p.id?.includes("-Q"))
+          .map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            start: p.start_date,
+            end: p.end_date,
+            status: p.status,
+          }));
       }
 
       // b. Sinkronisasi Karyawan / Users

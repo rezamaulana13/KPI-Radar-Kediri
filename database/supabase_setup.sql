@@ -462,7 +462,7 @@ on conflict (id) do nothing;
 
 -- Periode Awal
 insert into public.assessment_periods (id, name, start_date, end_date, status) values
-  ('PRD-2026-Q4', 'Triwulan IV 2026', '2026-10-01', '2026-12-31', 'active')
+  ('PRD-2026-11', 'November 2026', '2026-11-01', '2026-11-30', 'active')
 on conflict (id) do nothing;
 
 -- Kategori KPI

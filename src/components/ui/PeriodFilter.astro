@@ -4,8 +4,9 @@ import { selectedPeriod } from "../../lib/utils/period";
 const cur = selectedPeriod(Astro.url);
 const keep = [...Astro.url.searchParams.entries()].filter(([k]) => k !== "period" && k !== "page");
 
-// Urutkan periode secara kronologis descending (terbaru di paling atas, mundur ke bawah)
-const sortedPeriods = [...db.periods].sort((a, b) => b.start.localeCompare(a.start));
+// Urutkan periode bulanan resmi secara kronologis descending (tanpa triwulan)
+const monthlyPeriods = db.periods.filter((p) => !p.name?.toLowerCase().includes("triwulan") && !p.id?.includes("-Q"));
+const sortedPeriods = [...monthlyPeriods].sort((a, b) => b.start.localeCompare(a.start));
 ---
 <form method="get" class="period-filter-form">
   {keep.map(([k, v]) => <input type="hidden" name={k} value={v} />)}
@@ -13,7 +14,7 @@ const sortedPeriods = [...db.periods].sort((a, b) => b.start.localeCompare(a.sta
   <select id="period-select" name="period" class="select period-select" onchange="this.form.submit()">
     {sortedPeriods.map((p) => (
       <option value={p.id} selected={p.id === cur.id}>
-        {p.name} {p.status === "active" ? "(Bulan Ini / Aktif)" : ""}
+        {p.name} {p.id === cur.id ? "(Bulan Ini / Aktif)" : ""}
       </option>
     ))}
   </select>

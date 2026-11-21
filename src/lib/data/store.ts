@@ -35,8 +35,31 @@ export const client = (id?: string | null) => db.clients.find((c) => c.id === id
 export const offer = (id?: string | null) => db.offers.find((o) => o.id === id);
 export const indicator = (id: string) => indicators.find((i) => i.id === id);
 export const period = (id?: string | null) => db.periods.find((p) => p.id === id);
-export const activePeriod = () => db.periods.find((p) => p.status === "active") ?? db.periods[0];
-export const periodForDate = (d: string) => db.periods.find((p) => d >= p.start && d <= p.end);
+export const activePeriod = () => {
+  const monthlyList = db.periods.filter((p) => !p.name?.toLowerCase().includes("triwulan") && !p.id?.includes("-Q"));
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+  const monthStr = month < 10 ? `0${month}` : `${month}`;
+  const dayStr = now.getDate() < 10 ? `0${now.getDate()}` : `${now.getDate()}`;
+  const todayStr = `${year}-${monthStr}-${dayStr}`;
+  const periodIdMatch = `PRD-${year}-${monthStr}`;
+
+  // 1. Cek kecocokan tanggal hari ini dengan rentang tanggal periode bulanan
+  const realTimeMatch = monthlyList.find((p) => todayStr >= p.start && todayStr <= p.end);
+  if (realTimeMatch) return realTimeMatch;
+
+  // 2. Cek kecocokan ID bulan berjalan (misal PRD-2026-11)
+  const idMatch = monthlyList.find((p) => p.id === periodIdMatch);
+  if (idMatch) return idMatch;
+
+  // 3. Cek periode bulanan berstatus "active"
+  const activeStatus = monthlyList.find((p) => p.status === "active");
+  if (activeStatus) return activeStatus;
+
+  return monthlyList[0] ?? db.periods[0];
+};
+export const periodForDate = (d: string) => db.periods.find((p) => d >= p.start && d <= p.end && !p.name?.toLowerCase().includes("triwulan"));
 
 export type Viewer = { id: string; role: T.Role };
 /** Cakupan data: Pengguna = diri sendiri, Admin/HRD = semua. */
