@@ -1,9 +1,9 @@
 import { defineConfig } from "astro/config";
-import node from "@astrojs/node";
+import vercel from "@astrojs/vercel";
 
-// Adapter Node standalone. Ganti sesuai hosting yang disetujui perusahaan.
+// Adapter Vercel Serverless untuk deployment ke Vercel
 export default defineConfig({
   output: "server",
-  adapter: node({ mode: "standalone" }),
+  adapter: vercel(),
   security: { checkOrigin: true },
 });
