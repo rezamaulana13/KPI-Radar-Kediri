@@ -132,9 +132,9 @@ const formatVal = (val: number | null | undefined, unit: string) => {
         </div>
         <div class="profile-hero-content">
           <div class="profile-tags-row">
-            <span class="status-pill status-pill-active">🟢 Akun Aktif</span>
+            <span class="status-pill status-pill-active">Akun Aktif</span>
             <span class="badge badge-neutral">{ROLE_LABEL[u.role]}</span>
-            <span class="badge badge-primary">📅 {p.name}</span>
+            <span class="badge badge-primary">{p.name}</span>
           </div>
           <h1 class="profile-name-title">{e.name}</h1>
           <p class="profile-sub-text">
@@ -193,7 +193,9 @@ const formatVal = (val: number | null | undefined, unit: string) => {
           <div class="kpi-metric-card tone-kas">
             <div class="metric-head">
               <span class="metric-label">Omzet Kas Tunai</span>
-              <span class="metric-icon">💰</span>
+              <span class="metric-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              </span>
             </div>
             <div class="metric-value">{rupiah(userCash)}</div>
             <div class="metric-note">Penerimaan kas riil deal iklan</div>
@@ -202,7 +204,9 @@ const formatVal = (val: number | null | undefined, unit: string) => {
           <div class="kpi-metric-card tone-barter">
             <div class="metric-head">
               <span class="metric-label">Realisasi Barter</span>
-              <span class="metric-icon">🤝</span>
+              <span class="metric-icon">
+                <Icon name="handshake" size={15} />
+              </span>
             </div>
             <div class="metric-value">{rupiah(userBarter)}</div>
             <div class="metric-note">Barang/jasa promosi non-tunai</div>
@@ -211,7 +215,9 @@ const formatVal = (val: number | null | undefined, unit: string) => {
           <div class="kpi-metric-card tone-oplah">
             <div class="metric-head">
               <span class="metric-label">Oplah Bersih Terjual</span>
-              <span class="metric-icon">📰</span>
+              <span class="metric-icon">
+                <Icon name="news" size={15} />
+              </span>
             </div>
             <div class="metric-value">{num(userSoldOplah)} <small style="font-size:0.8rem;font-weight:600;">Eks</small></div>
             <div class="metric-note">Sirkulasi terverifikasi bersih</div>
@@ -220,7 +226,9 @@ const formatVal = (val: number | null | undefined, unit: string) => {
           <div class="kpi-metric-card tone-retur">
             <div class="metric-head">
               <span class="metric-label">Rasio Retur Koran</span>
-              <span class="metric-icon">🔄</span>
+              <span class="metric-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+              </span>
             </div>
             <div class="metric-value">{userReturnRate}%</div>
             <div class="metric-note">{num(userReturnOplah)} retur / {num(userSentOplah)} kirim</div>
@@ -467,7 +475,7 @@ const formatVal = (val: number | null | undefined, unit: string) => {
         <section class="card locked-profile-card">
           <div class="card-head" style="display:flex; justify-content:space-between; align-items:center;">
             <h3 style="font-size:1.05rem; margin:0; font-weight:700;">Data Penempatan Resmi</h3>
-            <span class="badge badge-locked" style="font-size:0.75rem;">🔒 Terkunci HRD</span>
+            <span class="badge badge-locked" style="font-size:0.75rem;">Terkunci HRD</span>
           </div>
           <div class="card-body">
             <p class="text-xs muted mb-3" style="line-height:1.45;">

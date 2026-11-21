@@ -169,7 +169,7 @@ const driveWrapId = `drive-wrap-${id}`;
       if (proofUrlInput) proofUrlInput.value = val;
       if (statusBox) statusBox.style.display = 'block';
       if (statusTitle) {
-        statusTitle.textContent = '✅ Tautan Cloud Berhasil Diterapkan';
+        statusTitle.textContent = 'Tautan Cloud Berhasil Diterapkan';
         statusTitle.style.color = '#166534';
       }
       if (statusDesc) {
@@ -219,8 +219,8 @@ const driveWrapId = `drive-wrap-${id}`;
           if (proofUrlInput) proofUrlInput.value = data.url;
           if (statusTitle) {
             statusTitle.textContent = isFolder 
-              ? `✅ Folder Berhasil Diunggah (${data.count} berkas)`
-              : `✅ ${data.count} Berkas Berhasil Diunggah`;
+              ? `Folder Berhasil Diunggah (${data.count} berkas)`
+              : `${data.count} Berkas Berhasil Diunggah`;
             statusTitle.style.color = '#166534';
           }
           if (statusDesc) {
@@ -230,7 +230,7 @@ const driveWrapId = `drive-wrap-${id}`;
           // Fallback lokal jika ada gangguan jaringan
           if (proofUrlInput) proofUrlInput.value = `file://${files[0].name}`;
           if (statusTitle) {
-            statusTitle.textContent = `✅ ${fileCount} Berkas Terpilih`;
+            statusTitle.textContent = `${fileCount} Berkas Terpilih`;
             statusTitle.style.color = '#166534';
           }
           if (statusDesc) {
@@ -241,7 +241,7 @@ const driveWrapId = `drive-wrap-${id}`;
         // Fallback offline
         if (proofUrlInput) proofUrlInput.value = `file://${files[0].name}`;
         if (statusTitle) {
-          statusTitle.textContent = `✅ ${fileCount} Berkas Terpilih (Mode Cepat)`;
+          statusTitle.textContent = `${fileCount} Berkas Terpilih (Mode Cepat)`;
           statusTitle.style.color = '#166534';
         }
         if (statusDesc) {

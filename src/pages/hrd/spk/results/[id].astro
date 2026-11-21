@@ -2,6 +2,7 @@
 import DashboardLayout from "../../../../layouts/DashboardLayout.astro";
 import PageHeader from "../../../../components/layout/PageHeader.astro";
 import Alert from "../../../../components/ui/Alert.astro";
+import Icon from "../../../../components/ui/Icon.astro";
 import { getSnapshot } from "../../../../features/spk/snapshots";
 import { computeSaw } from "../../../../features/spk/saw";
 import { altName } from "../../../../features/spk/build-input";
@@ -26,10 +27,12 @@ const predicateOf = (score: number) => {
   <PageHeader title={`Hasil ${s.id}`} description={`${period(s.periodId)?.name} · disimpan ${dateTimeID(s.createdAt)} oleh ${employeeName(s.createdBy)}`} crumbs={[{ label: "HRD" }, { label: "SPK" }, { label: "Peringkat", href: "/hrd/spk/rankings" }]}>
     <Fragment slot="actions">
       <a href={`/api/export/excel?type=hrd&period=${s.periodId}`} class="btn btn-primary" download title="Unduh data snapshot versi ini ke format Excel">
-        📥 Unduh Excel
+        <Icon name="download" size={16} />
+        <span>Unduh Excel</span>
       </a>
       <button class="btn btn-secondary btn-print" onclick="window.print()">
-        🖨️ Cetak / Ekspor PDF
+        <Icon name="printer" size={16} />
+        <span>Cetak / Ekspor PDF</span>
       </button>
     </Fragment>
   </PageHeader>

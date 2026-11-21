@@ -668,8 +668,8 @@ const isNoActive = activeType === "outcome" && v("outcome") === "no";
       <label class="form-label" for="f-outcome-choice">Hasil Akhir Keputusan <span class="req">*</span></label>
       <select class="form-control" id="f-outcome-choice" name="outcome" disabled={!isBlockActive("outcome")}>
         <option value="">-- Pilih Hasil Akhir --</option>
-        <option value="deal" selected={v("outcome") === "deal"}>✅ DEAL (Disepakati / Tayang Iklan)</option>
-        <option value="no" selected={v("outcome") === "no"}>❌ NO (Ditolak / Batal Beriklan)</option>
+        <option value="deal" selected={v("outcome") === "deal"}>DEAL (Disepakati / Tayang Iklan)</option>
+        <option value="no" selected={v("outcome") === "no"}>NO (Ditolak / Batal Beriklan)</option>
       </select>
       <span class="form-hint">Pilih Deal untuk pencapaian closing, atau NO jika ditolak</span>
       <FormError message={errors.outcome} />
