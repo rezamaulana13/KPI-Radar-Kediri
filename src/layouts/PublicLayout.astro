@@ -8,7 +8,7 @@ import { employee, divisionName, positions, notificationsFor } from "../lib/data
 
 interface Props {
   title: string;
-  activeNav?: "beranda" | "aktivitas-saya" | "kinerja" | "modul-marketing" | "alur-kerja" | "fitur" | "layanan-modul" | "tentang" | "bantuan";
+  activeNav?: "beranda" | "aktivitas-saya" | "kinerja" | "modul-marketing" | "alur-kerja" | "fitur" | "tentang" | "bantuan";
   description?: string;
 }
 
@@ -616,8 +616,8 @@ if (user) {
           ) : (
             <>
               <a class={`pub-menu-link ${activeNav === "beranda" ? "is-active" : ""}`} href="/">Beranda</a>
+              <a class={`pub-menu-link ${activeNav === "modul-marketing" ? "is-active" : ""}`} href="/modul-marketing">Modul Marketing</a>
               <a class={`pub-menu-link ${activeNav === "tentang" ? "is-active" : ""}`} href="/tentang">Tentang Kami</a>
-              <a class={`pub-menu-link ${activeNav === "fitur" || activeNav === "layanan-modul" ? "is-active" : ""}`} href="/layanan-modul">Layanan &amp; Modul</a>
               <a class={`pub-menu-link ${activeNav === "alur-kerja" ? "is-active" : ""}`} href="/alur-kerja">Alur Kerja &amp; SOP</a>
               <a class={`pub-menu-link ${activeNav === "bantuan" ? "is-active" : ""}`} href="/bantuan">Pusat Bantuan</a>
             </>
@@ -909,8 +909,8 @@ if (user) {
         ) : (
           <nav class="pub-mobile-links">
             <a class={`pub-mobile-link ${activeNav === "beranda" ? "is-active" : ""}`} href="/">Beranda</a>
+            <a class={`pub-mobile-link ${activeNav === "modul-marketing" ? "is-active" : ""}`} href="/modul-marketing">Modul Marketing</a>
             <a class={`pub-mobile-link ${activeNav === "tentang" ? "is-active" : ""}`} href="/tentang">Tentang Kami</a>
-            <a class={`pub-mobile-link ${activeNav === "fitur" || activeNav === "layanan-modul" ? "is-active" : ""}`} href="/layanan-modul">Layanan &amp; Modul</a>
             <a class={`pub-mobile-link ${activeNav === "alur-kerja" ? "is-active" : ""}`} href="/alur-kerja">Alur Kerja &amp; SOP</a>
             <a class={`pub-mobile-link ${activeNav === "bantuan" ? "is-active" : ""}`} href="/bantuan">Pusat Bantuan</a>
           </nav>
@@ -962,8 +962,8 @@ if (user) {
             <h5>Navigasi Halaman</h5>
             <ul>
               <li><a href="/">Beranda Portal</a></li>
+              <li><a href="/modul-marketing">Modul Marketing</a></li>
               <li><a href="/tentang">Tentang Radar Kediri</a></li>
-              <li><a href="/layanan-modul">Layanan &amp; Modul</a></li>
               <li><a href="/alur-kerja">Alur Kerja &amp; SOP</a></li>
               <li><a href="/bantuan">Pusat Bantuan &amp; FAQ</a></li>
             </ul>

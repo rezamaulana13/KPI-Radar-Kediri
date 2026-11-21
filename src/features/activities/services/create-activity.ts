@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { ActivityInput } from "../schemas/activity";
 
 export async function createActivity(db: SupabaseClient, actorId: string | null, role: string | null, i: ActivityInput) {
-  if (!actorId || (role !== "employee" && role !== "supervisor")) return { error: "Anda tidak berwenang mencatat aktivitas." };
+  if (!actorId || role !== "employee") return { error: "Anda tidak berwenang mencatat aktivitas." };
   if (role === "employee" && i.owner_id !== actorId) return { error: "Karyawan hanya dapat mencatat aktivitas sendiri." };
   const { data: period } = await db.from("assessment_periods").select("id")
     .eq("status", "open").lte("start_date", i.activity_date).gte("end_date", i.activity_date).maybeSingle();

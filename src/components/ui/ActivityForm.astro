@@ -4,7 +4,7 @@ import Alert from "./Alert.astro";
 import FormError from "./FormError.astro";
 import { TYPE_LABEL } from "../../lib/formatters";
 import { visibleEmployeeIds, employee, employeeName } from "../../lib/data/store";
-const { errors = {}, values = {}, formError, types = Object.keys(TYPE_LABEL), lockType, offerId, action = "/api/activities", redirectTo = "/employee/activities" } = Astro.props as {
+const { errors = {}, values = {}, formError, types = Object.keys(TYPE_LABEL), lockType, offerId, action = "/api/activities", redirectTo = "/aktivitas-saya" } = Astro.props as {
   errors?: Record<string, string>; values?: Record<string, any>; formError?: string; types?: string[]; lockType?: string; offerId?: string; action?: string; redirectTo?: string;
 };
 const user = Astro.locals.user!;

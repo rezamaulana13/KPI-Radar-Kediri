@@ -1,5 +1,0 @@
----
-const period = Astro.url.searchParams.get("period");
-const redirectUrl = period ? `/kinerja?period=${encodeURIComponent(period)}` : "/kinerja";
-return Astro.redirect(redirectUrl);
----

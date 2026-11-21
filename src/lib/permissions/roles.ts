@@ -24,7 +24,7 @@ export const PUBLIC_PATHS = [
   "/logout",
   "/favicon.svg",
   "/fitur",
-  "/layanan-modul",
+  "/modul-marketing",
   "/alur-kerja",
   "/tentang",
   "/bantuan",

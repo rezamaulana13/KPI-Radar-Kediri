@@ -4,7 +4,7 @@ import { createActivity } from "../../../lib/data/store";
 import { requireRole } from "../../../lib/auth/require-auth";
 import { syncSaveActivity } from "../../../lib/supabase/sync";
 
-const safe = (p: string) => (p.startsWith("/") && !p.startsWith("//") ? p : "/employee/activities");
+const safe = (p: string) => (p.startsWith("/") && !p.startsWith("//") ? p : "/aktivitas-saya");
 
 /** POST /api/activities — validasi server, otorisasi, lalu simpan sebagai pending. */
 export const POST: APIRoute = async ({ request, locals, redirect, cookies }) => {
