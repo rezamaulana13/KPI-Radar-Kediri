@@ -6,4 +6,8 @@ export default defineConfig({
   output: "server",
   adapter: vercel(),
   security: { checkOrigin: true },
+  prefetch: {
+    prefetchAll: true,
+    defaultStrategy: "hover",
+  },
 });

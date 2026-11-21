@@ -1,4 +1,5 @@
 ---
+import { ClientRouter } from "astro:transitions";
 import "../assets/styles/global.css";
 import Icon from "../components/ui/Icon.astro";
 import MobileBottomNav from "../components/layout/MobileBottomNav.astro";
@@ -65,6 +66,7 @@ if (user) {
       rel="stylesheet"
     />
     <title>{title} · Radar Kediri</title>
+    <ClientRouter />
     <style>
       :root {
         --public-nav-height: 4.25rem;
@@ -994,45 +996,48 @@ if (user) {
 
     <!-- Script Hamburger Drawer & Avatar Dropdown Popover -->
     <script is:inline>
-      // 1. Mobile Drawer Toggle
-      const mobileBtn = document.getElementById("btn-mobile-toggle");
-      const mobileMenu = document.getElementById("pub-mobile-menu");
-      if (mobileBtn && mobileMenu) {
-        mobileBtn.addEventListener("click", () => {
-          const isOpen = mobileMenu.classList.toggle("is-open");
-          mobileBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
-        });
+      function initPublicLayoutScripts() {
+        // 1. Mobile Drawer Toggle
+        const mobileBtn = document.getElementById("btn-mobile-toggle");
+        const mobileMenu = document.getElementById("pub-mobile-menu");
+        if (mobileBtn && mobileMenu) {
+          mobileBtn.onclick = () => {
+            const isOpen = mobileMenu.classList.toggle("is-open");
+            mobileBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+          };
+        }
+
+        // 2. Avatar Dropdown Popover Toggle
+        const avatarBtn = document.getElementById("pub-user-avatar-btn");
+        const userDropdown = document.getElementById("pub-user-dropdown");
+        if (avatarBtn && userDropdown) {
+          avatarBtn.onclick = (e) => {
+            e.stopPropagation();
+            const isOpen = userDropdown.classList.toggle("is-open");
+            avatarBtn.classList.toggle("is-active", isOpen);
+            avatarBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+          };
+
+          document.onclick = (e) => {
+            if (!userDropdown.contains(e.target) && !avatarBtn.contains(e.target)) {
+              userDropdown.classList.remove("is-open");
+              avatarBtn.classList.remove("is-active");
+              avatarBtn.setAttribute("aria-expanded", "false");
+            }
+          };
+
+          document.onkeydown = (e) => {
+            if (e.key === "Escape" && userDropdown.classList.contains("is-open")) {
+              userDropdown.classList.remove("is-open");
+              avatarBtn.classList.remove("is-active");
+              avatarBtn.setAttribute("aria-expanded", "false");
+            }
+          };
+        }
       }
 
-      // 2. Avatar Dropdown Popover Toggle (Sesuai Referensi)
-      const avatarBtn = document.getElementById("pub-user-avatar-btn");
-      const userDropdown = document.getElementById("pub-user-dropdown");
-      if (avatarBtn && userDropdown) {
-        avatarBtn.addEventListener("click", (e) => {
-          e.stopPropagation();
-          const isOpen = userDropdown.classList.toggle("is-open");
-          avatarBtn.classList.toggle("is-active", isOpen);
-          avatarBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
-        });
-
-        // Klik di luar dropdown untuk menutup
-        document.addEventListener("click", (e) => {
-          if (!userDropdown.contains(e.target) && !avatarBtn.contains(e.target)) {
-            userDropdown.classList.remove("is-open");
-            avatarBtn.classList.remove("is-active");
-            avatarBtn.setAttribute("aria-expanded", "false");
-          }
-        });
-
-        // Tombol Escape untuk menutup
-        document.addEventListener("keydown", (e) => {
-          if (e.key === "Escape" && userDropdown.classList.contains("is-open")) {
-            userDropdown.classList.remove("is-open");
-            avatarBtn.classList.remove("is-active");
-            avatarBtn.setAttribute("aria-expanded", "false");
-          }
-        });
-      }
+      document.addEventListener("astro:page-load", initPublicLayoutScripts);
+      initPublicLayoutScripts();
     </script>
     <MobileBottomNav role={user?.role} />
   </body>
