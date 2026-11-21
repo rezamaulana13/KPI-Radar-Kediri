@@ -15,7 +15,7 @@ if (!o || !visibleEmployeeIds(u).includes(o.ownerId)) return new Response(null, 
 const c = client(o.clientId)!;
 const out = offerOutcome(o.id);
 const prog = progressOf(o.id);
-const canWrite = (u.role === "employee" || u.role === "supervisor") && (o.ownerId === u.id || u.role === "supervisor");
+const canWrite = u.role === "employee" && o.ownerId === u.id;
 const st = takeFormState(Astro.cookies, Astro.url);
 const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Jakarta" });
 const back = `/marketing/offers/${o.id}`;

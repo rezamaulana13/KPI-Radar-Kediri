@@ -5,7 +5,7 @@ import { syncSaveActivity } from "../../../lib/supabase/sync";
 
 /** POST /api/activities/:id — perbaiki aktivitas berstatus revision lalu ajukan kembali. */
 export const POST: APIRoute = async ({ request, params, locals, redirect, cookies }) => {
-  const auth = requireRole(locals, "employee", "supervisor");
+  const auth = requireRole(locals, "employee");
   if (!auth.ok) return Response.json({ error: auth.message }, { status: auth.status });
   const fd = await request.formData();
   const qty = fd.get("qty") ? Number(fd.get("qty")) : undefined;

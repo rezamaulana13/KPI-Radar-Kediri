@@ -8,7 +8,7 @@ const safe = (p: string) => (p.startsWith("/") && !p.startsWith("//") ? p : "/em
 
 /** POST /api/activities — validasi server, otorisasi, lalu simpan sebagai pending. */
 export const POST: APIRoute = async ({ request, locals, redirect, cookies }) => {
-  const auth = requireRole(locals, "employee", "supervisor");
+  const auth = requireRole(locals, "employee");
   if (!auth.ok) return Response.json({ error: auth.message }, { status: auth.status });
   const raw = formToObject(await request.formData());
   const back = safe(String(raw.redirectTo ?? ""));
