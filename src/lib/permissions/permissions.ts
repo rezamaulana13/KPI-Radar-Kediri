@@ -13,7 +13,19 @@ const marketing: NavGroup = { title: "Marketing", items: [
 
 export const NAV: Record<Role, NavGroup[]> = {
   admin: [
-    { title: "Utama", items: [{ label: "Dashboard Sistem", href: "/dashboard", icon: "home" }] },
+    { title: "Utama", items: [{ label: "Dashboard Eksekutif", href: "/dashboard", icon: "home" }] },
+    { title: "Operasional & Sirkulasi", items: [
+      { label: "Antrean Verifikasi", href: "/hrd/verifications", icon: "check" },
+      { label: "Sirkulasi Oplah", href: "/marketing/oplah", icon: "news" },
+      { label: "Klien & Mitra", href: "/marketing/clients", icon: "building" },
+      { label: "Proposal Penawaran", href: "/marketing/offers", icon: "file" },
+      { label: "Program & Barter", href: "/marketing/programs", icon: "handshake" },
+    ] },
+    { title: "Kinerja & Evaluasi (KPI)", items: [
+      { label: "Target Kinerja", href: "/hrd/kpi/targets", icon: "flag" },
+      { label: "Realisasi Capaian", href: "/hrd/kpi/achievements", icon: "chart" },
+      { label: "Rekapitulasi Laporan", href: "/hrd/reports", icon: "clipboard" },
+    ] },
     { title: "Manajemen Akun & Akses", items: [
       { label: "Pengguna & Hak Akses", href: "/admin/users", icon: "users" },
       { label: "Data Personel", href: "/admin/employees", icon: "badge" },

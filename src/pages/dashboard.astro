@@ -99,52 +99,108 @@ const totalBarterDeals = approvedActivities
   {user.role === "admin" && (<>
     {user.mode === "demo" && <Alert tone="info" title="Mode demo">Data berasal dari contoh di memori server dan akan kembali seperti semula saat server dimulai ulang.</Alert>}
     
-    <!-- 4 Stat Card Fokus Super Admin (Tata Kelola Platform & Nilai Komersial) -->
+    <!-- 4 Stat Card Utama: 3 Pilar SIMOKP & Capaian KPI Keseluruhan -->
+    <div class="stat-grid" style="margin-bottom: 1.25rem;">
+      <StatCard label="Omzet Kas Tunai" value={rupiah(totalCashDeals)} tone="ok" note="Penerimaan riil iklan & advertorial" />
+      <StatCard label="Nilai Realisasi Barter" value={rupiah(totalBarterDeals)} tone="info" note="Kerja sama barang/jasa promosi" />
+      <StatCard label="Oplah Bersih Terjual" value={`${num(totalSoldOplah)} Eks`} note={`Kirim: ${num(totalSentOplah)} | Retur: ${num(totalReturnOplah)}`} />
+      <StatCard label="Rata-rata Capaian KPI" value={sum.avgPercent == null ? "—" : `${num(sum.avgPercent)}%`} tone={sum.avgPercent && sum.avgPercent >= 70 ? "ok" : "warn"} note={`${sum.targets} sasaran operasional aktif`} />
+    </div>
+
+    <!-- 4 Stat Card Tata Kelola Platform, HRD & Staf -->
     <div class="stat-grid">
-      <StatCard label="Pengguna Aktif" value={db.employees.filter((e) => e.active).length} note={`${db.employees.length} total akun terdaftar`} />
-      <StatCard label="Aktivitas Terverifikasi" value={db.activities.filter(a => a.status === 'approved').length} tone="ok" note={`${db.activities.length} total laporan kegiatan`} />
-      <StatCard label="Nilai Komersial Disetujui" value={rupiah(totalCashDeals + totalBarterDeals)} tone="info" note={`Kas: ${rupiah(totalCashDeals)} | Barter: ${rupiah(totalBarterDeals)}`} />
+      <StatCard label="Pengguna Terdaftar" value={db.employees.length} note={`${db.employees.filter((e) => e.active).length} akun berstatus aktif`} />
+      <StatCard label="Aktivitas Terverifikasi" value={sum.approved} tone="ok" note={`${sum.total} total laporan masuk`} />
+      <StatCard label="Menunggu Verifikasi" value={sum.pending} tone={sum.pending ? "warn" : "ok"} note="Dapat diverifikasi langsung oleh Admin" />
       <StatCard label="Catatan Audit Log" value={db.auditLogs.length} note="Integritas ISO/IEC 25010" />
     </div>
 
-    <div class="grid-3-1" style="margin-top: 1.5rem;">
-      <!-- Kolom Kiri: Aktivitas Sistem & Audit Trail -->
-      <section class="card">
-        <div class="card-head">
-          <div>
-            <h2>Audit Trail &amp; Log Sistem Terkini</h2>
-            <p class="muted font-xs" style="margin: 0.15rem 0 0;">Jejak perubahan data penting untuk akuntabilitas sistem.</p>
-          </div>
-          <a href="/admin/audit-logs">Buka Semua Log &rarr;</a>
-        </div>
-        <DataTable
-          caption="Audit terbaru"
-          columns={[
-            { key: "at", label: "Waktu", type: "datetime" },
-            { key: "actor", label: "Pelaku" },
-            { key: "action", label: "Aksi", type: "mono" },
-            { key: "detail", label: "Keterangan Operasional" }
-          ]}
-          rows={db.auditLogs.slice(0, 8).map((l) => ({ ...l, actor: employeeName(l.actorId) }))}
-          emptyTitle="Belum ada catatan audit"
-          emptyHint="Setiap aktivitas perubahan penting akan terekam otomatis di sini."
-        />
-      </section>
+    <!-- Alert jika ada laporan pending yang butuh verifikasi -->
+    {sum.pending > 0 && (
+      <div style="margin-top: 1.25rem;">
+        <Alert tone="warning" title={`${sum.pending} Laporan Menunggu Verifikasi`}>
+          Ada berkas laporan lapangan dari karyawan yang belum diperiksa. Super Admin berhak menyetujui, meminta revisi, atau menolak laporan secara langsung.
+          <a href="/hrd/verifications" style="margin-left: 0.5rem; font-weight: 700; text-decoration: underline;">Buka Antrean Verifikasi &rarr;</a>
+        </Alert>
+      </div>
+    )}
 
-      <!-- Kolom Kanan: Status Lingkungan Sistem & Pintasan Super Admin -->
+    <div class="grid-3-1" style="margin-top: 1.5rem;">
+      <!-- Kolom Kiri: Capaian Target Divisi & Perusahaan + Audit Trail -->
+      <div class="stack" style="gap: 1.5rem;">
+        <section class="card">
+          <div class="card-head">
+            <div>
+              <h2>Monitoring Target Divisi &amp; Perusahaan</h2>
+              <p class="muted font-xs" style="margin: 0.15rem 0 0;">Capaian sasaran tim Marketing &amp; Sirkulasi periode {p.name}.</p>
+            </div>
+            <a href="/hrd/kpi/achievements">Rincian KPI &rarr;</a>
+          </div>
+          <DataTable
+            caption="Capaian target"
+            columns={[
+              { key: "subject", label: "Cakupan" },
+              { key: "name", label: "Indikator" },
+              { key: "targetDisplay", label: "Target" },
+              { key: "actualDisplay", label: "Realisasi" },
+              { key: "percent", label: "Capaian", type: "meter" }
+            ]}
+            rows={divRows.map((r) => {
+              const u = r.indicator.unit;
+              return {
+                ...r,
+                subject: subjectName(r),
+                name: r.indicator.name,
+                targetDisplay: u === "Rp" ? rupiah(r.target.value) : `${num(r.target.value)} ${u}`,
+                actualDisplay: u === "Rp" ? rupiah(r.actual ?? 0) : `${num(r.actual)} ${u}`,
+              };
+            })}
+            emptyTitle="Belum ada target divisi"
+            emptyHint="Atur target indikator pada menu Target Kinerja."
+          />
+        </section>
+
+        <section class="card">
+          <div class="card-head">
+            <div>
+              <h2>Audit Trail &amp; Log Sistem Terkini</h2>
+              <p class="muted font-xs" style="margin: 0.15rem 0 0;">Jejak perubahan data penting untuk akuntabilitas sistem.</p>
+            </div>
+            <a href="/admin/audit-logs">Buka Semua Log &rarr;</a>
+          </div>
+          <DataTable
+            caption="Audit terbaru"
+            columns={[
+              { key: "at", label: "Waktu", type: "datetime" },
+              { key: "actor", label: "Pelaku" },
+              { key: "action", label: "Aksi", type: "mono" },
+              { key: "detail", label: "Keterangan Operasional" }
+            ]}
+            rows={db.auditLogs.slice(0, 6).map((l) => ({ ...l, actor: employeeName(l.actorId) }))}
+            emptyTitle="Belum ada catatan audit"
+            emptyHint="Setiap aktivitas perubahan penting akan terekam otomatis di sini."
+          />
+        </section>
+      </div>
+
+      <!-- Kolom Kanan: Status Lingkungan Sistem & Pusat Kendali Penuh Super Admin -->
       <div class="stack">
         <section class="card" style="background: #f8fafc; border-color: #e2e8f0;">
           <div class="card-head">
-            <h3 style="font-size:0.95rem;margin:0;font-weight:700;">Status Lingkungan Sistem</h3>
+            <h3 style="font-size:0.95rem;margin:0;font-weight:700;">Status Hak Akses Super Admin</h3>
           </div>
           <div class="card-body" style="font-size:var(--text-sm);">
             <div style="display:flex;justify-content:space-between;padding:0.4rem 0;border-bottom:1px solid #e2e8f0;">
-              <span class="muted">Platform:</span>
-              <strong>SIMOKP v2.0</strong>
+              <span class="muted">Otoritas:</span>
+              <span class="badge badge-admin" style="font-size:0.75rem;">Full Control (Tertinggi)</span>
             </div>
             <div style="display:flex;justify-content:space-between;padding:0.4rem 0;border-bottom:1px solid #e2e8f0;">
-              <span class="muted">Unit Bisnis:</span>
-              <strong>Divisi Pemasaran &amp; Sirkulasi</strong>
+              <span class="muted">Kelola HRD:</span>
+              <strong style="color:#16a34a;">Aktif (Penuh)</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:0.4rem 0;border-bottom:1px solid #e2e8f0;">
+              <span class="muted">Kelola Karyawan:</span>
+              <strong style="color:#16a34a;">Aktif (Penuh)</strong>
             </div>
             <div style="display:flex;justify-content:space-between;padding:0.4rem 0;border-bottom:1px solid #e2e8f0;">
               <span class="muted">Periode Aktif:</span>
@@ -159,20 +215,36 @@ const totalBarterDeals = approvedActivities
 
         <section class="card">
           <div class="card-head">
-            <h3 style="font-size:0.95rem;margin:0;font-weight:700;">Aksi Cepat Super Admin</h3>
+            <h3 style="font-size:0.95rem;margin:0;font-weight:700;">Pusat Kendali Eksekutif</h3>
           </div>
           <div class="card-body stack" style="gap:0.5rem;">
+            <a href="/hrd/verifications" class="btn btn-secondary" style="width:100%;justify-content:flex-start;">
+              <Icon name="check" size={16} />
+              <span>Verifikasi Berkas Lapangan ({sum.pending}) &rarr;</span>
+            </a>
+            <a href="/marketing/oplah" class="btn btn-secondary" style="width:100%;justify-content:flex-start;">
+              <Icon name="news" size={16} />
+              <span>Monitoring Sirkulasi Oplah &rarr;</span>
+            </a>
+            <a href="/hrd/kpi/targets" class="btn btn-secondary" style="width:100%;justify-content:flex-start;">
+              <Icon name="flag" size={16} />
+              <span>Atur Target &amp; Indikator KPI &rarr;</span>
+            </a>
+            <a href="/hrd/reports" class="btn btn-secondary" style="width:100%;justify-content:flex-start;">
+              <Icon name="clipboard" size={16} />
+              <span>Rekapitulasi Kinerja Lengkap &rarr;</span>
+            </a>
             <a href="/admin/users" class="btn btn-secondary" style="width:100%;justify-content:flex-start;">
               <Icon name="users" size={16} />
-              <span>Kelola Pengguna &amp; Hak Akses &rarr;</span>
+              <span>Kelola Pengguna (HRD &amp; Staf) &rarr;</span>
+            </a>
+            <a href="/admin/employees" class="btn btn-secondary" style="width:100%;justify-content:flex-start;">
+              <Icon name="badge" size={16} />
+              <span>Kelola Personel &amp; Jabatan &rarr;</span>
             </a>
             <a href="/admin/audit-logs" class="btn btn-secondary" style="width:100%;justify-content:flex-start;">
               <Icon name="shield" size={16} />
               <span>Pusat Audit Trail Sistem &rarr;</span>
-            </a>
-            <a href="/admin/settings" class="btn btn-secondary" style="width:100%;justify-content:flex-start;">
-              <Icon name="settings" size={16} />
-              <span>Konfigurasi &amp; Kebijakan SIMOKP &rarr;</span>
             </a>
           </div>
         </section>
