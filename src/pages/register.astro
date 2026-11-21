@@ -8,58 +8,48 @@ const nameVal = Astro.url.searchParams.get("name") ?? "";
 const emailVal = Astro.url.searchParams.get("email") ?? "";
 ---
 <AuthLayout title="Pendaftaran Akun">
-  <div class="auth">
-    <section class="auth-side">
-      <div class="masthead">
-        <span>Radar Kediri</span>
-        <span>SIMOKP</span>
-        <span>PT Kediri Intermedia Pers</span>
-      </div>
-      <div>
-        <h1>Daftar Akun Baru</h1>
-        <p>
-          Portal internal Radar Kediri untuk integrasi oplah sirkulasi, proposal kerja sama, dan pemantauan kinerja pemasaran berbasis KPI.
-        </p>
-        <div style="background: rgba(255,255,255,0.08); border-left: 3px solid #64b5f6; padding: 0.85rem 1rem; border-radius: 4px; margin-top: 1.5rem;">
-          <p class="text-xs" style="color: #e3f2fd; margin: 0; line-height: 1.6;">
-            <strong>Ketentuan Akun:</strong><br />
-            Semua akun baru yang didaftarkan secara mandiri otomatis berstatus sebagai <strong>Karyawan</strong>.<br />
-            Penetapan peran <strong>Super Admin</strong> dan <strong>Admin (Pemasaran &amp; Sirkulasi)</strong> dilakukan melalui panel Administrator.
-          </p>
+  <div class="auth-center-layout">
+    <div class="auth-box">
+      <!-- Header Identitas Brand di atas kartu -->
+      <div class="auth-brand-center">
+        <div class="brand-monogram">JP</div>
+        <div class="brand-info">
+          <div class="brand-title">JAWA POS RADAR KEDIRI</div>
+          <div class="brand-sub">Sistem Informasi Manajemen Oplah, Kerja Sama &amp; Kinerja (SIMOKP)</div>
         </div>
       </div>
-      <p class="text-sm" style="margin:0">
-        Sudah punya akun? <a href="/login" style="color:#fff;font-weight:600;text-decoration:underline">Masuk di sini</a>
-      </p>
-    </section>
 
-    <section class="auth-main">
-      <div class="auth-card card">
-        <div class="card-body">
-          <div style="margin-bottom: 1.25rem">
-            <h2 style="margin: 0 0 0.25rem">Pendaftaran Akun</h2>
-            <p class="muted text-sm" style="margin: 0">Lengkapi formulir di bawah ini untuk membuat akun baru.</p>
-          </div>
-
-          {error && <Alert tone="danger" title="Pendaftaran gagal">{error}</Alert>}
-
-          <a class="btn-google mb-3" href="/api/auth/google">
-            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+      <!-- Kartu Registrasi Tunggal di Tengah -->
+      <div class="login-card">
+        <div class="login-header">
+          <div class="login-icon-box">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <line x1="19" y1="8" x2="19" y2="14"/>
+              <line x1="22" y1="11" x2="16" y2="11"/>
             </svg>
-            Daftar dengan Google
-          </a>
+          </div>
+          <h2 class="login-title">Pendaftaran Akun Baru</h2>
+          <p class="login-subtitle">Lengkapi formulir di bawah ini untuk membuat akun karyawan SIMOKP.</p>
+        </div>
 
-          <div class="auth-divider"><span>atau isi formulir</span></div>
+        {error && (
+          <div class="mb-4">
+            <Alert tone="danger" title="Pendaftaran gagal">{error}</Alert>
+          </div>
+        )}
 
-          <form method="post" action="/api/auth/register" id="reg-form">
-            <div class="field">
-              <label for="name">Nama Lengkap</label>
+        <form method="post" action="/api/auth/register" id="reg-form" class="login-form">
+          <div class="form-group">
+            <label for="name" class="form-label">Nama Lengkap</label>
+            <div class="input-wrapper">
+              <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
               <input
-                class="input"
+                class="form-input"
                 id="name"
                 name="name"
                 type="text"
@@ -71,11 +61,17 @@ const emailVal = Astro.url.searchParams.get("email") ?? "";
                 autofocus
               />
             </div>
+          </div>
 
-            <div class="field">
-              <label for="email">Alamat Email</label>
+          <div class="form-group">
+            <label for="email" class="form-label">Alamat Email Resmi</label>
+            <div class="input-wrapper">
+              <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect width="20" height="16" x="2" y="4" rx="2"/>
+                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+              </svg>
               <input
-                class="input"
+                class="form-input"
                 id="email"
                 name="email"
                 type="email"
@@ -85,14 +81,20 @@ const emailVal = Astro.url.searchParams.get("email") ?? "";
                 placeholder="nama@email.com"
               />
             </div>
+          </div>
 
-            <div class="field">
-              <div style="display:flex; justify-content:space-between; align-items:center">
-                <label for="password" style="margin:0">Kata Sandi</label>
-                <button type="button" class="btn-toggle-pw" data-target="password" style="background:none;border:none;color:var(--color-primary-700);cursor:pointer;font-size:var(--text-xs);padding:0">Lihat</button>
-              </div>
+          <div class="form-group">
+            <div style="display:flex; justify-content:space-between; align-items:center">
+              <label for="password" class="form-label">Kata Sandi</label>
+              <button type="button" class="btn-toggle-pw" data-target="password">Lihat</button>
+            </div>
+            <div class="input-wrapper">
+              <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
               <input
-                class="input"
+                class="form-input"
                 id="password"
                 name="password"
                 type="password"
@@ -101,16 +103,22 @@ const emailVal = Astro.url.searchParams.get("email") ?? "";
                 minlength="6"
                 placeholder="Minimal 6 karakter"
               />
-              <span class="hint">Minimal 6 karakter alfanumerik.</span>
             </div>
+            <span class="field-hint">Minimal 6 karakter alfanumerik.</span>
+          </div>
 
-            <div class="field">
-              <div style="display:flex; justify-content:space-between; align-items:center">
-                <label for="confirmPassword" style="margin:0">Konfirmasi Kata Sandi</label>
-                <button type="button" class="btn-toggle-pw" data-target="confirmPassword" style="background:none;border:none;color:var(--color-primary-700);cursor:pointer;font-size:var(--text-xs);padding:0">Lihat</button>
-              </div>
+          <div class="form-group">
+            <div style="display:flex; justify-content:space-between; align-items:center">
+              <label for="confirmPassword" class="form-label">Konfirmasi Kata Sandi</label>
+              <button type="button" class="btn-toggle-pw" data-target="confirmPassword">Lihat</button>
+            </div>
+            <div class="input-wrapper">
+              <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
               <input
-                class="input"
+                class="form-input"
                 id="confirmPassword"
                 name="confirmPassword"
                 type="password"
@@ -119,34 +127,39 @@ const emailVal = Astro.url.searchParams.get("email") ?? "";
                 minlength="6"
                 placeholder="Ketik ulang kata sandi"
               />
-              <span id="pw-match-error" style="display:none; color:var(--color-danger); font-size:var(--text-xs); margin-top:0.25rem">
-                Kata sandi tidak sama.
-              </span>
             </div>
-
-            <div class="field" style="margin-top: 0.5rem">
-              <label style="display:flex; align-items:flex-start; gap:0.5rem; font-weight:normal; cursor:pointer">
-                <input type="checkbox" required style="margin-top: 0.2rem" />
-                <span class="text-xs muted">Saya memahami bahwa akun ini akan didaftarkan sebagai Pengguna (Karyawan) Radar Kediri.</span>
-              </label>
-            </div>
-
-            <button
-              class="btn btn-primary"
-              id="submit-btn"
-              style="width:100%;justify-content:center;margin-top:0.5rem"
-              type="submit"
-            >
-              Daftar Sekarang
-            </button>
-          </form>
-
-          <div class="auth-links">
-            Sudah memiliki akun? <a href="/login">Masuk ke aplikasi</a>
+            <span id="pw-match-error" style="display:none; color:#ef4444; font-size:0.75rem; margin-top:0.25rem; font-weight:600">
+              Kata sandi konfirmasi tidak cocok.
+            </span>
           </div>
+
+          <div class="checkbox-group">
+            <label class="checkbox-label">
+              <input type="checkbox" required class="checkbox-input" />
+              <span>Saya menyetujui akun ini terdaftar sebagai Karyawan Radar Kediri.</span>
+            </label>
+          </div>
+
+          <button class="btn-submit" id="submit-btn" type="submit">
+            <span>Daftar Sekarang</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14"/>
+              <path d="m12 5 7 7-7 7"/>
+            </svg>
+          </button>
+        </form>
+
+        <div class="login-footer">
+          <span>Sudah memiliki akun terdaftar?</span>
+          <a href="/login" class="link-register">Masuk ke aplikasi</a>
         </div>
       </div>
-    </section>
+
+      <!-- Footer Hak Cipta -->
+      <div class="auth-center-footer">
+        &copy; 2026 PT Kediri Intermedia Pers (Jawa Pos Radar Kediri)
+      </div>
+    </div>
   </div>
 
   <script is:inline>
@@ -202,3 +215,253 @@ const emailVal = Astro.url.searchParams.get("email") ?? "";
     }
   </script>
 </AuthLayout>
+
+<style>
+  .auth-center-layout {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
+    padding: 2.5rem 1.25rem;
+    box-sizing: border-box;
+  }
+
+  .auth-box {
+    width: 100%;
+    max-width: 460px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  /* ========== BRAND HEADER ========== */
+  .auth-brand-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.65rem;
+  }
+
+  .brand-monogram {
+    width: 3.25rem;
+    height: 3.25rem;
+    background: #12345a;
+    color: #ffffff;
+    font-weight: 900;
+    font-size: 1.35rem;
+    letter-spacing: -0.05em;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    box-shadow: 0 6px 16px rgba(18, 52, 90, 0.25);
+  }
+
+  .brand-title {
+    font-size: 1.05rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: #12345a;
+  }
+
+  .brand-sub {
+    font-size: 0.775rem;
+    color: #64748b;
+    max-width: 38ch;
+    line-height: 1.45;
+  }
+
+  /* ========== KARTU REGISTRASI ========== */
+  .login-card {
+    width: 100%;
+    background: #ffffff;
+    padding: 2.25rem 2rem;
+    border-radius: 16px;
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    box-shadow: 
+      0 20px 25px -5px rgba(15, 23, 42, 0.06),
+      0 8px 10px -6px rgba(15, 23, 42, 0.04);
+  }
+
+  .login-header {
+    text-align: center;
+    margin-bottom: 1.75rem;
+  }
+
+  .login-icon-box {
+    width: 3.25rem;
+    height: 3.25rem;
+    background: #eaf2f8;
+    color: #12345a;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    margin: 0 auto 0.85rem;
+  }
+
+  .login-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 0.35rem;
+  }
+
+  .login-subtitle {
+    font-size: 0.825rem;
+    color: #64748b;
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  .login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.15rem;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .form-label {
+    font-size: 0.825rem;
+    font-weight: 600;
+    color: #1e293b;
+  }
+
+  .btn-toggle-pw {
+    background: none;
+    border: none;
+    color: #176b87;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0;
+  }
+
+  .btn-toggle-pw:hover {
+    text-decoration: underline;
+  }
+
+  .input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .input-icon {
+    position: absolute;
+    left: 0.95rem;
+    color: #94a3b8;
+    pointer-events: none;
+  }
+
+  .form-input {
+    width: 100%;
+    padding: 0.7rem 0.95rem 0.7rem 2.65rem;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    color: #0f172a;
+    background: #ffffff;
+    transition: all 0.15s ease;
+  }
+
+  .form-input:focus {
+    outline: none;
+    border-color: #176b87;
+    box-shadow: 0 0 0 3px rgba(23, 107, 135, 0.15);
+  }
+
+  .field-hint {
+    font-size: 0.725rem;
+    color: #64748b;
+  }
+
+  .checkbox-group {
+    margin-top: 0.25rem;
+  }
+
+  .checkbox-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    font-size: 0.78rem;
+    color: #475569;
+    cursor: pointer;
+    line-height: 1.45;
+  }
+
+  .checkbox-input {
+    margin-top: 0.15rem;
+    accent-color: #176b87;
+  }
+
+  .btn-submit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem;
+    width: 100%;
+    min-height: 2.85rem;
+    background: linear-gradient(135deg, #176b87 0%, #12345a 100%);
+    color: #ffffff;
+    font-size: 0.925rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(18, 52, 90, 0.2);
+    transition: all 0.15s ease;
+    margin-top: 0.35rem;
+  }
+
+  .btn-submit:hover {
+    box-shadow: 0 6px 16px rgba(18, 52, 90, 0.3);
+    transform: translateY(-1px);
+  }
+
+  .login-footer {
+    margin-top: 1.75rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid #f1f5f9;
+    text-align: center;
+    font-size: 0.85rem;
+    color: #64748b;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .link-register {
+    color: #176b87;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .link-register:hover {
+    color: #12345a;
+    text-decoration: underline;
+  }
+
+  /* ========== FOOTER ========== */
+  .auth-center-footer {
+    font-size: 0.75rem;
+    color: #64748b;
+    text-align: center;
+  }
+
+  /* ========== RESPONSIVE ========== */
+  @media (max-width: 480px) {
+    .auth-center-layout {
+      padding: 1.5rem 1rem;
+    }
+    .login-card {
+      padding: 1.75rem 1.25rem;
+    }
+  }
+</style>
