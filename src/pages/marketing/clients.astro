@@ -3,6 +3,7 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
 import PublicLayout from "../../layouts/PublicLayout.astro";
 import ListPage from "../../components/ui/ListPage.astro";
 import Alert from "../../components/ui/Alert.astro";
+import ProofUploader from "../../components/ui/ProofUploader.astro";
 import { db, employeeName, visibleEmployeeIds } from "../../lib/data/store";
 import { takeFormState } from "../../lib/utils/flash";
 
@@ -51,7 +52,7 @@ const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
         { key: "offers", label: "Proposal", type: "number" }
       ]}
     >
-      {u.role !== "hrd" && (
+      {u.role === "employee" && (
         <button
           slot="actions"
           type="button"
@@ -73,54 +74,63 @@ const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
           </div>
           <button type="button" class="modal-close" onclick="this.closest('dialog').close()">&times;</button>
         </div>
-        <form method="post" action="/api/activities" class="modal-body">
+        <form method="post" action="/api/activities" style="display: flex; flex-direction: column; flex: 1; overflow: hidden; margin: 0;">
           <input type="hidden" name="type" value="client" />
           <input type="hidden" name="ownerId" value={u.id} />
           <input type="hidden" name="redirectTo" value="/marketing/clients" />
 
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
-            <div class="field">
-              <label class="form-label" for="client-date">Tanggal Pendaftaran <span class="req">*</span></label>
-              <input type="date" id="client-date" name="date" class="form-control" value={today} max={today} required />
-              <span class="form-hint">Tanggal inisiasi kontak klien</span>
+          <div class="modal-body">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+              <div class="field">
+                <label class="form-label" for="client-date">Tanggal Pendaftaran <span class="req">*</span></label>
+                <input type="date" id="client-date" name="date" class="form-control" value={today} max={today} required />
+                <span class="form-hint">Tanggal inisiasi kontak klien</span>
+              </div>
+              <div class="field">
+                <label class="form-label" for="client-name">Nama Instansi / Klien <span class="req">*</span></label>
+                <input type="text" id="client-name" name="clientName" class="form-control" placeholder="Contoh: Dinas Kominfo Kab Kediri" required />
+                <span class="form-hint">Nama resmi perusahaan atau dinas</span>
+              </div>
             </div>
-            <div class="field">
-              <label class="form-label" for="client-name">Nama Instansi / Klien <span class="req">*</span></label>
-              <input type="text" id="client-name" name="clientName" class="form-control" placeholder="Contoh: Dinas Kominfo Kab Kediri" required />
-              <span class="form-hint">Nama resmi perusahaan atau dinas</span>
-            </div>
-          </div>
 
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
-            <div class="field">
-              <label class="form-label" for="client-sector">Sektor Industri / Kategori <span class="req">*</span></label>
-              <input type="text" id="client-sector" name="sector" class="form-control" placeholder="Contoh: OPD Pemkab / Perbankan / Pendidikan" required />
-              <span class="form-hint">Kategori bidang usaha atau instansi</span>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+              <div class="field">
+                <label class="form-label" for="client-sector">Sektor Industri / Kategori <span class="req">*</span></label>
+                <input type="text" id="client-sector" name="sector" class="form-control" placeholder="Contoh: OPD Pemkab / Perbankan / Pendidikan" required />
+                <span class="form-hint">Kategori bidang usaha atau instansi</span>
+              </div>
+              <div class="field">
+                <label class="form-label" for="client-city">Kota / Wilayah Operasional <span class="req">*</span></label>
+                <input type="text" id="client-city" name="city" class="form-control" placeholder="Contoh: Kota Kediri / Pare / Nganjuk" required />
+                <span class="form-hint">Wilayah domisili klien</span>
+              </div>
             </div>
-            <div class="field">
-              <label class="form-label" for="client-city">Kota / Wilayah Operasional <span class="req">*</span></label>
-              <input type="text" id="client-city" name="city" class="form-control" placeholder="Contoh: Kota Kediri / Pare / Nganjuk" required />
-              <span class="form-hint">Wilayah domisili klien</span>
-            </div>
-          </div>
 
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
-            <div class="field">
-              <label class="form-label" for="client-contact">Nama Kontak (PIC) <span class="req">*</span></label>
-              <input type="text" id="client-contact" name="contact" class="form-control" placeholder="Contoh: Bpk. Haryono (Kasubag Humas)" required />
-              <span class="form-hint">Penanggung jawab / pengambil keputusan</span>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+              <div class="field">
+                <label class="form-label" for="client-contact">Nama Kontak (PIC) <span class="req">*</span></label>
+                <input type="text" id="client-contact" name="contact" class="form-control" placeholder="Contoh: Bpk. Haryono (Kasubag Humas)" required />
+                <span class="form-hint">Penanggung jawab / pengambil keputusan</span>
+              </div>
+              <div class="field">
+                <label class="form-label" for="client-phone">Nomor Telepon / WhatsApp <span class="req">*</span></label>
+                <input type="text" id="client-phone" name="phone" class="form-control" placeholder="Contoh: 081234567890" required />
+                <span class="form-hint">Nomor aktif untuk follow-up</span>
+              </div>
             </div>
-            <div class="field">
-              <label class="form-label" for="client-phone">Nomor Telepon / WhatsApp <span class="req">*</span></label>
-              <input type="text" id="client-phone" name="phone" class="form-control" placeholder="Contoh: 081234567890" required />
-              <span class="form-hint">Nomor aktif untuk follow-up</span>
-            </div>
-          </div>
 
-          <div class="field" style="margin-bottom: 1.25rem;">
-            <label class="form-label" for="client-desc">Catatan Profiling &amp; Potensi Kerja Sama <span class="req">*</span></label>
-            <textarea id="client-desc" name="description" class="form-control" rows="3" placeholder="Jelaskan kebutuhan publikasi, profil anggaran promosi, atau hasil kontak awal (minimal 10 karakter)..." required></textarea>
-            <span class="form-hint">Informasi ini membantu HRD memverifikasi validitas data mitra</span>
+            <div class="field" style="margin-bottom: 1rem;">
+              <label class="form-label" for="client-desc">Catatan Profiling &amp; Potensi Kerja Sama <span class="req">*</span></label>
+              <textarea id="client-desc" name="description" class="form-control" rows="3" placeholder="Jelaskan kebutuhan publikasi, profil anggaran promosi, atau hasil kontak awal (minimal 10 karakter)..." required></textarea>
+              <span class="form-hint">Informasi ini membantu HRD memverifikasi validitas data mitra</span>
+            </div>
+
+            <!-- Upload File / Folder Bukti Pendukung -->
+            <ProofUploader
+              id="client"
+              label="Dokumen / Foto Kartu Nama / Profil Mitra"
+              hint="Unggah scan kartu nama PIC, foto gedung/kantor mitra, atau folder dokumen proposal profil."
+            />
           </div>
 
           <div class="modal-footer">

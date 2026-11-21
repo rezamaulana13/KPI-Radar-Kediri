@@ -4,6 +4,7 @@ import PublicLayout from "../../layouts/PublicLayout.astro";
 import ListPage from "../../components/ui/ListPage.astro";
 import StatCard from "../../components/dashboard/StatCard.astro";
 import Alert from "../../components/ui/Alert.astro";
+import ProofUploader from "../../components/ui/ProofUploader.astro";
 import { db, employeeName, visibleEmployeeIds } from "../../lib/data/store";
 import { num } from "../../lib/formatters";
 import { oplahSources } from "../../lib/data/mock";
@@ -58,7 +59,7 @@ const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
     )}
 
     <ListPage
-      title="Sirkulasi Oplah & Retur Koran"
+      title="Sirkulasi Oplah &amp; Retur Koran"
       description="Monitoring siklus distribusi oplah harian, pencatatan koran retur, dan rekonsiliasi eksemplar terjual riil."
       crumbs={[{ label: "Beranda", href: "/" }, { label: "Sirkulasi Oplah" }]}
       rows={rows}
@@ -107,74 +108,83 @@ const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
           </div>
           <button type="button" class="modal-close" onclick="this.closest('dialog').close()">&times;</button>
         </div>
-        <form method="post" action="/api/activities" class="modal-body">
+        <form method="post" action="/api/activities" style="display: flex; flex-direction: column; flex: 1; overflow: hidden; margin: 0;">
           <input type="hidden" name="type" value="oplah" />
           <input type="hidden" name="ownerId" value={u.id} />
           <input type="hidden" name="redirectTo" value="/marketing/oplah" />
 
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
-            <div class="field">
-              <label class="form-label" for="oplah-date">Tanggal Distribusi <span class="req">*</span></label>
-              <input type="date" id="oplah-date" name="date" class="form-control" value={today} max={today} required />
-              <span class="form-hint">Tanggal distribusi koran pagi</span>
+          <div class="modal-body">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+              <div class="field">
+                <label class="form-label" for="oplah-date">Tanggal Distribusi <span class="req">*</span></label>
+                <input type="date" id="oplah-date" name="date" class="form-control" value={today} max={today} required />
+                <span class="form-hint">Tanggal distribusi koran pagi</span>
+              </div>
+              <div class="field">
+                <label class="form-label" for="oplah-edition">Edisi Koran</label>
+                <input type="text" id="oplah-edition" name="editionName" class="form-control" placeholder="Contoh: Edisi Harian Radar Kediri" />
+                <span class="form-hint">Nomor / nama edisi koran terbit</span>
+              </div>
             </div>
-            <div class="field">
-              <label class="form-label" for="oplah-edition">Edisi Koran</label>
-              <input type="text" id="oplah-edition" name="editionName" class="form-control" placeholder="Contoh: Edisi Harian Radar Kediri" />
-              <span class="form-hint">Nomor / nama edisi koran terbit</span>
-            </div>
-          </div>
 
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
-            <div class="field">
-              <label class="form-label" for="oplah-source">Kanal Distribusi <span class="req">*</span></label>
-              <select id="oplah-source" name="source" class="form-control" required>
-                <option value="">-- Pilih Kanal Distribusi --</option>
-                {oplahSources.map((s) => <option value={s}>{s}</option>)}
-              </select>
-              <span class="form-hint">Jalur peredaran / agen</span>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+              <div class="field">
+                <label class="form-label" for="oplah-source">Kanal Distribusi <span class="req">*</span></label>
+                <select id="oplah-source" name="source" class="form-control" required>
+                  <option value="">-- Pilih Kanal Distribusi --</option>
+                  {oplahSources.map((s) => <option value={s}>{s}</option>)}
+                </select>
+                <span class="form-hint">Jalur peredaran / agen</span>
+              </div>
+              <div class="field">
+                <label class="form-label" for="oplah-sourceName">Nama Agen / Mitra Penerima <span class="req">*</span></label>
+                <input type="text" id="oplah-sourceName" name="sourceName" class="form-control" placeholder="Contoh: Agen Sumber Rejeki Kediri" required />
+                <span class="form-hint">Entitas penerima distribusi</span>
+              </div>
             </div>
-            <div class="field">
-              <label class="form-label" for="oplah-sourceName">Nama Agen / Mitra Penerima <span class="req">*</span></label>
-              <input type="text" id="oplah-sourceName" name="sourceName" class="form-control" placeholder="Contoh: Agen Sumber Rejeki Kediri" required />
-              <span class="form-hint">Entitas penerima distribusi</span>
-            </div>
-          </div>
 
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
-            <div class="field">
-              <label class="form-label" for="oplah-qty">Eksemplar Dikirim <span class="req">*</span></label>
-              <input type="number" id="oplah-qty" name="qty" class="form-control" min="1" step="1" placeholder="150" required />
-              <span class="form-hint">Total yang dikirim</span>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+              <div class="field">
+                <label class="form-label" for="oplah-qty">Eksemplar Dikirim <span class="req">*</span></label>
+                <input type="number" id="oplah-qty" name="qty" class="form-control" min="1" step="1" placeholder="150" required />
+                <span class="form-hint">Total yang dikirim</span>
+              </div>
+              <div class="field">
+                <label class="form-label" for="oplah-returnQty">Eksemplar Retur</label>
+                <input type="number" id="oplah-returnQty" name="returnQty" class="form-control" min="0" step="1" value="0" />
+                <span class="form-hint">Retur koran tidak laku</span>
+              </div>
+              <div class="field">
+                <label class="form-label" for="oplah-returnCond">Kondisi Retur</label>
+                <select id="oplah-returnCond" name="returnCondition" class="form-control">
+                  <option value="layak_stok">Layak Stok</option>
+                  <option value="rusak">Rusak / Afkir</option>
+                </select>
+                <span class="form-hint">Kelayakan simpan koran</span>
+              </div>
             </div>
-            <div class="field">
-              <label class="form-label" for="oplah-returnQty">Eksemplar Retur</label>
-              <input type="number" id="oplah-returnQty" name="returnQty" class="form-control" min="0" step="1" value="0" />
-              <span class="form-hint">Retur koran tidak laku</span>
-            </div>
-            <div class="field">
-              <label class="form-label" for="oplah-returnCond">Kondisi Retur</label>
-              <select id="oplah-returnCond" name="returnCondition" class="form-control">
-                <option value="layak_stok">Layak Stok</option>
-                <option value="rusak">Rusak / Afkir</option>
-              </select>
-              <span class="form-hint">Kelayakan simpan koran</span>
-            </div>
-          </div>
 
-          <!-- Live Rekonsiliasi Card -->
-          <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
-            <div>
-              <span style="font-size: 0.75rem; font-weight: 700; color: #166534; text-transform: uppercase;">Estimasi Laku Terjual:</span>
-              <div style="font-size: 1.15rem; font-weight: 700; color: #14532d;" id="oplah-calc-display">0 eksemplar</div>
+            <!-- Live Rekonsiliasi Card -->
+            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+              <div>
+                <span style="font-size: 0.75rem; font-weight: 700; color: #166534; text-transform: uppercase;">Estimasi Laku Terjual:</span>
+                <div style="font-size: 1.15rem; font-weight: 700; color: #14532d;" id="oplah-calc-display">0 eksemplar</div>
+              </div>
+              <div style="font-size: 0.8125rem; color: #15803d; font-weight: 600;">Oplah laku masuk perhitungan target KPI</div>
             </div>
-            <div style="font-size: 0.8125rem; color: #15803d; font-weight: 600;">Oplah laku masuk perhitungan target KPI</div>
-          </div>
 
-          <div class="field" style="margin-bottom: 1.25rem;">
-            <label class="form-label" for="oplah-desc">Deskripsi Laporan Lapangan <span class="req">*</span></label>
-            <textarea id="oplah-desc" name="description" class="form-control" rows="3" placeholder="Rincian proses pengiriman, titik temu agen, dan kendala lapangan (minimal 10 karakter)..." required></textarea>
-            <span class="form-hint">Jelaskan kegiatan distribusi lapangan secara ringkas dan faktual</span>
+            <div class="field" style="margin-bottom: 1rem;">
+              <label class="form-label" for="oplah-desc">Deskripsi Laporan Lapangan <span class="req">*</span></label>
+              <textarea id="oplah-desc" name="description" class="form-control" rows="3" placeholder="Rincian proses pengiriman, titik temu agen, dan kendala lapangan (minimal 10 karakter)..." required></textarea>
+              <span class="form-hint">Jelaskan kegiatan distribusi lapangan secara ringkas dan faktual</span>
+            </div>
+
+            <!-- Upload File / Folder Bukti Pendukung -->
+            <ProofUploader
+              id="oplah"
+              label="Foto Bukti Distribusi / Nota Agen / Retur"
+              hint="Unggah foto nota penerimaan agen, foto loper di titik temu, atau satu folder foto sirkulasi koran."
+            />
           </div>
 
           <div class="modal-footer">

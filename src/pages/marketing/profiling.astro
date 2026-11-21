@@ -3,6 +3,7 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
 import PublicLayout from "../../layouts/PublicLayout.astro";
 import ListPage from "../../components/ui/ListPage.astro";
 import Alert from "../../components/ui/Alert.astro";
+import ProofUploader from "../../components/ui/ProofUploader.astro";
 import { db, employeeName, client, visibleEmployeeIds } from "../../lib/data/store";
 import { takeFormState } from "../../lib/utils/flash";
 
@@ -59,7 +60,7 @@ const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
         { key: "status", label: "Status", type: "badge" }
       ]}
     >
-      {u.role !== "hrd" && (
+      {u.role === "employee" && (
         <button
           slot="actions"
           type="button"
@@ -81,43 +82,52 @@ const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
           </div>
           <button type="button" class="modal-close" onclick="this.closest('dialog').close()">&times;</button>
         </div>
-        <form method="post" action="/api/activities" class="modal-body">
+        <form method="post" action="/api/activities" style="display: flex; flex-direction: column; flex: 1; overflow: hidden; margin: 0;">
           <input type="hidden" name="type" value="profiling" />
           <input type="hidden" name="ownerId" value={u.id} />
           <input type="hidden" name="redirectTo" value="/marketing/profiling" />
 
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
-            <div class="field">
-              <label class="form-label" for="prof-date">Tanggal Riset <span class="req">*</span></label>
-              <input type="date" id="prof-date" name="date" class="form-control" value={today} max={today} required />
-              <span class="form-hint">Tanggal observasi atau riset</span>
+          <div class="modal-body">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+              <div class="field">
+                <label class="form-label" for="prof-date">Tanggal Riset <span class="req">*</span></label>
+                <input type="date" id="prof-date" name="date" class="form-control" value={today} max={today} required />
+                <span class="form-hint">Tanggal observasi atau riset</span>
+              </div>
+              <div class="field">
+                <label class="form-label" for="prof-client">Pilih Mitra / Klien <span class="req">*</span></label>
+                <select id="prof-client" name="clientId" class="form-control" required>
+                  <option value="">-- Pilih Klien Terdaftar --</option>
+                  {availableClients.map((c) => (
+                    <option value={c.id}>{c.name} ({c.city})</option>
+                  ))}
+                </select>
+                <span class="form-hint">Mitra yang diriset</span>
+              </div>
             </div>
-            <div class="field">
-              <label class="form-label" for="prof-client">Pilih Mitra / Klien <span class="req">*</span></label>
-              <select id="prof-client" name="clientId" class="form-control" required>
-                <option value="">-- Pilih Klien Terdaftar --</option>
-                {availableClients.map((c) => (
-                  <option value={c.id}>{c.name} ({c.city})</option>
-                ))}
+
+            <div class="field" style="margin-bottom: 1rem;">
+              <label class="form-label" for="prof-pot">Tingkat Potensi Kerja Sama <span class="req">*</span></label>
+              <select id="prof-pot" name="potential" class="form-control" required>
+                <option value="Tinggi">Tinggi (Anggaran Besar / Momentum Dekat)</option>
+                <option value="Sedang" selected>Sedang (Anggaran Reguler)</option>
+                <option value="Rendah">Rendah (Eksplorasi Awal)</option>
               </select>
-              <span class="form-hint">Mitra yang diriset</span>
+              <span class="form-hint">Klasifikasi peluang kesepakatan komersial</span>
             </div>
-          </div>
 
-          <div class="field" style="margin-bottom: 1rem;">
-            <label class="form-label" for="prof-pot">Tingkat Potensi Kerja Sama <span class="req">*</span></label>
-            <select id="prof-pot" name="potential" class="form-control" required>
-              <option value="Tinggi">Tinggi (Anggaran Besar / Momentum Dekat)</option>
-              <option value="Sedang" selected>Sedang (Anggaran Reguler)</option>
-              <option value="Rendah">Rendah (Eksplorasi Awal)</option>
-            </select>
-            <span class="form-hint">Klasifikasi peluang kesepakatan komersial</span>
-          </div>
+            <div class="field" style="margin-bottom: 1rem;">
+              <label class="form-label" for="prof-desc">Hasil Riset &amp; Rekomendasi Pendekatan <span class="req">*</span></label>
+              <textarea id="prof-desc" name="description" class="form-control" rows="3" placeholder="Rangkuman profil lembaga, pemegang keputusan anggaran, event terdekat yang bisa didanai, dan format pendekatan (minimal 10 karakter)..." required></textarea>
+              <span class="form-hint">Data ini diperlukan HRD untuk verifikasi ketercapaian riset</span>
+            </div>
 
-          <div class="field" style="margin-bottom: 1.25rem;">
-            <label class="form-label" for="prof-desc">Hasil Riset &amp; Rekomendasi Pendekatan <span class="req">*</span></label>
-            <textarea id="prof-desc" name="description" class="form-control" rows="3" placeholder="Rangkuman profil lembaga, pemegang keputusan anggaran, event terdekat yang bisa didanai, dan format pendekatan (minimal 10 karakter)..." required></textarea>
-            <span class="form-hint">Data ini diperlukan HRD untuk verifikasi ketercapaian riset</span>
+            <!-- Upload File / Folder Bukti Riset -->
+            <ProofUploader
+              id="profiling"
+              label="Dokumen Bahan Riset / Foto Bukti Observasi"
+              hint="Unggah dokumen profil anggaran, kliping berita, foto audiensi awal, atau folder hasil riset."
+            />
           </div>
 
           <div class="modal-footer">

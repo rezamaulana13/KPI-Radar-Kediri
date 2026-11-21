@@ -80,5 +80,27 @@ const c = client(a.clientId ?? offer(a.offerId)?.clientId);
   {a.potential && (<><dt>Potensi client</dt><dd>{a.potential}</dd></>)}
   {a.outcome && (<><dt>Hasil akhir</dt><dd><Badge status={a.outcome} /></dd></>)}
   {a.outcome === "no" && (<><dt>Alasan NO</dt><dd><strong>{a.reasonCategory}</strong>. {a.reason}</dd></>)}
+  {a.proofUrl && (
+    <>
+      <dt>Berkas / Bukti Fisik</dt>
+      <dd>
+        <a
+          href={a.proofUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.75rem; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 6px; color: #0284c7; font-weight: 600; text-decoration: none; font-size: 0.8125rem;"
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+          <span>Buka Berkas Bukti Lapangan &rarr;</span>
+        </a>
+      </dd>
+    </>
+  )}
   <dt>Status</dt><dd><Badge status={a.status} /></dd>
 </dl>

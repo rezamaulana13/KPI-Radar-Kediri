@@ -3,6 +3,7 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
 import PublicLayout from "../../layouts/PublicLayout.astro";
 import ListPage from "../../components/ui/ListPage.astro";
 import Alert from "../../components/ui/Alert.astro";
+import ProofUploader from "../../components/ui/ProofUploader.astro";
 import { db, employeeName, client, visibleEmployeeIds } from "../../lib/data/store";
 import { takeFormState } from "../../lib/utils/flash";
 
@@ -56,7 +57,7 @@ const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
         { key: "status", label: "Status", type: "badge" }
       ]}
     >
-      {u.role !== "hrd" && (
+      {u.role === "employee" && (
         <button
           slot="actions"
           type="button"
@@ -78,52 +79,61 @@ const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
           </div>
           <button type="button" class="modal-close" onclick="this.closest('dialog').close()">&times;</button>
         </div>
-        <form method="post" action="/api/activities" class="modal-body">
+        <form method="post" action="/api/activities" style="display: flex; flex-direction: column; flex: 1; overflow: hidden; margin: 0;">
           <input type="hidden" name="type" value="program" />
           <input type="hidden" name="ownerId" value={u.id} />
           <input type="hidden" name="redirectTo" value="/marketing/programs" />
 
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
-            <div class="field">
-              <label class="form-label" for="prog-date">Tanggal Pencatatan <span class="req">*</span></label>
-              <input type="date" id="prog-date" name="date" class="form-control" value={today} max={today} required />
-              <span class="form-hint">Tanggal inisiasi program kerja</span>
+          <div class="modal-body">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+              <div class="field">
+                <label class="form-label" for="prog-date">Tanggal Pencatatan <span class="req">*</span></label>
+                <input type="date" id="prog-date" name="date" class="form-control" value={today} max={today} required />
+                <span class="form-hint">Tanggal inisiasi program kerja</span>
+              </div>
+              <div class="field">
+                <label class="form-label" for="prog-kind">Jenis Program <span class="req">*</span></label>
+                <select id="prog-kind" name="kind" class="form-control" required>
+                  <option value="program">Program Event / Kemitraan</option>
+                  <option value="barter">Barter Publikasi Media</option>
+                </select>
+                <span class="form-hint">Format kerja sama</span>
+              </div>
             </div>
-            <div class="field">
-              <label class="form-label" for="prog-kind">Jenis Program <span class="req">*</span></label>
-              <select id="prog-kind" name="kind" class="form-control" required>
-                <option value="program">Program Event / Kemitraan</option>
-                <option value="barter">Barter Publikasi Media</option>
-              </select>
-              <span class="form-hint">Format kerja sama</span>
-            </div>
-          </div>
 
-          <div class="field" style="margin-bottom: 1rem;">
-            <label class="form-label" for="prog-name">Nama Program / Kegiatan <span class="req">*</span></label>
-            <input type="text" id="prog-name" name="programName" class="form-control" placeholder="Contoh: Kediri School Contest XVI / Gebyar UMKM Pare" required />
-            <span class="form-hint">Judul resmi event atau agenda promosi</span>
-          </div>
+            <div class="field" style="margin-bottom: 1rem;">
+              <label class="form-label" for="prog-name">Nama Program / Kegiatan <span class="req">*</span></label>
+              <input type="text" id="prog-name" name="programName" class="form-control" placeholder="Contoh: Kediri School Contest XVI / Gebyar UMKM Pare" required />
+              <span class="form-hint">Judul resmi event atau agenda promosi</span>
+            </div>
 
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
-            <div class="field">
-              <label class="form-label" for="prog-start">Tanggal Mulai <span class="req">*</span></label>
-              <input type="date" id="prog-start" name="start" class="form-control" value={today} required />
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+              <div class="field">
+                <label class="form-label" for="prog-start">Tanggal Mulai <span class="req">*</span></label>
+                <input type="date" id="prog-start" name="start" class="form-control" value={today} required />
+              </div>
+              <div class="field">
+                <label class="form-label" for="prog-end">Tanggal Selesai <span class="req">*</span></label>
+                <input type="date" id="prog-end" name="end" class="form-control" value={today} required />
+              </div>
+              <div class="field">
+                <label class="form-label" for="prog-val">Nilai Estimasi (Rp) <span class="req">*</span></label>
+                <input type="number" id="prog-val" name="value" class="form-control" min="0" placeholder="Contoh: 25000000" required />
+              </div>
             </div>
-            <div class="field">
-              <label class="form-label" for="prog-end">Tanggal Selesai <span class="req">*</span></label>
-              <input type="date" id="prog-end" name="end" class="form-control" value={today} required />
-            </div>
-            <div class="field">
-              <label class="form-label" for="prog-val">Nilai Estimasi (Rp) <span class="req">*</span></label>
-              <input type="number" id="prog-val" name="value" class="form-control" min="0" placeholder="Contoh: 25000000" required />
-            </div>
-          </div>
 
-          <div class="field" style="margin-bottom: 1.25rem;">
-            <label class="form-label" for="prog-desc">Deskripsi Agenda &amp; Bentuk Kemitraan <span class="req">*</span></label>
-            <textarea id="prog-desc" name="description" class="form-control" rows="3" placeholder="Rincian sponsorship, mitra yang digandeng, dan cakupan promosi (minimal 10 karakter)..." required></textarea>
-            <span class="form-hint">Informasi untuk kelengkapan berkas verifikasi HRD</span>
+            <div class="field" style="margin-bottom: 1rem;">
+              <label class="form-label" for="prog-desc">Deskripsi Agenda &amp; Bentuk Kemitraan <span class="req">*</span></label>
+              <textarea id="prog-desc" name="description" class="form-control" rows="3" placeholder="Rincian sponsorship, mitra yang digandeng, dan cakupan promosi (minimal 10 karakter)..." required></textarea>
+              <span class="form-hint">Informasi untuk kelengkapan berkas verifikasi HRD</span>
+            </div>
+
+            <!-- Upload File / Folder Bukti Program -->
+            <ProofUploader
+              id="program"
+              label="Dokumen Acara / Foto Kegiatan / Perjanjian Kerjasama"
+              hint="Unggah berkas rundown, MoU sponsorship, foto lapangan acara, atau satu folder dokumentasi event."
+            />
           </div>
 
           <div class="modal-footer">

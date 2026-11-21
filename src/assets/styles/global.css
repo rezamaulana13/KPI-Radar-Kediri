@@ -243,13 +243,14 @@ legend { font-family: var(--font-display); font-weight: 650; color: var(--color-
    ========================================================================== */
 .activity-modal {
   border: none;
-  border-radius: var(--radius-lg, 12px);
+  border-radius: var(--radius-lg, 14px);
   padding: 0;
   width: min(52rem, 95vw);
-  max-height: 90vh;
-  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.35);
+  max-height: 88vh;
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.4);
   background: #ffffff;
   margin: auto;
+  overflow: hidden;
 }
 
 .activity-modal::backdrop {
@@ -261,16 +262,19 @@ legend { font-family: var(--font-display); font-weight: 650; color: var(--color-
 .modal-content {
   display: flex;
   flex-direction: column;
-  max-height: 90vh;
+  height: 100%;
+  max-height: 88vh;
+  overflow: hidden;
 }
 
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.25rem 1.75rem;
-  background: #fafbfd;
+  padding: 1.15rem 1.5rem;
+  background: #ffffff;
   border-bottom: 1px solid var(--color-border, #e2e8f0);
+  flex-shrink: 0;
 }
 
 .modal-title {
@@ -287,26 +291,33 @@ legend { font-family: var(--font-display); font-weight: 650; color: var(--color-
 }
 
 .modal-close {
-  background: transparent;
-  border: none;
-  font-size: 1.5rem;
-  line-height: 1;
-  color: #94a3b8;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  padding: 0.35rem 0.5rem;
-  border-radius: var(--radius-sm, 6px);
+  font-size: 1.35rem;
+  line-height: 1;
   transition: all 0.15s ease;
+  outline: none;
 }
 
 .modal-close:hover {
-  color: #0f172a;
-  background: #e2e8f0;
+  background: #fee2e2;
+  border-color: #fecaca;
+  color: #dc2626;
 }
 
 .modal-body {
-  padding: 1.5rem 1.75rem;
+  padding: 1.25rem 1.5rem;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  flex: 1 1 auto;
 }
 
 .modal-footer {
@@ -314,9 +325,78 @@ legend { font-family: var(--font-display); font-weight: 650; color: var(--color-
   justify-content: flex-end;
   align-items: center;
   gap: 0.75rem;
-  margin-top: 1.5rem;
-  padding-top: 1rem;
+  padding: 1rem 1.5rem;
+  background: #fafbfd;
   border-top: 1px solid var(--color-border, #e2e8f0);
+  flex-shrink: 0;
+  margin-top: 0;
+}
+
+/* Upload Dropzone & Button Styling */
+.upload-dropzone {
+  border: 2px dashed #cbd5e1;
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  background: #f8fafc;
+  text-align: center;
+  transition: all 0.2s ease;
+  margin-top: 0.35rem;
+}
+
+.upload-dropzone:hover, .upload-dropzone.is-dragover {
+  border-color: #0284c7;
+  background: #f0f9ff;
+}
+
+.upload-btn-group {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 0.4rem;
+}
+
+.upload-picker-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.85rem;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.upload-picker-btn:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+.upload-picker-btn.btn-folder {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #166534;
+}
+
+.upload-picker-btn.btn-folder:hover {
+  background: #dcfce7;
+  border-color: #86efac;
+}
+
+.upload-status-box {
+  margin-top: 0.6rem;
+  padding: 0.5rem 0.75rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  text-align: left;
+  display: none;
 }
 
 @media (max-width: 640px) {
@@ -326,8 +406,9 @@ legend { font-family: var(--font-display); font-weight: 650; color: var(--color-
     border-radius: 10px;
   }
   .modal-header,
-  .modal-body {
-    padding: 1rem 1.15rem;
+  .modal-body,
+  .modal-footer {
+    padding: 0.85rem 1rem;
   }
   .modal-title {
     font-size: 1.1rem;

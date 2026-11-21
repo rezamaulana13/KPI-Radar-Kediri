@@ -4,6 +4,7 @@ import PublicLayout from "../../layouts/PublicLayout.astro";
 import ListPage from "../../components/ui/ListPage.astro";
 import StatCard from "../../components/dashboard/StatCard.astro";
 import Alert from "../../components/ui/Alert.astro";
+import ProofUploader from "../../components/ui/ProofUploader.astro";
 import { db, employeeName, client, offerOutcome, progressOf, visibleEmployeeIds } from "../../lib/data/store";
 import { rupiah, num } from "../../lib/formatters";
 import { takeFormState } from "../../lib/utils/flash";
@@ -129,70 +130,79 @@ const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
           </div>
           <button type="button" class="modal-close" onclick="this.closest('dialog').close()">&times;</button>
         </div>
-        <form method="post" action="/api/activities" class="modal-body">
+        <form method="post" action="/api/activities" style="display: flex; flex-direction: column; flex: 1; overflow: hidden; margin: 0;">
           <input type="hidden" name="type" value="offer" />
           <input type="hidden" name="ownerId" value={u.id} />
           <input type="hidden" name="redirectTo" value="/marketing/offers" />
 
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
-            <div class="field">
-              <label class="form-label" for="offer-date">Tanggal Proposal <span class="req">*</span></label>
-              <input type="date" id="offer-date" name="date" class="form-control" value={today} max={today} required />
-              <span class="form-hint">Tanggal berkas proposal diserahkan</span>
+          <div class="modal-body">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+              <div class="field">
+                <label class="form-label" for="offer-date">Tanggal Proposal <span class="req">*</span></label>
+                <input type="date" id="offer-date" name="date" class="form-control" value={today} max={today} required />
+                <span class="form-hint">Tanggal berkas proposal diserahkan</span>
+              </div>
+              <div class="field">
+                <label class="form-label" for="offer-client">Pilih Mitra / Klien <span class="req">*</span></label>
+                <select id="offer-client" name="clientId" class="form-control" required>
+                  <option value="">-- Pilih Klien Terdaftar --</option>
+                  {availableClients.map((c) => (
+                    <option value={c.id}>{c.name} ({c.city})</option>
+                  ))}
+                </select>
+                <span class="form-hint">Klien penerima penawaran</span>
+              </div>
             </div>
-            <div class="field">
-              <label class="form-label" for="offer-client">Pilih Mitra / Klien <span class="req">*</span></label>
-              <select id="offer-client" name="clientId" class="form-control" required>
-                <option value="">-- Pilih Klien Terdaftar --</option>
-                {availableClients.map((c) => (
-                  <option value={c.id}>{c.name} ({c.city})</option>
-                ))}
-              </select>
-              <span class="form-hint">Klien penerima penawaran</span>
-            </div>
-          </div>
 
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
-            <div class="field">
-              <label class="form-label" for="offer-program">Nama Program / Paket Iklan <span class="req">*</span></label>
-              <input type="text" id="offer-program" name="programName" class="form-control" placeholder="Contoh: Paket Display HUT 1 Halaman Full Color" required />
-              <span class="form-hint">Paket atau edisi tayang</span>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+              <div class="field">
+                <label class="form-label" for="offer-program">Nama Program / Paket Iklan <span class="req">*</span></label>
+                <input type="text" id="offer-program" name="programName" class="form-control" placeholder="Contoh: Paket Display HUT 1 Halaman Full Color" required />
+                <span class="form-hint">Paket atau edisi tayang</span>
+              </div>
+              <div class="field">
+                <label class="form-label" for="offer-partnership">Jenis Kerja Sama <span class="req">*</span></label>
+                <select id="offer-partnership" name="partnershipType" class="form-control" required>
+                  <option value="tunai" selected>Tunai (Kas Uang Masuk)</option>
+                  <option value="barter">Barter (Barang / Jasa)</option>
+                  <option value="hybrid">Hybrid (Kombinasi Kas + Barter)</option>
+                </select>
+                <span class="form-hint">Bentuk kompensasi transaksi</span>
+              </div>
             </div>
-            <div class="field">
-              <label class="form-label" for="offer-partnership">Jenis Kerja Sama <span class="req">*</span></label>
-              <select id="offer-partnership" name="partnershipType" class="form-control" required>
-                <option value="tunai" selected>Tunai (Kas Uang Masuk)</option>
-                <option value="barter">Barter (Barang / Jasa)</option>
-                <option value="hybrid">Hybrid (Kombinasi Kas + Barter)</option>
-              </select>
-              <span class="form-hint">Bentuk kompensasi transaksi</span>
-            </div>
-          </div>
 
-          <!-- Nilai Transaksi -->
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
-            <div class="field" id="wrap-cash">
-              <label class="form-label" for="offer-cash">Nilai Kas Tunai (Rp) <span class="req">*</span></label>
-              <input type="number" id="offer-cash" name="cashValue" class="form-control" min="0" placeholder="Contoh: 15000000" />
-              <span class="form-hint">Nominal transfer / kas masuk</span>
+            <!-- Nilai Transaksi -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+              <div class="field" id="wrap-cash">
+                <label class="form-label" for="offer-cash">Nilai Kas Tunai (Rp) <span class="req">*</span></label>
+                <input type="number" id="offer-cash" name="cashValue" class="form-control" min="0" placeholder="Contoh: 15000000" />
+                <span class="form-hint">Nominal transfer / kas masuk</span>
+              </div>
+              <div class="field" id="wrap-barter" style="display: none;">
+                <label class="form-label" for="offer-barter">Nilai Valuasi Barter (Rp)</label>
+                <input type="number" id="offer-barter" name="barterValue" class="form-control" min="0" placeholder="Contoh: 5000000" />
+                <span class="form-hint">Nilai ekuivalen barang/jasa</span>
+              </div>
             </div>
-            <div class="field" id="wrap-barter" style="display: none;">
-              <label class="form-label" for="offer-barter">Nilai Valuasi Barter (Rp)</label>
-              <input type="number" id="offer-barter" name="barterValue" class="form-control" min="0" placeholder="Contoh: 5000000" />
-              <span class="form-hint">Nilai ekuivalen barang/jasa</span>
+
+            <div class="field" id="wrap-barter-desc" style="display: none; margin-bottom: 1rem;">
+              <label class="form-label" for="offer-barter-desc">Rincian Komoditas / Jasa Barter <span class="req">*</span></label>
+              <textarea id="offer-barter-desc" name="barterDesc" class="form-control" rows="2" placeholder="Contoh: Voucher penginapan hotel 10 kamar x 2 malam untuk reward pembaca Radar Kediri..."></textarea>
+              <span class="form-hint">Spesifikasi barang/jasa barter yang disepakati</span>
             </div>
-          </div>
 
-          <div class="field" id="wrap-barter-desc" style="display: none; margin-bottom: 1rem;">
-            <label class="form-label" for="offer-barter-desc">Rincian Komoditas / Jasa Barter <span class="req">*</span></label>
-            <textarea id="offer-barter-desc" name="barterDesc" class="form-control" rows="2" placeholder="Contoh: Voucher penginapan hotel 10 kamar x 2 malam untuk reward pembaca Radar Kediri..."></textarea>
-            <span class="form-hint">Spesifikasi barang/jasa barter yang disepakati</span>
-          </div>
+            <div class="field" style="margin-bottom: 1rem;">
+              <label class="form-label" for="offer-desc">Deskripsi Proposal / Catatan Negosiasi <span class="req">*</span></label>
+              <textarea id="offer-desc" name="description" class="form-control" rows="3" placeholder="Jelaskan isi proposal penawaran, paket halaman, dan poin-poin penting kesepakatan (minimal 10 karakter)..." required></textarea>
+              <span class="form-hint">Data ini diperlukan HRD untuk validasi pengajuan proposal</span>
+            </div>
 
-          <div class="field" style="margin-bottom: 1.25rem;">
-            <label class="form-label" for="offer-desc">Deskripsi Proposal / Catatan Negosiasi <span class="req">*</span></label>
-            <textarea id="offer-desc" name="description" class="form-control" rows="3" placeholder="Jelaskan isi proposal penawaran, paket halaman, dan poin-poin penting kesepakatan (minimal 10 karakter)..." required></textarea>
-            <span class="form-hint">Data ini diperlukan HRD untuk validasi pengajuan proposal</span>
+            <!-- Upload File / Folder Bukti Proposal -->
+            <ProofUploader
+              id="offer"
+              label="Draft Berkas Proposal / Surat Penawaran / MoU"
+              hint="Unggah berkas PDF proposal penawaran, scan surat resmi, atau satu folder berkas lampiran pendukung."
+            />
           </div>
 
           <div class="modal-footer">

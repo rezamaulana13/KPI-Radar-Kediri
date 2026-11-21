@@ -3,7 +3,7 @@ import { noReasonCategories, oplahSources, progressTypes } from "../../lib/data/
 
 const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Tanggal wajib diisi.");
 const desc = z.string().trim().min(10, "Deskripsi minimal 10 karakter agar dapat diverifikasi.");
-const base = { ownerId: z.string().min(1, "Pemilik aktivitas wajib dipilih."), date, description: desc };
+const base = { ownerId: z.string().min(1, "Pemilik aktivitas wajib dipilih."), date, description: desc, proofUrl: z.string().trim().optional() };
 const money = z.coerce.number({ error: "Isi dengan angka." }).positive("Nilai harus lebih dari 0.");
 
 export const activitySchema = z.discriminatedUnion("type", [

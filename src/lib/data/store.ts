@@ -80,6 +80,7 @@ export function createActivity(actor: Viewer, input: Record<string, any>): Resul
   const a: T.Activity = {
     id: nextId("ACT"), type: input.type, ownerId: owner.id, createdBy: actor.id, date: input.date, periodId: p.id,
     description: input.description, status: "pending", createdAt: new Date().toISOString(),
+    proofUrl: input.proofUrl || "",
   };
   const detail = `${a.id} (${a.type}) dibuat oleh ${employeeName(actor.id)} untuk ${owner.name}.`;
   switch (input.type) {
