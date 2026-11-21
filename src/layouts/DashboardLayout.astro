@@ -20,6 +20,7 @@ const user = Astro.locals.user;
     <ClientRouter />
   </head>
   <body>
+    <div id="page-progress-bar" class="nav-loading-bar" aria-hidden="true"></div>
     <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-hidden="true" />
     <div class="app">
       <Sidebar /><Topbar />
@@ -45,6 +46,20 @@ const user = Astro.locals.user;
           };
         }
       }
+      document.addEventListener("astro:before-preparation", () => {
+        const bar = document.getElementById("page-progress-bar");
+        if (bar) {
+          bar.classList.remove("is-done");
+          bar.classList.add("is-loading");
+        }
+      });
+      document.addEventListener("astro:page-load", () => {
+        const bar = document.getElementById("page-progress-bar");
+        if (bar) {
+          bar.classList.add("is-done");
+          setTimeout(() => bar.classList.remove("is-loading", "is-done"), 200);
+        }
+      });
       document.addEventListener("astro:page-load", initDashboardScripts);
       initDashboardScripts();
     </script>

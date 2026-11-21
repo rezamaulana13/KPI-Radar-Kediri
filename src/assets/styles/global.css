@@ -132,6 +132,31 @@ legend { font-family: var(--font-display); font-weight: 650; color: var(--color-
 .tabs a[aria-current="page"] { color: var(--color-primary-900); border-bottom-color: var(--color-primary-700); }
 .toast { position: fixed; right: var(--space-4); bottom: var(--space-4); z-index: 60; max-width: 24rem; }
 
+/* Progress Bar Indikator Navigasi Instan */
+.nav-loading-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3.5px;
+  width: 0%;
+  background: linear-gradient(90deg, #2563eb 0%, #38bdf8 100%);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.7);
+  z-index: 99999;
+  transition: width 0.2s ease, opacity 0.2s ease;
+  pointer-events: none;
+  opacity: 0;
+}
+.nav-loading-bar.is-loading {
+  opacity: 1;
+  width: 75%;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.nav-loading-bar.is-done {
+  opacity: 1;
+  width: 100%;
+  transition: width 0.1s ease;
+}
+
 /* Wadah konten halaman yang memakai PublicLayout (Landing Page Style untuk Karyawan) */
 .pub-page-container {
   max-width: 80rem;

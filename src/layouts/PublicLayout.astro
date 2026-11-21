@@ -586,6 +586,7 @@ if (user) {
     </style>
   </head>
   <body style="background: var(--color-page); margin: 0; min-height: 100vh; display: flex; flex-direction: column;">
+    <div id="page-progress-bar" class="nav-loading-bar" aria-hidden="true"></div>
     <!-- Public Navbar -->
     <header class="pub-navbar">
       <div class="pub-nav-container">
@@ -1036,6 +1037,20 @@ if (user) {
         }
       }
 
+      document.addEventListener("astro:before-preparation", () => {
+        const bar = document.getElementById("page-progress-bar");
+        if (bar) {
+          bar.classList.remove("is-done");
+          bar.classList.add("is-loading");
+        }
+      });
+      document.addEventListener("astro:page-load", () => {
+        const bar = document.getElementById("page-progress-bar");
+        if (bar) {
+          bar.classList.add("is-done");
+          setTimeout(() => bar.classList.remove("is-loading", "is-done"), 200);
+        }
+      });
       document.addEventListener("astro:page-load", initPublicLayoutScripts);
       initPublicLayoutScripts();
     </script>

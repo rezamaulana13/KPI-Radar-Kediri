@@ -8,6 +8,6 @@ export default defineConfig({
   security: { checkOrigin: true },
   prefetch: {
     prefetchAll: true,
-    defaultStrategy: "hover",
+    defaultStrategy: "viewport",
   },
 });
