@@ -353,53 +353,142 @@ const formatVal = (val: number | null | undefined, unit: string) => {
       )}
     </div>
 
-    {/* BAGIAN 2: DETAIL INFORMASI KEPEGAWAIAN & INTEGRASI AKUN */}
+    {/* BAGIAN 2: PENGATURAN PROFIL & DATA KEPEGAWAIAN RESMI */}
     <div style="margin-top: 2rem;">
       <div class="section-title-wrap">
         <div>
-          <h2 class="section-main-title">Informasi Pegawai &amp; Keamanan Akun</h2>
-          <p class="section-sub-title">Kelola data kepegawaian dan pengaturan akses masuk satu pintu.</p>
+          <h2 class="section-main-title">Pengaturan Profil &amp; Data Kepegawaian</h2>
+          <p class="section-sub-title">Perbarui nama lengkap, alamat email, atau kata sandi Anda. Data jabatan dan NIP dikunci untuk integritas sistem.</p>
         </div>
       </div>
 
-      <div class="grid-3-1" style="margin-top: 1rem;">
-        <section class="card"><div class="card-body">
-          <h3 class="mb-3 text-base font-bold">Identitas Pegawai</h3>
-          <dl class="kv">
-            <dt>Nama Lengkap</dt><dd>{e.name}</dd>
-            <dt>NIP</dt><dd class="mono">{e.nip}</dd>
-            <dt>Email Perusahaan</dt><dd>{e.email}</dd>
-            <dt>Peran Pengguna</dt><dd><span class="badge badge-neutral">{ROLE_LABEL[u.role]}</span></dd>
-            <dt>Divisi Penempatan</dt><dd>{divisionName(e.divisionId)}</dd>
-            <dt>Jabatan Operasional</dt><dd>{positionName(e.positionId)}</dd>
-            <dt>Atasan Langsung</dt><dd>{e.supervisorId ? employeeName(e.supervisorId) : "—"}</dd>
-            <dt>Login Terakhir</dt><dd>{dateTimeID(e.lastLogin)}</dd>
-          </dl>
-        </div></section>
-
-        <section class="card"><div class="card-body">
-          <h3 class="mb-3 text-base font-bold">Integrasi &amp; Akses Masuk</h3>
-          <p class="text-xs muted mb-3">Tautkan akun Google resmi untuk masuk ke SIMOKP tanpa perlu mengingat kata sandi.</p>
-          
-          <div class="stack">
-            <div style="border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: var(--space-3); background: #fafafa">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.5rem">
-                <strong>Google OAuth</strong>
-                <span class="badge badge-approved" style="font-size:0.75rem;">Aktif</span>
-              </div>
-              <p class="text-xs muted mb-3">Masuk lebih praktis dan aman dengan akun Google yang terdaftar.</p>
-              <a class="btn-google" href="/api/auth/link-google" style="font-size: 0.82rem; padding: 0.45rem 0.75rem; display:inline-flex; align-items:center; gap:0.5rem; text-decoration:none;">
-                <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-                </svg>
-                Hubungkan Akun Google
-              </a>
+      <div class="grid-profile-settings" style="margin-top: 1rem;">
+        {/* Kolom Kiri: Formulir Edit Profil (Bisa Diubah: Nama, Email, Password) */}
+        <section class="card edit-profile-card">
+          <div class="card-head" style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <h3 style="font-size:1.05rem; margin:0; font-weight:700;">Ubah Data Profil &amp; Kata Sandi</h3>
+              <p class="muted text-xs" style="margin:0.2rem 0 0;">Perubahan langsung tersimpan ke database dan diperbarui realtime di seluruh sistem.</p>
             </div>
+            <span class="badge badge-info" style="font-size:0.75rem;">Dapat Diubah</span>
           </div>
-        </div></section>
+          <div class="card-body">
+            <form method="post" action="/api/profile/update" class="stack" style="gap: 1.15rem;">
+              <div class="form-group">
+                <label for="field-name" class="form-label font-bold text-sm">
+                  Nama Lengkap <span style="color: #ef4444;">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="field-name"
+                  name="name"
+                  value={e.name}
+                  required
+                  minlength="2"
+                  class="form-control"
+                  placeholder="Contoh: Nama Lengkap Anda"
+                />
+                <span class="text-xs muted" style="margin-top: 0.25rem; display: block;">
+                  Nama resmi yang tercantum pada rapor KPI, kwitansi, dan verifikasi berkas.
+                </span>
+              </div>
+
+              <div class="form-group">
+                <label for="field-email" class="form-label font-bold text-sm">
+                  Alamat Email Akun <span style="color: #ef4444;">*</span>
+                </label>
+                <input
+                  type="email"
+                  id="field-email"
+                  name="email"
+                  value={e.email}
+                  required
+                  class="form-control"
+                  placeholder="nama@radarkediri.example"
+                />
+                <span class="text-xs muted" style="margin-top: 0.25rem; display: block;">
+                  Email aktif yang digunakan untuk masuk ke sistem SIMOKP.
+                </span>
+              </div>
+
+              <div class="divider-form">
+                <span>Keamanan Kata Sandi</span>
+              </div>
+
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label for="field-password" class="form-label font-bold text-sm">
+                    Kata Sandi Baru (Opsional)
+                  </label>
+                  <input
+                    type="password"
+                    id="field-password"
+                    name="password"
+                    minlength="6"
+                    class="form-control"
+                    placeholder="Kosongkan jika tidak diubah"
+                    autocomplete="new-password"
+                  />
+                  <span class="text-xs muted" style="margin-top: 0.25rem; display: block;">
+                    Minimal 6 karakter.
+                  </span>
+                </div>
+
+                <div class="form-group">
+                  <label for="field-confirm" class="form-label font-bold text-sm">
+                    Konfirmasi Kata Sandi Baru
+                  </label>
+                  <input
+                    type="password"
+                    id="field-confirm"
+                    name="confirmPassword"
+                    minlength="6"
+                    class="form-control"
+                    placeholder="Ketik ulang kata sandi baru"
+                    autocomplete="new-password"
+                  />
+                  <span class="text-xs muted" style="margin-top: 0.25rem; display: block;">
+                    Harus sama dengan sandi baru di samping.
+                  </span>
+                </div>
+              </div>
+
+              <div style="display:flex; justify-content:flex-end; gap:0.75rem; margin-top:0.5rem; padding-top:1rem; border-top:1px solid #e2e8f0;">
+                <button type="submit" class="btn btn-primary" style="padding:0.6rem 1.4rem;">
+                  <Icon name="check" size={16} />
+                  <span>Simpan Perubahan Profil</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        {/* Kolom Kanan: Data Kepegawaian Resmi (Terkunci / Read-Only) */}
+        <section class="card locked-profile-card">
+          <div class="card-head" style="display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="font-size:1.05rem; margin:0; font-weight:700;">Data Penempatan Resmi</h3>
+            <span class="badge badge-locked" style="font-size:0.75rem;">🔒 Terkunci HRD</span>
+          </div>
+          <div class="card-body">
+            <p class="text-xs muted mb-3" style="line-height:1.45;">
+              Informasi di bawah ini dikunci secara otomatis oleh sistem. Perubahan NIP, divisi, atau jabatan operasional hanya dapat diproses melalui Super Admin / HRD.
+            </p>
+            <dl class="kv locked-kv">
+              <dt>Nomor Induk (NIP)</dt>
+              <dd class="mono font-bold" style="color:var(--color-primary-900);">{e.nip}</dd>
+              <dt>Peran Pengguna</dt>
+              <dd><span class="badge badge-neutral">{ROLE_LABEL[u.role]}</span></dd>
+              <dt>Unit Divisi</dt>
+              <dd>{divisionName(e.divisionId)}</dd>
+              <dt>Jabatan Operasional</dt>
+              <dd>{positionName(e.positionId)}</dd>
+              <dt>Atasan Langsung</dt>
+              <dd>{e.supervisorId ? employeeName(e.supervisorId) : "—"}</dd>
+              <dt>Login Terakhir</dt>
+              <dd>{dateTimeID(e.lastLogin)}</dd>
+            </dl>
+          </div>
+        </section>
       </div>
     </div>
   </div>
@@ -718,6 +807,89 @@ const formatVal = (val: number | null | undefined, unit: string) => {
     font-size: 0.68rem;
     font-weight: 600;
     white-space: nowrap;
+  }
+
+  /* Form Edit Profil & Locked Info */
+  .grid-profile-settings {
+    display: grid;
+    grid-template-columns: minmax(0, 1.8fr) minmax(0, 1.2fr);
+    gap: var(--space-4);
+  }
+  @media (max-width: 900px) {
+    .grid-profile-settings {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+  }
+  .form-label {
+    margin-bottom: 0.35rem;
+    color: var(--color-primary-900);
+    font-size: var(--text-xs);
+  }
+  .form-control {
+    width: 100%;
+    padding: 0.55rem 0.85rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-sm);
+    background: #ffffff;
+    color: var(--color-text);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    box-sizing: border-box;
+  }
+  .form-control:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  }
+
+  .form-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-3);
+  }
+  @media (max-width: 600px) {
+    .form-row-2 {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .divider-form {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0.5rem 0;
+    color: var(--color-muted);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .divider-form::before,
+  .divider-form::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: #e2e8f0;
+  }
+
+  .badge-locked {
+    background: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+    font-weight: 600;
+  }
+  .locked-kv dt {
+    font-size: var(--text-xs);
+    color: var(--color-muted);
+  }
+  .locked-kv dd {
+    font-size: var(--text-sm);
+    font-weight: 600;
   }
 
   @media print {

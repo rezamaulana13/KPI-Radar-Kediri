@@ -438,7 +438,51 @@ export async function syncUpdateEmployee(
   }
 }
 
-// 9. PAKSA MUAT ULANG DATA DARI SUPABASE (RE-HYDRATE)
+// 9. SINKRONISASI UPDATE PROFIL USER (NAMA, EMAIL, PASSWORD) REALTIME
+export async function syncUpdateUserProfile(
+  userId: string,
+  data: { name: string; email: string; password?: string }
+): Promise<{ ok: boolean; error?: string }> {
+  const supabase = createSupabaseAdminClient();
+  if (!supabase || !isValidUUID(userId)) {
+    return { ok: true };
+  }
+
+  try {
+    // 1. Update tabel public.users
+    const { error: dbError } = await supabase
+      .from("users")
+      .update({ name: data.name, email: data.email })
+      .eq("id", userId);
+
+    if (dbError) {
+      console.error("[Supabase Sync] Gagal update tabel users:", dbError.message);
+      return { ok: false, error: dbError.message };
+    }
+
+    // 2. Update akun auth Supabase (email, password baru, user_metadata)
+    const authPatch: Record<string, any> = {
+      email: data.email,
+      user_metadata: { name: data.name, full_name: data.name },
+    };
+    if (data.password && data.password.trim().length >= 6) {
+      authPatch.password = data.password.trim();
+    }
+
+    const { error: authError } = await supabase.auth.admin.updateUserById(userId, authPatch);
+    if (authError) {
+      console.warn("[Supabase Sync] Catatan auth update:", authError.message);
+    }
+
+    console.log(`[Supabase Sync] Profil pengguna ${userId} (${data.name}) berhasil disinkronkan ke Supabase.`);
+    return { ok: true };
+  } catch (err: any) {
+    console.error("[Supabase Sync] Exception saat update user profile:", err);
+    return { ok: false, error: err.message };
+  }
+}
+
+// 10. PAKSA MUAT ULANG DATA DARI SUPABASE (RE-HYDRATE)
 export async function forceRehydrate(): Promise<void> {
   hasHydrated = false;
   await hydrateFromSupabase();

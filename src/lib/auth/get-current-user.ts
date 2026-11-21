@@ -17,6 +17,19 @@ interface CachedSession {
 }
 const sessionCache = new Map<string, CachedSession>();
 
+/** Menghapus cache sesi saat ada pembaruan profil atau logout */
+export function clearSessionCache(userId?: string) {
+  if (userId) {
+    for (const [key, val] of sessionCache.entries()) {
+      if (val.user?.id === userId) {
+        sessionCache.delete(key);
+      }
+    }
+  } else {
+    sessionCache.clear();
+  }
+}
+
 /** Peran SELALU dibaca dari data server/database, tidak dari metadata browser (PRD §4.1). */
 export async function getCurrentUser(ctx: { request: Request; cookies: AstroCookies }): Promise<SessionUser | null> {
   // 1. Cek mode demo terlebih dahulu (sangat cepat, 0ms)
