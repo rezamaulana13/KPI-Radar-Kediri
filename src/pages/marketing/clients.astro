@@ -36,9 +36,9 @@ const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
     )}
 
     <ListPage
-      title="Database Klien &amp; Mitra"
+      title="Database Klien & Mitra"
       description="Daftar client instansi pemerintah (OPD), swasta, dan calon client Marketing Jawa Pos Radar Kediri."
-      crumbs={[{ label: "Beranda", href: "/" }, { label: "Klien" }]}
+      crumbs={[{ label: "Modul Marketing", href: "/modul-marketing" }]}
       rows={rows}
       searchKeys={["name", "sector", "contact", "city"]}
       filters={[{ name: "sector", label: "Sektor", options: [...new Set(db.clients.map((c) => c.sector))].map((s) => ({ value: s, label: s })) }]}

@@ -1,9 +1,42 @@
 ---
 import Breadcrumbs from "./Breadcrumbs.astro";
-const { title, description, crumbs = [] } = Astro.props as { title: string; description?: string; crumbs?: { label: string; href?: string }[] };
+
+const { title, description, crumbs = [] } = Astro.props as {
+  title: string;
+  description?: string;
+  crumbs?: { label: string; href?: string }[];
+};
+
+const user = Astro.locals.user;
+const homeHref = user?.role === "employee" ? "/" : "/dashboard";
+const cleanTitle = title.replace(/&amp;/g, "&");
+
+// Normalisasi remah roti agar tidak terjadi duplikasi "Beranda" atau judul halaman
+const items: { label: string; href?: string }[] = [];
+
+// Jika item pertama di crumbs belum berupa "Beranda" atau "Dasbor", tambahkan Beranda
+const hasHome = crumbs.length > 0 && (crumbs[0].label.toLowerCase() === "beranda" || crumbs[0].label.toLowerCase() === "dasbor");
+if (!hasHome) {
+  items.push({ label: "Beranda", href: homeHref });
+}
+
+// Tambahkan crumbs yang diteruskan dengan membersihkan duplikasi berturut-turut
+for (const c of crumbs) {
+  const last = items[items.length - 1];
+  const label = c.label.replace(/&amp;/g, "&");
+  if (!last || last.label.toLowerCase() !== label.toLowerCase()) {
+    items.push({ label, href: c.href });
+  }
+}
+
+// Tambahkan judul halaman jika belum ada di akhir remah roti
+const lastItem = items[items.length - 1];
+if (!lastItem || lastItem.label.toLowerCase() !== cleanTitle.toLowerCase()) {
+  items.push({ label: cleanTitle });
+}
 ---
-<Breadcrumbs items={[{ label: "Beranda", href: "/dashboard" }, ...crumbs, { label: title }]} />
+<Breadcrumbs items={items} />
 <header class="page-header">
-  <div><h1>{title}</h1>{description && <p>{description}</p>}</div>
+  <div><h1>{cleanTitle}</h1>{description && <p>{description}</p>}</div>
   <div class="row"><slot name="actions" /></div>
 </header>

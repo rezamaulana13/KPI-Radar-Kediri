@@ -14,7 +14,7 @@ const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
 ---
 <Layout title="Profil Akun">
   <div class={u.role === "employee" ? "pub-page-container" : ""}>
-    <PageHeader title="Profil Saya" description="Data akun dan penempatan operasional Divisi Pemasaran Radar Kediri." crumbs={[{ label: "Beranda", href: "/" }, { label: "Profil" }]} />
+    <PageHeader title="Profil Saya" description="Data akun dan penempatan operasional Divisi Pemasaran Radar Kediri." crumbs={[]} />
 
     {info && <Alert tone="success" title="Informasi Akun">{info}</Alert>}
     {error && <Alert tone="danger" title="Terjadi Kendala">{error}</Alert>}

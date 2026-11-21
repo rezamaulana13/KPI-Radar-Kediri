@@ -47,7 +47,7 @@ const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
     <ListPage
       title="Riset Profiling Mitra"
       description="Hasil riset mendalam kebutuhan, potensi anggaran promosi, dan pemetaan stakeholder klien."
-      crumbs={[{ label: "Beranda", href: "/" }, { label: "Profiling" }]}
+      crumbs={[{ label: "Modul Marketing", href: "/modul-marketing" }]}
       rows={rows}
       searchKeys={["clientName", "description", "owner"]}
       filters={[{ name: "potential", label: "Potensi", options: ["Tinggi", "Sedang", "Rendah"].map((s) => ({ value: s, label: s })) }]}
