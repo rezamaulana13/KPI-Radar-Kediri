@@ -39,7 +39,18 @@ const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
     {st.error && (
       <div style="margin-bottom: 1.25rem;">
         <Alert tone="danger" title="Gagal Menyimpan Riset">
-          {st.error}
+          <div style="font-weight: 600; margin-bottom: 0.35rem;">{st.error}</div>
+          {Object.keys(st.fields || {}).length > 0 && (
+            <ul style="margin: 0.25rem 0 0 1.2rem; padding: 0; font-size: 0.85rem; line-height: 1.5;">
+              {Object.entries(st.fields).map(([field, msg]) => (
+                <li>
+                  <strong>
+                    {field === "description" ? "Hasil Riset / Deskripsi" : field === "clientId" ? "Mitra / Klien" : field === "date" ? "Tanggal" : field}:
+                  </strong> {msg}
+                </li>
+              ))}
+            </ul>
+          )}
         </Alert>
       </div>
     )}
@@ -94,35 +105,70 @@ const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
               <div class="field">
                 <label class="form-label" for="prof-date">Tanggal Riset <span class="req">*</span></label>
-                <input type="date" id="prof-date" name="date" class="form-control" value={today} max={today} required />
+                <input
+                  type="date"
+                  id="prof-date"
+                  name="date"
+                  class={`form-control ${st.fields?.date ? "is-invalid" : ""}`}
+                  value={st.values?.date || today}
+                  max={today}
+                  required
+                />
+                {st.fields?.date && (
+                  <span class="text-xs" style="color:#dc2626;font-weight:600;margin-top:0.25rem;display:block;">
+                    {st.fields.date}
+                  </span>
+                )}
                 <span class="form-hint">Tanggal observasi atau riset</span>
               </div>
               <div class="field">
                 <label class="form-label" for="prof-client">Pilih Mitra / Klien <span class="req">*</span></label>
-                <select id="prof-client" name="clientId" class="form-control" required>
+                <select
+                  id="prof-client"
+                  name="clientId"
+                  class={`form-control ${st.fields?.clientId ? "is-invalid" : ""}`}
+                  required
+                >
                   <option value="">-- Pilih Klien Terdaftar --</option>
                   {availableClients.map((c) => (
-                    <option value={c.id}>{c.name} ({c.city})</option>
+                    <option value={c.id} selected={st.values?.clientId === c.id}>{c.name} ({c.city})</option>
                   ))}
                 </select>
-                <span class="form-hint">Mitra yang diriset</span>
+                {st.fields?.clientId && (
+                  <span class="text-xs" style="color:#dc2626;font-weight:600;margin-top:0.25rem;display:block;">
+                    {st.fields.clientId}
+                  </span>
+                )}
+                <span class="form-hint">Mitra yang diriset (jika belum ada, daftarkan di menu Klien &amp; Mitra)</span>
               </div>
             </div>
 
             <div class="field" style="margin-bottom: 1rem;">
               <label class="form-label" for="prof-pot">Tingkat Potensi Kerja Sama <span class="req">*</span></label>
               <select id="prof-pot" name="potential" class="form-control" required>
-                <option value="Tinggi">Tinggi (Anggaran Besar / Momentum Dekat)</option>
-                <option value="Sedang" selected>Sedang (Anggaran Reguler)</option>
-                <option value="Rendah">Rendah (Eksplorasi Awal)</option>
+                <option value="Tinggi" selected={st.values?.potential === "Tinggi"}>Tinggi (Anggaran Besar / Momentum Dekat)</option>
+                <option value="Sedang" selected={st.values?.potential === "Sedang" || !st.values?.potential}>Sedang (Anggaran Reguler)</option>
+                <option value="Rendah" selected={st.values?.potential === "Rendah"}>Rendah (Eksplorasi Awal)</option>
               </select>
               <span class="form-hint">Klasifikasi peluang kesepakatan komersial</span>
             </div>
 
             <div class="field" style="margin-bottom: 1rem;">
               <label class="form-label" for="prof-desc">Hasil Riset &amp; Rekomendasi Pendekatan <span class="req">*</span></label>
-              <textarea id="prof-desc" name="description" class="form-control" rows="3" placeholder="Rangkuman profil lembaga, pemegang keputusan anggaran, event terdekat yang bisa didanai, dan format pendekatan (minimal 10 karakter)..." required></textarea>
-              <span class="form-hint">Data ini diperlukan HRD untuk verifikasi ketercapaian riset</span>
+              <textarea
+                id="prof-desc"
+                name="description"
+                class={`form-control ${st.fields?.description ? "is-invalid" : ""}`}
+                rows="3"
+                placeholder="Rangkuman profil lembaga, pemegang keputusan anggaran, event terdekat yang bisa didanai, dan format pendekatan..."
+                required
+              >{st.values?.description || ""}</textarea>
+              {st.fields?.description && (
+                <span class="text-xs" style="color:#dc2626;font-weight:600;margin-top:0.25rem;display:block;">
+                  {st.fields.description}
+                </span>
+              )}
+              <span class="form-hint">Rincikan minimal 5 karakter agar dapat diverifikasi oleh HRD</span>
             </div>
 
             <!-- Upload File / Folder Bukti Riset -->
@@ -130,6 +176,7 @@ const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
               id="profiling"
               label="Dokumen Bahan Riset / Foto Bukti Observasi"
               hint="Unggah dokumen profil anggaran, kliping berita, foto audiensi awal, atau folder hasil riset."
+              initialUrl={st.values?.proofUrl || ""}
             />
           </div>
 
@@ -144,8 +191,9 @@ const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
 </Layout>
 
 <script is:inline>
-  if (new URLSearchParams(window.location.search).get('action') === 'new') {
-    const dlg = document.getElementById('modal-input-profiling');
+  var urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('action') === 'new' || urlParams.get('retry') === '1') {
+    var dlg = document.getElementById('modal-input-profiling');
     if (dlg && typeof dlg.showModal === 'function') dlg.showModal();
   }
 </script>

@@ -30,7 +30,18 @@ const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
     {st.error && (
       <div style="margin-bottom: 1.25rem;">
         <Alert tone="danger" title="Gagal Menyimpan Data Klien">
-          {st.error}
+          <div style="font-weight: 600; margin-bottom: 0.35rem;">{st.error}</div>
+          {Object.keys(st.fields || {}).length > 0 && (
+            <ul style="margin: 0.25rem 0 0 1.2rem; padding: 0; font-size: 0.85rem; line-height: 1.5;">
+              {Object.entries(st.fields).map(([field, msg]) => (
+                <li>
+                  <strong>
+                    {field === "clientName" ? "Nama Klien / Lembaga" : field === "contact" ? "Nama Kontak PIC" : field === "phone" ? "Nomor Telepon" : field === "sector" ? "Sektor" : field === "city" ? "Kota/Wilayah" : field}:
+                  </strong> {msg}
+                </li>
+              ))}
+            </ul>
+          )}
         </Alert>
       </div>
     )}
@@ -147,7 +158,8 @@ const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
 </Layout>
 
 <script is:inline>
-  if (new URLSearchParams(window.location.search).get('action') === 'new') {
+  var urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('action') === 'new' || urlParams.get('retry') === '1') {
     const dlg = document.getElementById('modal-input-client');
     if (dlg && typeof dlg.showModal === 'function') dlg.showModal();
   }
