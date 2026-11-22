@@ -5,7 +5,7 @@ import Badge from "../components/ui/Badge.astro";
 import Alert from "../components/ui/Alert.astro";
 import PeriodFilter from "../components/ui/PeriodFilter.astro";
 import { db, activePeriod, activitiesFor, employee, divisionName, positionName, historyOf } from "../lib/data/store";
-import { achievements, ensureEmployeeTargets } from "../features/kpi/achievements";
+import { achievements, ensureEmployeeTargets, contribution } from "../features/kpi/achievements";
 import { selectedPeriod } from "../lib/utils/period";
 import { dateID, num, rupiah, TYPE_LABEL, STATUS_LABEL } from "../lib/formatters";
 
@@ -398,6 +398,9 @@ function getActionLink(indicator: { id?: string; code?: string; name?: string })
                   const statusBadgeBg = isSuccess ? "#d1fae5" : pctVal > 0 ? "#e0f2fe" : "#f1f5f9";
                   const statusBadgeColor = isSuccess ? "#065f46" : pctVal > 0 ? "#0284c7" : "#64748b";
                   const action = getActionLink(r.indicator);
+                  const myContrib = approvedActs
+                    .filter((a) => contribution(a, r.indicator.id) !== null)
+                    .reduce((s, a) => s + (contribution(a, r.indicator.id) ?? 0), 0);
 
                   return (
                     <tr>
@@ -405,7 +408,14 @@ function getActionLink(indicator: { id?: string; code?: string; name?: string })
                       <td class="font-bold">{r.indicator.name}</td>
                       <td><span class="badge-unit">{r.indicator.unit}</span></td>
                       <td style="text-align: right; font-weight: 600;">{formatVal(r.target.value, r.indicator.unit)}</td>
-                      <td style="text-align: right; font-weight: 700; color: var(--color-primary-900);">{formatVal(r.actual, r.indicator.unit)}</td>
+                      <td style="text-align: right;">
+                        <div style="font-weight: 700; color: var(--color-primary-900);">{formatVal(r.actual, r.indicator.unit)}</div>
+                        {myContrib > 0 && (
+                          <div style="font-size: 0.72rem; color: #0284c7; font-weight: 600; margin-top: 0.15rem; background: #e0f2fe; padding: 0.1rem 0.35rem; border-radius: 4px; display: inline-block;">
+                            Kontribusi Anda: {formatVal(myContrib, r.indicator.unit)}
+                          </div>
+                        )}
+                      </td>
                       <td>
                         <div class="meter-wrapper">
                           <div class="meter-track">

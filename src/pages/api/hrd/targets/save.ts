@@ -14,11 +14,78 @@ export const POST: APIRoute = async ({ request, locals, redirect }) => {
   const periodId = fd.get("periodId")?.toString();
   const indicatorId = fd.get("indicatorId")?.toString();
   const targetValue = Number(fd.get("value"));
-  const scope = (fd.get("scope")?.toString() || "division") as KpiScope;
+  const scope = (fd.get("scope")?.toString() || "division") as KpiScope | "distribute_all";
   const employeeId = fd.get("employeeId")?.toString() || undefined;
 
   if (!periodId || !indicatorId || isNaN(targetValue) || targetValue <= 0) {
     return redirect(`/hrd/kpi/targets?error=invalid_input`);
+  }
+
+  const ind = indicator(indicatorId);
+  const indName = ind?.name ?? indicatorId;
+
+  // MODEL 1: DISTRIBUSI PROPORSIONAL / BAGI RATA TARGET TIM KE SELURUH ANGGOTA DIVISI
+  if (scope === "distribute_all") {
+    const staffEmployees = db.employees.filter((e) => e.role === "employee");
+    const staffCount = staffEmployees.length || 1;
+    const quotaPerPerson = Math.max(1, Math.round(targetValue / staffCount));
+
+    // 1. Tetapkan/Perbarui Target Kolektif Divisi
+    let divTarget = db.targets.find(
+      (t) => t.periodId === periodId && t.indicatorId === indicatorId && (t.scope === "division" || t.scope === "company")
+    );
+    if (divTarget) {
+      divTarget.value = targetValue;
+      await syncSaveTarget(divTarget);
+    } else {
+      divTarget = {
+        id: `TG-DIV-${Date.now().toString().slice(-4)}`,
+        indicatorId,
+        periodId,
+        scope: "division",
+        divisionId: "DIV-MKT",
+        value: targetValue,
+      };
+      db.targets.push(divTarget);
+      await syncSaveTarget(divTarget);
+    }
+
+    // 2. Bagikan kuota rata secara otomatis ke masing-masing dari seluruh staf
+    for (const emp of staffEmployees) {
+      let indTarget = db.targets.find(
+        (t) => t.periodId === periodId && t.indicatorId === indicatorId && t.scope === "individual" && t.employeeId === emp.id
+      );
+      if (indTarget) {
+        indTarget.value = quotaPerPerson;
+        await syncSaveTarget(indTarget);
+      } else {
+        indTarget = {
+          id: `TG-IND-${emp.id.slice(0, 4)}-${Date.now().toString().slice(-4)}`,
+          indicatorId,
+          periodId,
+          scope: "individual",
+          employeeId: emp.id,
+          value: quotaPerPerson,
+        };
+        db.targets.push(indTarget);
+        await syncSaveTarget(indTarget);
+      }
+    }
+
+    // Catat log audit
+    db.auditLogs.unshift({
+      id: `LOG-${Date.now()}`,
+      actorId: user.id,
+      action: "DISTRIBUTE_TARGET",
+      entity: "target",
+      entityId: divTarget.id,
+      detail: `Mendistribusikan target ${indName} total ${targetValue} rata ke ${staffCount} staf (masing-masing ${quotaPerPerson} ${ind?.unit ?? ''}) periode ${periodId}`,
+      at: new Date().toISOString(),
+    });
+
+    return redirect(
+      `/hrd/kpi/targets?period=${periodId}&distributed=1&saved=${encodeURIComponent(indName)}&val=${targetValue}&count=${staffCount}&quota=${quotaPerPerson}`
+    );
   }
 
   if (scope === "individual" && !employeeId) {
@@ -40,8 +107,6 @@ export const POST: APIRoute = async ({ request, locals, redirect }) => {
     });
   }
 
-  const ind = indicator(indicatorId);
-  const indName = ind?.name ?? indicatorId;
   const subjectName = scope === "individual" ? employeeName(employeeId) : "Divisi Pemasaran & Sirkulasi";
 
   if (existingIndex >= 0) {

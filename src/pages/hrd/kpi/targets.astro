@@ -15,6 +15,9 @@ const savedVal = Astro.url.searchParams.get("val");
 const savedFor = Astro.url.searchParams.get("for");
 const deletedInd = Astro.url.searchParams.get("deleted");
 const error = Astro.url.searchParams.get("error");
+const distributed = Astro.url.searchParams.get("distributed");
+const distCount = Astro.url.searchParams.get("count");
+const distQuota = Astro.url.searchParams.get("quota");
 
 // Ambil target khusus periode aktif
 const targets = db.targets.filter((t) => t.periodId === p.id);
@@ -49,7 +52,16 @@ const rows = targets.map((t) => {
     </Fragment>
   </PageHeader>
 
-  {savedInd && savedVal && (
+  {distributed && savedInd && savedVal && (
+    <div class="alert-banner alert-banner-success" style="background:#f0fdf4; border:1px solid #86efac; color:#166534;">
+      <Icon name="check" size={20} />
+      <div>
+        <strong>Distribusi Target Tim Berhasil (Model 1):</strong> Target <strong>{savedInd}</strong> total <strong>{num(Number(savedVal))}</strong> berhasil dibagikan rata secara otomatis ke <strong>{distCount} staf</strong> (masing-masing mendapatkan kuota individu <strong>{num(Number(distQuota))}</strong>).
+      </div>
+    </div>
+  )}
+
+  {!distributed && savedInd && savedVal && (
     <div class="alert-banner alert-banner-success">
       <Icon name="check" size={18} />
       <div>
@@ -183,10 +195,10 @@ const rows = targets.map((t) => {
           <input type="hidden" name="periodId" value={p.id} />
           <input type="hidden" name="targetId" id="target-id-input" value="" />
 
-          <!-- TIPE TARGET: BERSAMA VS INDIVIDU -->
+          <!-- TIPE TARGET: BERSAMA VS INDIVIDU VS DISTRIBUSI RATA -->
           <div>
             <label class="form-label font-bold" for="target-scope-select" style="font-size:0.8rem;margin-bottom:0.25rem;">
-              TIPE TARGET:
+              TIPE PENETAPAN TARGET:
             </label>
             <select
               name="scope"
@@ -196,9 +208,15 @@ const rows = targets.map((t) => {
               style="width:100%;font-size:0.85rem;font-weight:600;"
               onchange="window.handleScopeChange(this.value)"
             >
-              <option value="division">Target Bersama (Kolektif Divisi Pemasaran)</option>
-              <option value="individual">Target Individu (Khusus Staf Tertentu)</option>
+              <option value="distribute_all" selected>⚡ Bagi Rata Target Tim ke Seluruh Staf (Model 1 Gotong Royong)</option>
+              <option value="division">Target Bersama (Kolektif Divisi Saja)</option>
+              <option value="individual">Target Khusus 1 Staf Tertentu</option>
             </select>
+          </div>
+
+          <!-- PANDUAN MODEL 1 (DISTRIBUSI OTOMATIS) -->
+          <div id="distribute-info-box" style="background:#f0fdf4;padding:0.65rem 0.85rem;border-radius:6px;border:1px solid #bbf7d0;font-size:0.78rem;color:#166534;line-height:1.45;">
+            <strong>Prinsip Model 1:</strong> Angka total yang Anda masukkan akan dijadikan <strong>Target Kolektif Tim</strong>, sekaligus otomatis <strong>dibagi rata secara proporsional</strong> kepada seluruh <strong>{staffEmployees.length} staf pemasaran</strong> sebagai target individu masing-masing.
           </div>
 
           <!-- PILIH STAF JIKA TARGET INDIVIDU -->
@@ -270,11 +288,21 @@ const rows = targets.map((t) => {
   window.handleScopeChange = function(scopeVal) {
     var picker = document.getElementById("employee-picker-wrap");
     var empSelect = document.getElementById("target-employee");
+    var distBox = document.getElementById("distribute-info-box");
     if (scopeVal === "individual") {
       if (picker) picker.style.display = "block";
+      if (distBox) distBox.style.display = "none";
       if (empSelect) empSelect.required = true;
+    } else if (scopeVal === "distribute_all") {
+      if (picker) picker.style.display = "none";
+      if (distBox) distBox.style.display = "block";
+      if (empSelect) {
+        empSelect.required = false;
+        empSelect.value = "";
+      }
     } else {
       if (picker) picker.style.display = "none";
+      if (distBox) distBox.style.display = "none";
       if (empSelect) {
         empSelect.required = false;
         empSelect.value = "";
