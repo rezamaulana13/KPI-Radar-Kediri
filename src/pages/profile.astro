@@ -19,13 +19,49 @@ const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
 const p = selectedPeriod(Astro.url);
 
 // Pastikan karyawan memiliki target individual standar jika belum diset manual oleh HRD
-if (u.role === "employee" && !db.targets.some((t) => t.employeeId === u.id && t.periodId === p.id)) {
-  db.targets.push(
-    { id: `TG-IND-${u.id.slice(0, 4)}-1`, indicatorId: "IND-02", periodId: p.id, scope: "individual", employeeId: u.id, value: 10 },
-    { id: `TG-IND-${u.id.slice(0, 4)}-2`, indicatorId: "IND-03", periodId: p.id, scope: "individual", employeeId: u.id, value: 15 },
-    { id: `TG-IND-${u.id.slice(0, 4)}-3`, indicatorId: "IND-04", periodId: p.id, scope: "individual", employeeId: u.id, value: 5 },
-    { id: `TG-IND-${u.id.slice(0, 4)}-4`, indicatorId: "IND-08", periodId: p.id, scope: "individual", employeeId: u.id, value: 20 }
-  );
+if (u.role === "employee") {
+  const existingUserTargets = db.targets.filter((t) => t.employeeId === u.id && t.periodId === p.id);
+  const userActs = db.activities.filter((a) => a.ownerId === u.id && a.periodId === p.id);
+  const hasOplah = e.positionId === "POS-OPL" || userActs.some((a) => a.type === "oplah");
+  const hasMarketing = e.positionId === "POS-EXM" || userActs.some((a) => a.type === "offer" || a.type === "client" || a.type === "outcome");
+
+  if (existingUserTargets.length === 0) {
+    if (hasOplah && !hasMarketing) {
+      // Khusus Staf Sirkulasi & Oplah
+      db.targets.push(
+        { id: `TG-IND-${u.id.slice(0, 4)}-1`, indicatorId: "IND-01", periodId: p.id, scope: "individual", employeeId: u.id, value: 500 },
+        { id: `TG-IND-${u.id.slice(0, 4)}-4`, indicatorId: "IND-08", periodId: p.id, scope: "individual", employeeId: u.id, value: 15 }
+      );
+    } else if (hasOplah && hasMarketing) {
+      // Staf Operasional Gabungan (Sirkulasi + Iklan)
+      db.targets.push(
+        { id: `TG-IND-${u.id.slice(0, 4)}-1`, indicatorId: "IND-01", periodId: p.id, scope: "individual", employeeId: u.id, value: 500 },
+        { id: `TG-IND-${u.id.slice(0, 4)}-2`, indicatorId: "IND-03", periodId: p.id, scope: "individual", employeeId: u.id, value: 10 },
+        { id: `TG-IND-${u.id.slice(0, 4)}-3`, indicatorId: "IND-04", periodId: p.id, scope: "individual", employeeId: u.id, value: 3 },
+        { id: `TG-IND-${u.id.slice(0, 4)}-4`, indicatorId: "IND-08", periodId: p.id, scope: "individual", employeeId: u.id, value: 15 }
+      );
+    } else {
+      // Staf Account Executive / Iklan
+      db.targets.push(
+        { id: `TG-IND-${u.id.slice(0, 4)}-1`, indicatorId: "IND-02", periodId: p.id, scope: "individual", employeeId: u.id, value: 10 },
+        { id: `TG-IND-${u.id.slice(0, 4)}-2`, indicatorId: "IND-03", periodId: p.id, scope: "individual", employeeId: u.id, value: 15 },
+        { id: `TG-IND-${u.id.slice(0, 4)}-3`, indicatorId: "IND-04", periodId: p.id, scope: "individual", employeeId: u.id, value: 5 },
+        { id: `TG-IND-${u.id.slice(0, 4)}-4`, indicatorId: "IND-08", periodId: p.id, scope: "individual", employeeId: u.id, value: 20 }
+      );
+    }
+  } else {
+    // Jika target sudah diset oleh HRD, tapi staf punya aktivitas sirkulasi dan belum ada target IND-01:
+    if (hasOplah && !existingUserTargets.some((t) => t.indicatorId === "IND-01")) {
+      db.targets.push({
+        id: `TG-IND-${u.id.slice(0, 4)}-OPL`,
+        indicatorId: "IND-01",
+        periodId: p.id,
+        scope: "individual",
+        employeeId: u.id,
+        value: 500,
+      });
+    }
+  }
 }
 
 // Data Target Capaian KPI

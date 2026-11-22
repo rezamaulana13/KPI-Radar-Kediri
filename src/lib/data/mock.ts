@@ -63,6 +63,12 @@ export const kpiTargets: T.KpiTarget[] = [
   tg("TG-03", "IND-05", "PRD-2026-11", "division", 35_000_000, { divisionId: "DIV-MKT" }),
   tg("TG-04", "IND-07", "PRD-2026-11", "division", 15_000_000, { divisionId: "DIV-MKT" }),
   tg("TG-OCT-1", "IND-01", "PRD-2026-10", "division", 450, { divisionId: "DIV-MKT" }),
+  // Target Individual Staf Pemasaran & Sirkulasi
+  tg("TG-IND-MEMET-1", "IND-01", "PRD-2026-11", "individual", 500, { employeeId: "cdda2ff0-6ea1-44d1-a6d5-ed89e9a9b411" }),
+  tg("TG-IND-MEMET-2", "IND-08", "PRD-2026-11", "individual", 15, { employeeId: "cdda2ff0-6ea1-44d1-a6d5-ed89e9a9b411" }),
+  tg("TG-IND-FARA-1", "IND-03", "PRD-2026-11", "individual", 5, { employeeId: "7f48b651-5109-4aa9-9937-d45352916b06" }),
+  tg("TG-IND-FARA-2", "IND-04", "PRD-2026-11", "individual", 2, { employeeId: "7f48b651-5109-4aa9-9937-d45352916b06" }),
+  tg("TG-IND-FARA-3", "IND-02", "PRD-2026-11", "individual", 5, { employeeId: "7f48b651-5109-4aa9-9937-d45352916b06" }),
 ];
 
 export const kpiMappings: T.KpiMapping[] = [
