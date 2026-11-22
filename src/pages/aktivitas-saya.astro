@@ -599,9 +599,15 @@ function getActionLink(indicator: { id?: string; code?: string; name?: string })
                     </span>
                   </td>
                   <td style="text-align: center;">
-                    <a href={`/employee/activities/${a.id}`} class="btn btn-secondary btn-xs" title="Lihat detail lengkap">
-                      <span>Rincian &rarr;</span>
-                    </a>
+                    {a.status === "revision" ? (
+                      <a href={`/employee/activities/${a.id}`} class="btn btn-xs" style="background:#fef3c7; border:1px solid #f59e0b; color:#92400e; font-weight:700; display:inline-flex; align-items:center; gap:0.25rem; white-space:nowrap;" title="Buka formulir perbaikan revisi dan kirim ulang ke HRD">
+                        <span>Perbaiki &rarr;</span>
+                      </a>
+                    ) : (
+                      <a href={`/employee/activities/${a.id}`} class="btn btn-secondary btn-xs" title="Lihat detail lengkap">
+                        <span>Rincian &rarr;</span>
+                      </a>
+                    )}
                   </td>
                 </tr>
               ))}

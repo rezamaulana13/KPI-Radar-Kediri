@@ -1,90 +1,803 @@
 ---
 import DashboardLayout from "../../../layouts/DashboardLayout.astro";
 import PublicLayout from "../../../layouts/PublicLayout.astro";
-import PageHeader from "../../../components/layout/PageHeader.astro";
-import Alert from "../../../components/ui/Alert.astro";
-import Badge from "../../../components/ui/Badge.astro";
+import Icon from "../../../components/ui/Icon.astro";
 import FormError from "../../../components/ui/FormError.astro";
 import ActivityDetail from "../../../components/ui/ActivityDetail.astro";
-import { activity, historyOf, employeeName, visibleEmployeeIds } from "../../../lib/data/store";
+import { activity, historyOf, employeeName, visibleEmployeeIds, employee, divisionName } from "../../../lib/data/store";
 import { canEditAfterRevision } from "../../../features/verification/rules";
 import { takeFormState } from "../../../lib/utils/flash";
-import { dateTimeID } from "../../../lib/formatters";
+import { dateTimeID, dateID, STATUS_LABEL, TYPE_LABEL } from "../../../lib/formatters";
+
 const a = activity(Astro.params.id!);
 const u = Astro.locals.user!;
 if (!a || !(a.ownerId === u.id || a.createdBy === u.id)) return new Response(null, { status: 404 });
+
 const hist = historyOf(a.id);
 const editable = canEditAfterRevision(u, a);
 const st = takeFormState(Astro.cookies, Astro.url);
 const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
+
+// Riwayat pengiriman lengkap (menggabungkan pengajuan awal dan setiap verifikasi/resubmit)
+const latestRevision = hist.filter((h) => h.status === "revision").at(-1);
+const resubmittedParam = Astro.url.searchParams.get("resubmitted");
 ---
-<Layout title={`Aktivitas ${a.id}`}>
+
+<Layout title={`Rincian & Riwayat Berkas ${a.id}`}>
   <div class={u.role === "employee" ? "pub-page-container" : ""}>
-    <PageHeader title={`Aktivitas ${a.id}`} crumbs={[{ label: "Beranda", href: "/" }, { label: "Aktivitas Saya", href: "/aktivitas-saya" }]} />
-    {Astro.url.searchParams.get("resubmitted") && <Alert tone="success" title="Diajukan kembali">Aktivitas kembali berstatus menunggu verifikasi.</Alert>}
-    {st.error && <Alert tone="danger" title="Belum bisa diajukan">{st.error}</Alert>}
-    {a.status === "revision" && <Alert tone="warning" title="Supervisor meminta revisi">{hist.filter((h) => h.status === "revision").at(-1)?.note}</Alert>}
-    {a.status === "rejected" && <Alert tone="danger" title="Aktivitas ditolak">{hist.at(-1)?.note} Aktivitas ini tidak dihitung ke KPI. Catat aktivitas baru jika perlu.</Alert>}
-    <div class="grid-3-1">
-      <section class="card"><div class="card-head"><h2>Data aktivitas</h2><Badge status={a.status} /></div><div class="card-body">
-        <ActivityDetail activity={a} />
+    <!-- Breadcrumb -->
+    <nav class="pub-breadcrumb no-print" aria-label="Breadcrumb">
+      <a href="/">Beranda</a>
+      <span class="sep">/</span>
+      <a href="/aktivitas-saya">Aktivitas &amp; Rapor</a>
+      <span class="sep">/</span>
+      <span class="current">Berkas {a.id}</span>
+    </nav>
+
+    <!-- Header Halaman -->
+    <div class="activity-header-bar">
+      <div>
+        <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.35rem;">
+          <span class="header-tag">{TYPE_LABEL[a.type] ?? a.type}</span>
+          <span class="mono-id-head">{a.id}</span>
+        </div>
+        <h1 style="font-size:1.75rem; font-weight:700; color:var(--color-primary-900); margin:0;">
+          Rincian Aktivitas &amp; Riwayat Verifikasi
+        </h1>
+        <p class="muted text-xs" style="margin:0.25rem 0 0;">
+          Dibuat pada {dateID(a.date)} oleh {employeeName(a.createdBy)} · Periode Evaluasi SIMOKP
+        </p>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+        <span class={`status-pill-big st-${a.status}`}>
+          <span class="status-dot"></span>
+          <span>{STATUS_LABEL[a.status] ?? a.status}</span>
+        </span>
+        <a href="/aktivitas-saya" class="btn btn-secondary btn-sm">
+          <span>&larr; Kembali ke Aktivitas</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Alert Sukses Diajukan Kembali -->
+    {resubmittedParam && (
+      <div class="custom-alert-box alert-success-box" role="alert">
+        <div class="alert-icon-wrap" style="color:#16a34a;">
+          <Icon name="check" size={20} />
+        </div>
+        <div>
+          <h4 style="margin:0 0 0.2rem; font-size:0.95rem; font-weight:700; color:#15803d;">
+            Laporan Berhasil Diajukan Kembali ke HRD!
+          </h4>
+          <p style="margin:0; font-size:0.85rem; color:#166534;">
+            Perbaikan data dan bukti telah disimpan. Berkas kini kembali berstatus <strong>Menunggu Verifikasi</strong> dan telah masuk ke antrean pemeriksaan HRD.
+          </p>
+        </div>
+      </div>
+    )}
+
+    <!-- Alert Kesalahan Form -->
+    {st.error && (
+      <div class="custom-alert-box alert-danger-box" role="alert">
+        <div class="alert-icon-wrap" style="color:#dc2626;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <div>
+          <h4 style="margin:0 0 0.2rem; font-size:0.95rem; font-weight:700; color:#b91c1c;">Gagal Mengajukan Ulang</h4>
+          <p style="margin:0; font-size:0.85rem; color:#991b1b;">{st.error}</p>
+        </div>
+      </div>
+    )}
+
+    <!-- BANNER PERINGATAN REVISI KHUSUS (JIKA STATUS === REVISION) -->
+    {a.status === "revision" && (
+      <div class="revision-callout-card">
+        <div class="revision-callout-head">
+          <div style="display:flex; align-items:center; gap:0.6rem;">
+            <div class="revision-icon-pulse">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+            <div>
+              <h3 style="margin:0; font-size:1.1rem; font-weight:700; color:#92400e;">
+                HRD / Supervisor Meminta Revisi Laporan Ini
+              </h3>
+              <p style="margin:0.2rem 0 0; font-size:0.8rem; color:#b45309;">
+                {latestRevision ? `Diperiksa oleh ${employeeName(latestRevision.by)} pada ${dateTimeID(latestRevision.at)}` : "Harap periksa catatan di bawah ini"}
+              </p>
+            </div>
+          </div>
+          <span class="badge" style="background:#fef3c7; color:#92400e; font-weight:700;">PERLU PERBAIKAN</span>
+        </div>
+
+        <div class="revision-note-quote">
+          <span class="quote-label">Catatan Alasan Revisi dari HRD:</span>
+          <p class="quote-content">
+            &ldquo;{latestRevision?.note || "Harap lengkapi dan perbaiki data atau bukti fisik laporan ini sebelum dapat disetujui."}&rdquo;
+          </p>
+        </div>
+
+        <p class="revision-action-hint">
+          &rarr; <strong>Tindakan Anda:</strong> Silakan koreksi data pada formulir perbaikan di bawah ini, lampirkan bukti fisik perbaikan jika diminta, lalu klik tombol <strong>Kirim Ulang Laporan Revisi</strong>.
+        </p>
+      </div>
+    )}
+
+    {a.status === "rejected" && (
+      <div class="custom-alert-box alert-danger-box" role="alert">
+        <div class="alert-icon-wrap" style="color:#dc2626;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        </div>
+        <div>
+          <h4 style="margin:0 0 0.2rem; font-size:0.95rem; font-weight:700; color:#b91c1c;">Laporan Ditolak HRD</h4>
+          <p style="margin:0; font-size:0.85rem; color:#991b1b;">
+            {hist.at(-1)?.note || "Laporan tidak memenuhi kriteria verifikasi."} Aktivitas ini tidak dihitung ke KPI. Silakan buat laporan baru jika diperlukan.
+          </p>
+        </div>
+      </div>
+    )}
+
+    <!-- Grid Utama: Kiri Form Edit/Detail, Kanan Timeline Riwayat Pengiriman -->
+    <div class="grid-main-detail">
+      <!-- SISI KIRI: FORM EDIT REVISI ATAU DETAIL AKTIVITAS -->
+      <div class="left-panel-stack">
+        <!-- FORM PERBAIKAN REVISI (TAMPIL UTAMA SAAT STATUS REVISION) -->
         {editable && (
-          <form method="post" action={`/api/activities/${a.id}`} class="mt-4">
-            <fieldset>
-              <legend>Perbaiki dan Ajukan Kembali</legend>
-              <div class="field">
-                <label for="description">Deskripsi Pekerjaan</label>
-                <textarea class="textarea" id="description" name="description">{st.values.description ?? a.description}</textarea>
-                <FormError message={st.fields.description} />
+          <section class="card edit-revision-card">
+            <div class="card-head" style="background:#fffbeb; border-bottom:1px solid #fde68a;">
+              <div style="display:flex; align-items:center; gap:0.5rem;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                <h2 style="font-size:1.05rem; font-weight:700; color:#92400e; margin:0;">
+                  Formulir Perbaikan &amp; Kirim Ulang
+                </h2>
+              </div>
+              <span class="badge" style="background:#fef3c7; color:#b45309;">Edit Mode</span>
+            </div>
+
+            <div class="card-body">
+              <form method="post" action={`/api/activities/${a.id}`} id="form-resubmit">
+                <!-- Deskripsi Pekerjaan -->
+                <div class="field" style="margin-bottom:1rem;">
+                  <label for="description" class="form-label font-bold">
+                    Deskripsi / Uraian Pekerjaan <span class="text-danger">*</span>
+                  </label>
+                  <textarea
+                    class="textarea form-control"
+                    id="description"
+                    name="description"
+                    rows="3"
+                    required
+                    placeholder="Jelaskan rincian aktivitas dan perbaikan yang Anda lakukan..."
+                  >{st.values.description ?? a.description}</textarea>
+                  <FormError message={st.fields.description} />
+                  <span class="hint text-xs muted">Minimal 5 karakter uraian aktivitas.</span>
+                </div>
+
+                <!-- Input Khusus Oplah -->
+                {a.type === "oplah" && (
+                  <div class="oplah-edit-grid">
+                    <div class="field">
+                      <label for="qty" class="form-label font-bold">Eksemplar Dikirim</label>
+                      <input
+                        class="input form-control"
+                        id="qty"
+                        name="qty"
+                        type="number"
+                        min="1"
+                        required
+                        value={st.values.qty ?? a.qty}
+                      />
+                    </div>
+                    <div class="field">
+                      <label for="returnQty" class="form-label font-bold">Eksemplar Retur</label>
+                      <input
+                        class="input form-control"
+                        id="returnQty"
+                        name="returnQty"
+                        type="number"
+                        min="0"
+                        value={st.values.returnQty ?? a.returnQty ?? 0}
+                      />
+                    </div>
+                    <div class="field">
+                      <label for="returnCondition" class="form-label font-bold">Kondisi Koran Retur</label>
+                      <select class="select form-control" id="returnCondition" name="returnCondition">
+                        <option value="layak_stok" selected={(st.values.returnCondition ?? a.returnCondition) === "layak_stok"}>
+                          Layak Stok Gudang
+                        </option>
+                        <option value="rusak" selected={(st.values.returnCondition ?? a.returnCondition) === "rusak"}>
+                          Rusak / Afkir
+                        </option>
+                      </select>
+                    </div>
+                    <div class="field">
+                      <label for="editionName" class="form-label font-bold">Edisi Koran</label>
+                      <input
+                        class="input form-control"
+                        id="editionName"
+                        name="editionName"
+                        type="text"
+                        placeholder="Contoh: Reguler / Koran Pagi"
+                        value={st.values.editionName ?? a.editionName ?? ""}
+                      />
+                    </div>
+                    <div class="field" style="grid-column: 1 / -1;">
+                      <label for="sourceName" class="form-label font-bold">Penerima / Agen / Kanal Distribusi</label>
+                      <input
+                        class="input form-control"
+                        id="sourceName"
+                        name="sourceName"
+                        type="text"
+                        placeholder="Contoh: Agen Tbk Gudang Garam / Loper Perintis"
+                        value={st.values.sourceName ?? a.sourceName ?? ""}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <!-- Input Khusus Proposal & Komersial -->
+                {(a.type === "offer" || a.type === "outcome") && (
+                  <div class="commercial-edit-grid">
+                    <div class="field">
+                      <label for="cashValue" class="form-label font-bold">Porsi Kas Tunai (Rp)</label>
+                      <input
+                        class="input form-control"
+                        id="cashValue"
+                        name="cashValue"
+                        type="number"
+                        min="0"
+                        value={st.values.cashValue ?? a.cashValue ?? 0}
+                      />
+                    </div>
+                    <div class="field">
+                      <label for="barterValue" class="form-label font-bold">Nilai Barter (Rp)</label>
+                      <input
+                        class="input form-control"
+                        id="barterValue"
+                        name="barterValue"
+                        type="number"
+                        min="0"
+                        value={st.values.barterValue ?? a.barterValue ?? 0}
+                      />
+                    </div>
+                    <div class="field" style="grid-column: 1 / -1;">
+                      <label for="barterDesc" class="form-label font-bold">Rincian Barang / Fasilitas Barter (Opsional)</label>
+                      <input
+                        class="input form-control"
+                        id="barterDesc"
+                        name="barterDesc"
+                        type="text"
+                        placeholder="Contoh: Voucher akomodasi hotel, slot merchandise..."
+                        value={st.values.barterDesc ?? a.barterDesc ?? ""}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <!-- Link Bukti Fisik / Foto / Nota Baru -->
+                <div class="field" style="margin-top:1rem; margin-bottom:1rem;">
+                  <label for="proofUrl" class="form-label font-bold">
+                    Link Berkas / Foto Bukti Fisik Perbaikan
+                  </label>
+                  <input
+                    class="input form-control"
+                    id="proofUrl"
+                    name="proofUrl"
+                    type="url"
+                    placeholder="https://drive.google.com/... atau URL foto nota"
+                    value={st.values.proofUrl ?? a.proofUrl ?? ""}
+                  />
+                  <span class="hint text-xs muted">
+                    Pastikan tautan dapat diakses publik atau supervisor HRD untuk memvalidasi bukti fisik.
+                  </span>
+                </div>
+
+                <!-- Catatan Penjelasan Staf Kepada HRD -->
+                <div class="field" style="margin-bottom:1.5rem;">
+                  <label for="revisionNote" class="form-label font-bold">
+                    Catatan Klarifikasi Perbaikan untuk HRD (Opsional)
+                  </label>
+                  <input
+                    class="input form-control"
+                    id="revisionNote"
+                    name="revisionNote"
+                    type="text"
+                    placeholder="Contoh: Bukti foto sudah diperbarui dengan stempel basah agen dan nominal retur telah disesuaikan."
+                    value={st.values.revisionNote ?? ""}
+                  />
+                  <span class="hint text-xs muted">Catatan ini akan langsung tertera di riwayat pemeriksaan HRD.</span>
+                </div>
+
+                <!-- Tombol Aksi Submit Revisi -->
+                <div class="form-submit-row">
+                  <button
+                    type="submit"
+                    class="btn btn-primary btn-submit-revision"
+                    onclick="return confirm('Apakah Anda yakin ingin MENGIRIM ULANG laporan yang telah direvisi ini ke antrean verifikasi HRD?');"
+                  >
+                    <Icon name="check" size={16} />
+                    <span>Kirim Ulang Laporan Revisi ke HRD</span>
+                  </button>
+
+                  <a href="/aktivitas-saya" class="btn btn-secondary">
+                    <span>Batal</span>
+                  </a>
+                </div>
+              </form>
+            </div>
+          </section>
+        )}
+
+        <!-- KARTU DATA AKTIVITAS LENGKAP -->
+        <section class="card">
+          <div class="card-head" style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+              <Icon name="clipboard" size={18} />
+              <h2 style="font-size:1.05rem; font-weight:700; color:var(--color-primary-900); margin:0;">
+                Rincian Data Aktivitas Lapangan
+              </h2>
+            </div>
+            <span class="text-xs muted font-mono">ID: {a.id}</span>
+          </div>
+          <div class="card-body">
+            <ActivityDetail activity={a} />
+
+            {a.status === "pending" && (
+              <div style="margin-top:1.5rem; padding-top:1rem; border-top:1px dashed #e2e8f0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+                <span class="text-xs muted">
+                  Laporan ini sedang menunggu giliran pemeriksaan HRD dan masih dapat dibatalkan jika keliru.
+                </span>
+                <form method="post" action="/api/activities/delete" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan dan menghapus laporan yang belum diperiksa ini?');">
+                  <input type="hidden" name="activityId" value={a.id} />
+                  <input type="hidden" name="back" value="/aktivitas-saya" />
+                  <button type="submit" class="btn btn-secondary btn-xs" style="color:#ef4444; border-color:#fca5a5;">
+                    <Icon name="trash" size={13} />
+                    <span>Batalkan / Hapus Laporan</span>
+                  </button>
+                </form>
+              </div>
+            )}
+          </div>
+        </section>
+      </div>
+
+      <!-- SISI KANAN: PANEL RIWAYAT PENGIRIMAN & VERIFIKASI (TIMELINE LENGKAP) -->
+      <div class="right-panel-stack">
+        <section class="card timeline-card">
+          <div class="card-head" style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <h2 style="font-size:1.05rem; font-weight:700; color:var(--color-primary-900); margin:0;">
+                Riwayat Pengiriman &amp; Status
+              </h2>
+            </div>
+            <span class="badge" style="background:#f1f5f9; color:#475569; font-size:0.75rem;">
+              {hist.length + 1} Jejak
+            </span>
+          </div>
+
+          <div class="card-body">
+            <!-- Timeline Alur Kerja -->
+            <div class="audit-timeline">
+              <!-- Item 1: Pengiriman Awal oleh Karyawan -->
+              <div class="timeline-step is-start">
+                <div class="timeline-marker marker-primary">
+                  <Icon name="file" size={14} />
+                </div>
+                <div class="timeline-content">
+                  <div class="timeline-header">
+                    <span class="step-role-badge badge-blue">Pengiriman Awal</span>
+                    <span class="step-time">{dateTimeID(a.createdAt || a.date)}</span>
+                  </div>
+                  <div class="step-actor">
+                    Diajukan oleh: <strong>{employeeName(a.createdBy)}</strong>
+                  </div>
+                  <p class="step-desc">
+                    Laporan aktivitas <strong>{TYPE_LABEL[a.type] ?? a.type}</strong> pertama kali diajukan ke sistem antrean verifikasi HRD.
+                  </p>
+                </div>
               </div>
 
-              {a.type === "oplah" && (
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:0.75rem;">
-                  <div class="field">
-                    <label for="qty">Eksemplar Dikirim</label>
-                    <input class="input" id="qty" name="qty" type="number" min="1" value={st.values.qty ?? a.qty} />
-                  </div>
-                  <div class="field">
-                    <label for="returnQty">Eksemplar Retur</label>
-                    <input class="input" id="returnQty" name="returnQty" type="number" min="0" value={st.values.returnQty ?? a.returnQty ?? 0} />
-                  </div>
-                </div>
-              )}
+              <!-- Item 2..n: Setiap Tindakan Pemeriksaan / Revisi / Resubmit -->
+              {hist.map((h, idx) => {
+                const isRevision = h.status === "revision";
+                const isApproved = h.status === "approved";
+                const isRejected = h.status === "rejected";
+                const isPendingAgain = h.status === "pending";
 
-              {(a.type === "offer" || a.type === "outcome") && (
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:0.75rem;">
-                  <div class="field">
-                    <label for="cashValue">Porsi Kas Tunai (Rp)</label>
-                    <input class="input" id="cashValue" name="cashValue" type="number" min="0" value={st.values.cashValue ?? a.cashValue ?? 0} />
-                  </div>
-                  <div class="field">
-                    <label for="barterValue">Nilai Barter (Rp)</label>
-                    <input class="input" id="barterValue" name="barterValue" type="number" min="0" value={st.values.barterValue ?? a.barterValue ?? 0} />
-                  </div>
-                </div>
-              )}
+                const markerClass = isApproved ? "marker-success" : isRevision ? "marker-warn" : isRejected ? "marker-danger" : "marker-info";
+                const badgeClass = isApproved ? "badge-green" : isRevision ? "badge-amber" : isRejected ? "badge-red" : "badge-sky";
+                const stepTitle = isApproved
+                  ? "Disetujui HRD (Valid)"
+                  : isRevision
+                  ? "Permintaan Revisi HRD"
+                  : isRejected
+                  ? "Laporan Ditolak"
+                  : "Pengajuan Ulang Revisi";
 
-              <div class="field">
-                <label for="proofUrl">Link Bukti Perbaikan / Nota / Foto (Opsional)</label>
-                <input class="input" id="proofUrl" name="proofUrl" type="url" placeholder="https://..." value={st.values.proofUrl ?? a.proofUrl ?? ""} />
+                return (
+                  <div class={`timeline-step ${isRevision ? "is-revision-step" : ""}`}>
+                    <div class={`timeline-marker ${markerClass}`}>
+                      {isApproved && <Icon name="check" size={14} />}
+                      {isRevision && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 9v4"/><circle cx="12" cy="17" r="1"/></svg>}
+                      {isRejected && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>}
+                      {isPendingAgain && <Icon name="arrow" size={14} />}
+                    </div>
+
+                    <div class="timeline-content">
+                      <div class="timeline-header">
+                        <span class={`step-role-badge ${badgeClass}`}>{stepTitle}</span>
+                        <span class="step-time">{dateTimeID(h.at)}</span>
+                      </div>
+
+                      <div class="step-actor">
+                        {isPendingAgain ? "Diajukan ulang oleh:" : "Diperiksa oleh:"} <strong>{employeeName(h.by)}</strong>
+                      </div>
+
+                      <div class={`step-note-box ${isRevision ? "note-box-warn" : isApproved ? "note-box-success" : isRejected ? "note-box-danger" : "note-box-info"}`}>
+                        <strong>{isRevision ? "Catatan Revisi HRD:" : isPendingAgain ? "Keterangan Staf:" : "Catatan Hasil:"}</strong>
+                        <p style="margin:0.2rem 0 0; font-size:0.8rem; line-height:1.45;">{h.note}</p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+
+              <!-- Indikator Status Terkini -->
+              <div class="timeline-step is-current">
+                <div class={`timeline-marker ${a.status === 'approved' ? 'marker-success' : a.status === 'revision' ? 'marker-warn' : a.status === 'rejected' ? 'marker-danger' : 'marker-primary'}`}>
+                  <span class="pulse-inner"></span>
+                </div>
+                <div class="timeline-content">
+                  <div class="step-actor font-bold" style="color:var(--color-primary-900); font-size:0.85rem;">
+                    Status Berkas Terkini:
+                  </div>
+                  <span class={`status-pill-big st-${a.status}`} style="margin-top:0.35rem; display:inline-flex;">
+                    <span class="status-dot"></span>
+                    <span>{STATUS_LABEL[a.status] ?? a.status}</span>
+                  </span>
+                </div>
               </div>
-            </fieldset>
-            <button class="btn btn-primary" type="submit" style="margin-top:0.75rem;">Ajukan Kembali ke HRD</button>
-          </form>
-        )}
-        {a.status === "pending" && (
-          <form method="post" action="/api/activities/delete" class="mt-4" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan dan menghapus laporan yang belum diperiksa ini?');">
-            <input type="hidden" name="activityId" value={a.id} />
-            <input type="hidden" name="back" value="/aktivitas-saya" />
-            <button type="submit" class="btn btn-secondary btn-sm" style="color:#ef4444;border-color:#fca5a5;">
-              <span>Batalkan / Hapus Laporan Ini</span>
-            </button>
-          </form>
-        )}
-      </div></section>
-      <section class="card"><div class="card-head"><h2>Riwayat</h2></div><div class="card-body">
-        {hist.length === 0 ? <p class="muted mb-0">Belum diperiksa Supervisor.</p> : <ol class="timeline">{hist.map((h) => <li><Badge status={h.status} /> <span class="text-xs muted">{dateTimeID(h.at)} · {employeeName(h.by)}</span><p class="text-sm mb-0">{h.note}</p></li>)}</ol>}
-      </div></section>
+            </div>
+          </div>
+        </section>
+      </div>
     </div>
   </div>
 </Layout>
+
+<style>
+  .pub-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: var(--text-xs);
+    color: var(--color-muted);
+    margin-bottom: 1.25rem;
+  }
+  .pub-breadcrumb a {
+    color: var(--color-primary-800);
+    text-decoration: none;
+    font-weight: 550;
+  }
+  .pub-breadcrumb a:hover {
+    text-decoration: underline;
+  }
+  .pub-breadcrumb .sep {
+    color: #cbd5e1;
+  }
+  .pub-breadcrumb .current {
+    color: #475569;
+    font-weight: 600;
+  }
+
+  .activity-header-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .header-tag {
+    display: inline-block;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    color: var(--color-primary-800);
+    background: var(--color-primary-100);
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .mono-id-head {
+    font-family: monospace;
+    font-weight: 700;
+    font-size: 0.85rem;
+    background: #f1f5f9;
+    color: var(--color-primary-900);
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    border: 1px solid #e2e8f0;
+  }
+
+  /* Status Pills */
+  .status-pill-big {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.4rem 0.85rem;
+    border-radius: 999px;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    text-transform: capitalize;
+  }
+  .status-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+  }
+  .st-approved { background: #d1fae5; color: #065f46; }
+  .st-approved .status-dot { background: #10b981; }
+  .st-pending { background: #e0f2fe; color: #0369a1; }
+  .st-pending .status-dot { background: #0284c7; }
+  .st-revision { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+  .st-revision .status-dot { background: #f59e0b; }
+  .st-rejected { background: #fee2e2; color: #991b1b; }
+  .st-rejected .status-dot { background: #ef4444; }
+
+  /* Custom Alert Boxes */
+  .custom-alert-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    border-radius: var(--radius-md, 8px);
+    margin-bottom: 1.5rem;
+  }
+  .alert-success-box {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+  }
+  .alert-danger-box {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+  }
+  .alert-icon-wrap {
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* Callout Card Khusus Revisi */
+  .revision-callout-card {
+    background: #fffbeb;
+    border: 2px solid #f59e0b;
+    border-radius: var(--radius-md, 10px);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.75rem;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.12);
+  }
+  .revision-callout-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px dashed #fde68a;
+  }
+  .revision-icon-pulse {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #fef3c7;
+    color: #d97706;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .revision-note-quote {
+    background: #ffffff;
+    border-left: 4px solid #f59e0b;
+    border-radius: 0 8px 8px 0;
+    padding: 0.85rem 1.15rem;
+    margin-bottom: 0.85rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+  }
+  .quote-label {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #92400e;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.25rem;
+  }
+  .quote-content {
+    margin: 0;
+    font-size: 0.925rem;
+    font-weight: 600;
+    color: #78350f;
+    line-height: 1.5;
+  }
+  .revision-action-hint {
+    margin: 0;
+    font-size: 0.825rem;
+    color: #92400e;
+    line-height: 1.5;
+  }
+
+  /* Grid Layout Detail */
+  .grid-main-detail {
+    display: grid;
+    grid-template-columns: minmax(0, 1.8fr) minmax(320px, 1.2fr);
+    gap: 1.5rem;
+    align-items: start;
+  }
+  @media (max-width: 960px) {
+    .grid-main-detail {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .left-panel-stack, .right-panel-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  /* Edit Revision Card */
+  .edit-revision-card {
+    border: 2px solid #f59e0b !important;
+    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.1) !important;
+  }
+  .oplah-edit-grid, .commercial-edit-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  @media (max-width: 600px) {
+    .oplah-edit-grid, .commercial-edit-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .form-submit-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid #e2e8f0;
+    flex-wrap: wrap;
+  }
+  .btn-submit-revision {
+    background-color: #0284c7 !important;
+    border-color: #0284c7 !important;
+    font-weight: 700;
+    padding: 0.6rem 1.25rem;
+    box-shadow: 0 2px 6px rgba(2, 132, 199, 0.3);
+  }
+  .btn-submit-revision:hover {
+    background-color: #0369a1 !important;
+    transform: translateY(-1px);
+  }
+
+  /* Timeline Audit Trail */
+  .audit-timeline {
+    position: relative;
+    padding-left: 1.25rem;
+  }
+  .audit-timeline::before {
+    content: "";
+    position: absolute;
+    left: 11px;
+    top: 12px;
+    bottom: 24px;
+    width: 2px;
+    background: #e2e8f0;
+  }
+  .timeline-step {
+    position: relative;
+    padding-left: 1.75rem;
+    margin-bottom: 1.75rem;
+  }
+  .timeline-step:last-child {
+    margin-bottom: 0;
+  }
+  .timeline-marker {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  .marker-primary { border: 2px solid #0284c7; color: #0284c7; }
+  .marker-success { border: 2px solid #10b981; color: #10b981; }
+  .marker-warn { border: 2px solid #f59e0b; color: #f59e0b; background: #fffbeb; }
+  .marker-danger { border: 2px solid #ef4444; color: #ef4444; }
+  .marker-info { border: 2px solid #6366f1; color: #6366f1; }
+
+  .pulse-inner {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: pulseDot 1.5s infinite;
+  }
+  @keyframes pulseDot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.85); }
+  }
+
+  .timeline-content {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.85rem 1rem;
+  }
+  .is-revision-step .timeline-content {
+    background: #fffbeb;
+    border-color: #fde68a;
+  }
+  .timeline-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
+    flex-wrap: wrap;
+  }
+  .step-role-badge {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    letter-spacing: 0.03em;
+  }
+  .badge-blue { background: #e0f2fe; color: #0369a1; }
+  .badge-green { background: #d1fae5; color: #065f46; }
+  .badge-amber { background: #fef3c7; color: #92400e; }
+  .badge-red { background: #fee2e2; color: #991b1b; }
+  .badge-sky { background: #f0fdf4; color: #166534; }
+
+  .step-time {
+    font-size: 0.725rem;
+    color: #64748b;
+    font-family: monospace;
+  }
+  .step-actor {
+    font-size: 0.8rem;
+    color: #334155;
+    margin-bottom: 0.35rem;
+  }
+  .step-desc {
+    margin: 0;
+    font-size: 0.8rem;
+    color: #475569;
+    line-height: 1.45;
+  }
+  .step-note-box {
+    margin-top: 0.5rem;
+    padding: 0.55rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.78rem;
+  }
+  .note-box-warn { background: #fef3c7; border: 1px solid #fde68a; color: #78350f; }
+  .note-box-success { background: #dcfce7; border: 1px solid #bbf7d0; color: #14532d; }
+  .note-box-danger { background: #fee2e2; border: 1px solid #fecaca; color: #7f1d1d; }
+  .note-box-info { background: #e0f2fe; border: 1px solid #bae6fd; color: #075985; }
+</style>

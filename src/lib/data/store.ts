@@ -214,16 +214,21 @@ export function resubmitActivity(
     description: string;
     qty?: number;
     returnQty?: number;
+    returnCondition?: string;
+    editionName?: string;
+    sourceName?: string;
     value?: number;
     cashValue?: number;
     barterValue?: number;
+    barterDesc?: string;
     proofUrl?: string;
+    revisionNote?: string;
   }
 ): Result<T.Activity> {
   const a = activity(id);
   if (!a) return { ok: false, error: "Aktivitas tidak ditemukan." };
   if (a.status !== "revision" || (a.ownerId !== actor.id && a.createdBy !== actor.id)) return { ok: false, error: "Aktivitas ini tidak dapat diperbaiki oleh Anda." };
-  if (patch.description.trim().length < 10) return { ok: false, error: "Deskripsi minimal 10 karakter.", fields: { description: "Terlalu pendek." } };
+  if (patch.description.trim().length < 5) return { ok: false, error: "Deskripsi minimal 5 karakter.", fields: { description: "Terlalu pendek." } };
   a.description = patch.description.trim();
   if (patch.qty != null && a.type === "oplah") {
     a.qty = patch.qty;
@@ -233,15 +238,35 @@ export function resubmitActivity(
     a.returnQty = patch.returnQty;
     a.soldQty = Math.max(0, (a.qty ?? 0) - a.returnQty);
   }
+  if (patch.returnCondition && a.type === "oplah") a.returnCondition = patch.returnCondition;
+  if (patch.editionName && a.type === "oplah") a.editionName = patch.editionName;
+  if (patch.sourceName && a.type === "oplah") a.sourceName = patch.sourceName;
   if (patch.cashValue != null) a.cashValue = patch.cashValue;
   if (patch.barterValue != null) a.barterValue = patch.barterValue;
+  if (patch.barterDesc != null) a.barterDesc = patch.barterDesc;
   if (patch.value != null) a.value = patch.value;
   else if (a.cashValue != null || a.barterValue != null) a.value = (a.cashValue ?? 0) + (a.barterValue ?? 0);
   if (patch.proofUrl) a.proofUrl = patch.proofUrl;
 
+  // Jika ada offer terkait, sinkronkan juga ke master proposal penawaran
+  if (a.offerId) {
+    const o = db.offers.find((x) => x.id === a.offerId);
+    if (o) {
+      if (patch.cashValue != null) o.cashValue = patch.cashValue;
+      if (patch.barterValue != null) o.barterValue = patch.barterValue;
+      if (patch.value != null) o.value = patch.value;
+      if (patch.barterDesc != null) o.barterDesc = patch.barterDesc;
+      if (patch.proofUrl) o.proofUrl = patch.proofUrl;
+    }
+  }
+
+  const noteText = patch.revisionNote?.trim()
+    ? `Diajukan kembali setelah revisi: ${patch.revisionNote.trim()}`
+    : "Diajukan kembali setelah perbaikan berkas.";
+
   a.status = "pending";
-  db.verifications.push({ id: nextId("VER"), activityId: id, status: "pending", by: actor.id, at: new Date().toISOString(), note: "Diajukan kembali setelah revisi." });
-  addAudit(actor.id, "aktivitas.diajukan-ulang", "activities", id, `Aktivitas ${id} diperbaiki dan diajukan kembali.`);
+  db.verifications.push({ id: nextId("VER"), activityId: id, status: "pending", by: actor.id, at: new Date().toISOString(), note: noteText });
+  addAudit(actor.id, "aktivitas.diajukan-ulang", "activities", id, `Aktivitas ${id} diperbaiki dan diajukan kembali ke HRD.`);
   return { ok: true, data: a };
 }
 

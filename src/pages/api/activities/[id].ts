@@ -10,19 +10,29 @@ export const POST: APIRoute = async ({ request, params, locals, redirect, cookie
   const fd = await request.formData();
   const qty = fd.get("qty") ? Number(fd.get("qty")) : undefined;
   const returnQty = fd.get("returnQty") != null && fd.get("returnQty") !== "" ? Number(fd.get("returnQty")) : undefined;
+  const returnCondition = fd.get("returnCondition") ? String(fd.get("returnCondition")) : undefined;
+  const editionName = fd.get("editionName") ? String(fd.get("editionName")) : undefined;
+  const sourceName = fd.get("sourceName") ? String(fd.get("sourceName")) : undefined;
   const value = fd.get("value") ? Number(fd.get("value")) : undefined;
   const cashValue = fd.get("cashValue") ? Number(fd.get("cashValue")) : undefined;
   const barterValue = fd.get("barterValue") ? Number(fd.get("barterValue")) : undefined;
+  const barterDesc = fd.get("barterDesc") ? String(fd.get("barterDesc")) : undefined;
   const proofUrl = fd.get("proofUrl") ? String(fd.get("proofUrl")) : undefined;
+  const revisionNote = fd.get("revisionNote") ? String(fd.get("revisionNote")) : undefined;
 
   const res = resubmitActivity(auth.user, params.id!, {
     description: String(fd.get("description") ?? ""),
     qty,
     returnQty,
+    returnCondition,
+    editionName,
+    sourceName,
     value,
     cashValue,
     barterValue,
+    barterDesc,
     proofUrl,
+    revisionNote,
   });
   if (!res.ok) { cookies.set("rk_form", JSON.stringify({ error: res.error, fields: res.fields ?? {}, values: Object.fromEntries(fd) }), { path: "/", maxAge: 60, httpOnly: true }); return redirect(`/employee/activities/${params.id}?retry=1`); }
 
