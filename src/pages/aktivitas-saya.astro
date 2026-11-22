@@ -4,7 +4,7 @@ import Icon from "../components/ui/Icon.astro";
 import Badge from "../components/ui/Badge.astro";
 import Alert from "../components/ui/Alert.astro";
 import PeriodFilter from "../components/ui/PeriodFilter.astro";
-import { db, activePeriod, activitiesFor, employee, divisionName, positionName } from "../lib/data/store";
+import { db, activePeriod, activitiesFor, employee, divisionName, positionName, historyOf } from "../lib/data/store";
 import { achievements, ensureEmployeeTargets } from "../features/kpi/achievements";
 import { selectedPeriod } from "../lib/utils/period";
 import { dateID, num, rupiah, TYPE_LABEL, STATUS_LABEL } from "../lib/formatters";
