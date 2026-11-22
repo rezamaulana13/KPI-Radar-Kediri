@@ -3,10 +3,11 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
 import PageHeader from "../../components/layout/PageHeader.astro";
 import PeriodFilter from "../../components/ui/PeriodFilter.astro";
 import Icon from "../../components/ui/Icon.astro";
-import { db, divisionName, positions } from "../../lib/data/store";
+import Badge from "../../components/ui/Badge.astro";
+import { db, divisionName, positions, employeeName, employee, client } from "../../lib/data/store";
 import { achievements } from "../../features/kpi/achievements";
 import { selectedPeriod } from "../../lib/utils/period";
-import { rupiah, num } from "../../lib/formatters";
+import { rupiah, num, dateID, dateTimeID, TYPE_LABEL, STATUS_LABEL } from "../../lib/formatters";
 
 const u = Astro.locals.user!;
 if (!u || (u.role !== "admin" && u.role !== "hrd")) {
@@ -16,6 +17,27 @@ if (!u || (u.role !== "admin" && u.role !== "hrd")) {
 const p = selectedPeriod(Astro.url);
 const acts = db.activities.filter((a) => a.periodId === p.id);
 const ach = achievements(p.id);
+
+// Urutkan aktivitas berdasarkan tanggal terbaru dan ID terbesar
+const sortedActs = [...acts].sort(
+  (a, b) => (b.date || "").localeCompare(a.date || "") || (b.id || "").localeCompare(a.id || "", undefined, { numeric: true })
+);
+
+// Metrik Status Administrasi Seluruh Berkas Periode Ini
+const totalActsCount = sortedActs.length;
+const approvedActsCount = sortedActs.filter((a) => a.status === "approved").length;
+const pendingActsCount = sortedActs.filter((a) => a.status === "pending").length;
+const revisionActsCount = sortedActs.filter((a) => a.status === "revision").length;
+const rejectedActsCount = sortedActs.filter((a) => a.status === "rejected").length;
+const approvalRate = totalActsCount > 0 ? ((approvedActsCount / totalActsCount) * 100).toFixed(1) : "0.0";
+
+// Predikat Mutu Kinerja
+const getPredikat = (score: number) => {
+  if (score >= 85) return { label: "Sangat Baik", grade: "A", bg: "#dcfce7", color: "#15803d" };
+  if (score >= 70) return { label: "Baik", grade: "B", bg: "#e0f2fe", color: "#0369a1" };
+  if (score >= 55) return { label: "Cukup", grade: "C", bg: "#fef3c7", color: "#b45309" };
+  return { label: "Kurang", grade: "D", bg: "#fee2e2", color: "#b91c1c" };
+};
 
 // Hanya staf pemasaran lapangan (role employee)
 const employeeStaff = db.employees.filter((e) => e.role === "employee");
@@ -38,6 +60,7 @@ const rows = employeeStaff.map((e) => {
     .reduce((s, a) => s + (a.soldQty != null ? a.soldQty : Math.max(0, (a.qty || 0) - (a.returnQty || 0))), 0);
 
   const avg = pr.length ? Math.round(pr.reduce((s, r) => s + Math.min(r.percent!, 100), 0) / pr.length) : 0;
+  const predikat = getPredikat(avg);
 
   return {
     id: e.id,
@@ -53,6 +76,7 @@ const rows = employeeStaff.map((e) => {
     barterVal,
     soldOplah,
     avg,
+    predikat,
   };
 });
 
@@ -64,171 +88,661 @@ const divCash = divApproved
 const divBarter = divApproved
   .filter((a) => (a.type === "outcome" && a.outcome === "deal" && (a.barterValue || 0) > 0) || a.type === "program")
   .reduce((s, a) => s + (a.barterValue != null ? a.barterValue : 0), 0);
+const divSentOplah = divApproved
+  .filter((a) => a.type === "oplah")
+  .reduce((s, a) => s + (a.qty || 0), 0);
+const divReturnOplah = divApproved
+  .filter((a) => a.type === "oplah")
+  .reduce((s, a) => s + (a.returnQty || 0), 0);
 const divSoldOplah = divApproved
   .filter((a) => a.type === "oplah")
   .reduce((s, a) => s + (a.soldQty != null ? a.soldQty : Math.max(0, (a.qty || 0) - (a.returnQty || 0))), 0);
+const divReturnRate = divSentOplah > 0 ? ((divReturnOplah / divSentOplah) * 100).toFixed(1) : "0.0";
 const divAvgPercent = rows.length ? Math.round(rows.reduce((s, r) => s + r.avg, 0) / rows.length) : 0;
+
+// Detail Data Berkas Laporan Lapangan
+const actRows = sortedActs.map((a) => {
+  const emp = employee(a.ownerId);
+  const typeLabel = TYPE_LABEL[a.type] ?? a.type;
+  let volumeDesc = "—";
+  if (a.type === "oplah") {
+    const s = a.soldQty != null ? a.soldQty : Math.max(0, (a.qty || 0) - (a.returnQty || 0));
+    volumeDesc = `${num(s)} eks terjual (Kirim: ${num(a.qty || 0)}, Retur: ${num(a.returnQty || 0)})`;
+  } else if (a.type === "outcome") {
+    if (a.outcome === "deal") {
+      const parts = [];
+      if (a.cashValue || a.value) parts.push(`Kas: ${rupiah(a.cashValue || a.value || 0)}`);
+      if (a.barterValue) parts.push(`Barter: ${rupiah(a.barterValue)}`);
+      volumeDesc = parts.length ? parts.join(" + ") : "Deal Closing";
+    } else {
+      volumeDesc = "Belum Deal (Follow-up)";
+    }
+  } else if (a.type === "offer") {
+    const val = (a.cashValue || 0) + (a.barterValue || 0) > 0 ? (a.cashValue || 0) + (a.barterValue || 0) : (a.value || 0);
+    volumeDesc = `Nilai Ajuan: ${rupiah(val)}`;
+  } else if (a.type === "client") {
+    const cl = client(a.clientId);
+    volumeDesc = cl ? `Mitra: ${cl.name} (${cl.city || "Kediri"})` : "Pendaftaran Klien";
+  } else if (a.type === "profiling") {
+    const cl = client(a.clientId);
+    volumeDesc = cl ? `Riset Mitra: ${cl.name}` : "Riset Potensi Klien";
+  } else if (a.type === "program") {
+    volumeDesc = a.value ? `Nilai: ${rupiah(a.value)}` : "Program Event";
+  }
+
+  const proofUrl = a.proofUrl || a.evidence;
+
+  return {
+    ...a,
+    ownerName: employeeName(a.ownerId),
+    ownerNip: emp?.nip || "",
+    typeLabel,
+    volumeDesc,
+    hasProof: Boolean(proofUrl && proofUrl.trim().length > 0),
+    proofUrl: proofUrl || "",
+  };
+});
+
+// Metrik Per Modul Operasional
+const oplahActs = acts.filter((a) => a.type === "oplah");
+const offerActs = acts.filter((a) => a.type === "offer");
+const dealActs = acts.filter((a) => a.type === "outcome" && a.outcome === "deal");
+const clientActs = acts.filter((a) => a.type === "client");
+const profilingActs = acts.filter((a) => a.type === "profiling");
+
+const activeTabParam = Astro.url.searchParams.get("tab") || "staf";
 ---
 
-<DashboardLayout title="Rekapitulasi Kinerja Divisi Pemasaran">
-  <PageHeader
-    title="Rekapitulasi Kinerja Divisi Pemasaran"
-    description={`Rekapitulasi berkas laporan lapangan staf marketing, verifikasi HRD (Disetujui/Revisi/Ditolak), dan persentase capaian target untuk periode ${p.name}.`}
-    crumbs={[{ label: "Admin Pemasaran" }, { label: "Laporan Bulanan" }]}
-  >
-    <Fragment slot="actions">
-      <PeriodFilter />
-      <a class="btn btn-primary" href={`/api/export/excel?type=hrd&period=${p.id}`} download title="Unduh Rekapitulasi Operasional Lengkap (Excel .xlsx)">
-        <Icon name="download" size={15} />
-        <span>Unduh Excel (.xlsx)</span>
-      </a>
-      <a class="btn btn-secondary" href={`/hrd/reports/export.csv?period=${p.id}`} title="Unduh CSV">
-        <span>CSV</span>
-      </a>
-    </Fragment>
-  </PageHeader>
+<DashboardLayout title="Rekapitulasi Laporan & Kinerja Divisi Pemasaran">
+  <!-- Print Header Only -->
+  <div class="print-only" style="display:none;margin-bottom:1.5rem;border-bottom:2px solid #0f172a;padding-bottom:1rem;">
+    <h1 style="font-size:1.4rem;font-weight:800;color:#0f172a;margin:0 0 0.25rem;">PT RADAR KEDIRI — LAPORAN RESMI REKAPITULASI DIVISI PEMASARAN</h1>
+    <p style="font-size:0.85rem;color:#475569;margin:0;">Periode Evaluasi Operasional: <strong>{p.name}</strong> · Dicetak oleh: <strong>{u.name} ({u.role.toUpperCase()})</strong></p>
+  </div>
 
-  <!-- 4 Stat Box Agregat Divisi Pemasaran & Sirkulasi -->
-  <div class="stat-grid-4" style="margin-bottom: 1.5rem;">
+  <div class="no-print">
+    <PageHeader
+      title="Rekapitulasi Laporan & Kinerja Divisi Pemasaran"
+      description={`Rekapitulasi berkas laporan operasional lapangan staf, status verifikasi HRD (Disetujui/Menunggu/Revisi/Ditolak), breakdown per modul, serta evaluasi capaian kinerja periode ${p.name}.`}
+      crumbs={[{ label: "Admin Pemasaran" }, { label: "Rekapitulasi Laporan" }]}
+    >
+      <Fragment slot="actions">
+        <PeriodFilter />
+        <button type="button" class="btn btn-secondary" onclick="window.print()" title="Cetak lembar rekapitulasi ke format PDF atau printer">
+          <Icon name="printer" size={15} />
+          <span>Cetak Laporan</span>
+        </button>
+        <a class="btn btn-primary" href={`/api/export/excel?type=hrd&period=${p.id}`} download title="Unduh Rekapitulasi Operasional Lengkap Berstandar Excel (.xlsx)">
+          <Icon name="download" size={15} />
+          <span>Unduh Excel (.xlsx)</span>
+        </a>
+        <a class="btn btn-secondary" href={`/hrd/reports/export.csv?period=${p.id}`} title="Unduh File CSV Ringkas">
+          <span>CSV</span>
+        </a>
+      </Fragment>
+    </PageHeader>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- BAGIAN 1: STAT BOX UTAMA (PILAR FINANSIAL & OPERASIONAL) -->
+  <!-- ======================================================== -->
+  <div class="stat-grid-4" style="margin-bottom: 1rem;">
     <div class="stat-box tone-kas">
-      <span class="stat-lbl">Omzet Kas Tunai Divisi</span>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <span class="stat-lbl">Omzet Kas Tunai Divisi</span>
+        <span class="badge" style="background:#dcfce7;color:#15803d;font-size:0.7rem;font-weight:700;">IKLAN RIIL</span>
+      </div>
       <span class="stat-val">{rupiah(divCash)}</span>
-      <span class="stat-sub">Penerimaan riil deal iklan/advertorial</span>
+      <span class="stat-sub">Penerimaan kas sah deal iklan/advertorial</span>
     </div>
 
     <div class="stat-box tone-barter">
-      <span class="stat-lbl">Nilai Realisasi Barter</span>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <span class="stat-lbl">Nilai Realisasi Barter</span>
+        <span class="badge" style="background:#ede9fe;color:#6b21a8;font-size:0.7rem;font-weight:700;">PROMOSI</span>
+      </div>
       <span class="stat-val">{rupiah(divBarter)}</span>
-      <span class="stat-sub">Barang/jasa promosi non-tunai</span>
+      <span class="stat-sub">Sponsorship barang/jasa promosi non-tunai</span>
     </div>
 
     <div class="stat-box tone-oplah">
-      <span class="stat-lbl">Oplah Bersih Terjual</span>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <span class="stat-lbl">Oplah Bersih Terjual</span>
+        <span class="badge" style="background:#e0f2fe;color:#0369a1;font-size:0.7rem;font-weight:700;">SIRKULASI</span>
+      </div>
       <span class="stat-val">{num(divSoldOplah)} <small style="font-size:0.9rem;font-weight:600;">Eks</small></span>
-      <span class="stat-sub">Distribusi terverifikasi dikurangi retur</span>
+      <span class="stat-sub">Total kirim {num(divSentOplah)} eks (Retur: {divReturnRate}%)</span>
     </div>
 
     <div class="stat-box tone-kpi">
-      <span class="stat-lbl">Rata-rata Capaian Divisi</span>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <span class="stat-lbl">Rata-rata Capaian Divisi</span>
+        <span class="badge" style="background:#f1f5f9;color:#334155;font-size:0.7rem;font-weight:700;">EVALUASI</span>
+      </div>
       <span class="stat-val">{divAvgPercent}%</span>
       <span class="stat-sub">{employeeStaff.length} staf pemasaran dievaluasi</span>
     </div>
   </div>
 
-  <!-- Tabel Rekapitulasi Per Karyawan -->
-  <section class="card table-card">
-    <div class="card-head">
-      <div>
-        <h2>Rekapitulasi Capaian Individual Staf</h2>
-        <p class="muted font-xs" style="margin: 0.15rem 0 0;">Monitoring kontribusi finansial, oplah sirkulasi, serta rasio approval tiap staf lapangan.</p>
+  <!-- ======================================================== -->
+  <!-- BAGIAN 2: RINGKASAN STATUS ADMINISTRASI VERIFIKASI BERKAS-->
+  <!-- ======================================================== -->
+  <div class="admin-summary-strip" style="margin-bottom: 1.5rem;">
+    <div class="strip-card">
+      <div class="strip-item">
+        <span class="strip-title">Total Berkas Diajukan</span>
+        <span class="strip-num">{totalActsCount}</span>
+        <span class="strip-desc">Laporan masuk bulan ini</span>
       </div>
-      <span class="badge badge-info">{rows.length} Staf Terdata</span>
+      <div class="strip-divider"></div>
+      <div class="strip-item">
+        <span class="strip-title" style="color:#15803d;">Disetujui HRD (Approved)</span>
+        <span class="strip-num" style="color:#15803d;">{approvedActsCount} <small style="font-size:0.8rem;font-weight:600;">({approvalRate}%)</small></span>
+        <span class="strip-desc">Sah dihitung ke target KPI</span>
+      </div>
+      <div class="strip-divider"></div>
+      <div class="strip-item">
+        <span class="strip-title" style="color:#b45309;">Menunggu Verifikasi</span>
+        <span class="strip-num" style="color:#b45309;">{pendingActsCount}</span>
+        <span class="strip-desc">Perlu diperiksa verifikator</span>
+      </div>
+      <div class="strip-divider"></div>
+      <div class="strip-item">
+        <span class="strip-title" style="color:#b91c1c;">Perlu Revisi / Ditolak</span>
+        <span class="strip-num" style="color:#b91c1c;">{revisionActsCount + rejectedActsCount}</span>
+        <span class="strip-desc">{revisionActsCount} revisi · {rejectedActsCount} ditolak</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- BAGIAN 3: TAB NAVIGASI REKAPITULASI LENGKAP              -->
+  <!-- ======================================================== -->
+  <div class="report-nav-tabs-bar no-print">
+    <button
+      type="button"
+      class={`report-tab-btn ${activeTabParam === "staf" ? "is-active" : ""}`}
+      id="btn-tab-staf"
+      onclick="window.switchReportTab('staf')"
+    >
+      <Icon name="users" size={16} />
+      <span>Rekapitulasi Kinerja Individual Staf ({rows.length})</span>
+    </button>
+    <button
+      type="button"
+      class={`report-tab-btn ${activeTabParam === "berkas" ? "is-active" : ""}`}
+      id="btn-tab-berkas"
+      onclick="window.switchReportTab('berkas')"
+    >
+      <Icon name="clipboard" size={16} />
+      <span>Daftar Seluruh Berkas Laporan ({sortedActs.length})</span>
+    </button>
+    <button
+      type="button"
+      class={`report-tab-btn ${activeTabParam === "modul" ? "is-active" : ""}`}
+      id="btn-tab-modul"
+      onclick="window.switchReportTab('modul')"
+    >
+      <Icon name="chart" size={16} />
+      <span>Breakdown per Modul Operasional</span>
+    </button>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- TAB 1: REKAPITULASI CAPAIAN INDIVIDUAL STAF              -->
+  <!-- ======================================================== -->
+  <section class="tab-pane" id="pane-tab-staf" style={activeTabParam === "staf" ? "display:block;" : "display:none;"}>
+    <div class="card table-card">
+      <div class="card-head">
+        <div>
+          <h2>Rekapitulasi Capaian Individual Staf Pemasaran</h2>
+          <p class="muted font-xs" style="margin: 0.15rem 0 0;">Monitoring kontribusi finansial, oplah sirkulasi, status approval, dan predikat evaluasi bulanan masing-masing personel.</p>
+        </div>
+        <span class="badge badge-info">{rows.length} Staf Terdata</span>
+      </div>
+
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="min-width: 180px;">Staf Pemasaran</th>
+              <th style="text-align: right; width: 140px;">Kas Tunai</th>
+              <th style="text-align: right; width: 140px;">Nilai Barter</th>
+              <th style="text-align: right; width: 130px;">Oplah Bersih</th>
+              <th style="text-align: center; width: 150px;">Status Berkas</th>
+              <th style="width: 170px;">Capaian Rata-Rata</th>
+              <th style="text-align: center; width: 120px;">Predikat</th>
+              <th style="width: 100px; text-align: center;" class="no-print">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.length === 0 ? (
+              <tr>
+                <td colspan="8" style="text-align: center; padding: 3rem 1.5rem; color: var(--color-muted);">
+                  Belum ada data staf pemasaran untuk periode {p.name}.
+                </td>
+              </tr>
+            ) : (
+              rows.map((r) => {
+                const isSuccess = r.avg >= 85;
+                const isGood = r.avg >= 70;
+                const isWarning = r.avg >= 55;
+                const barColor = isSuccess ? "#10b981" : isGood ? "#0284c7" : isWarning ? "#f59e0b" : "#ef4444";
+
+                return (
+                  <tr>
+                    <td>
+                      <div style="font-weight: 700; color: #0f172a;">{r.name}</div>
+                      <div class="muted text-xs">NIP: {r.nip} · {r.position}</div>
+                    </td>
+                    <td style="text-align: right; font-weight: 700; color: #065f46;">
+                      {r.cashVal > 0 ? rupiah(r.cashVal) : "—"}
+                    </td>
+                    <td style="text-align: right; font-weight: 700; color: #3730a3;">
+                      {r.barterVal > 0 ? rupiah(r.barterVal) : "—"}
+                    </td>
+                    <td style="text-align: right; font-weight: 700; color: #0369a1;">
+                      {r.soldOplah > 0 ? `${num(r.soldOplah)} eks` : "—"}
+                    </td>
+                    <td style="text-align: center;">
+                      <div style="display:flex;justify-content:center;gap:0.35rem;font-size:0.75rem;">
+                        <span class="badge-status-pill st-app" title={`${r.approved} berkas disetujui`}>{r.approved}</span>
+                        <span class="badge-status-pill st-pen" title={`${r.pending} berkas menunggu verifikasi`}>{r.pending}</span>
+                        <span class="badge-status-pill st-rev" title={`${r.revision + r.rejected} berkas revisi/ditolak`}>{r.revision + r.rejected}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="meter-wrapper">
+                        <div class="meter-track">
+                          <div class="meter-fill" style={`width: ${Math.min(r.avg, 100)}%; background-color: ${barColor};`}></div>
+                        </div>
+                        <span class="meter-pct font-bold" style={`color: ${barColor};`}>{r.avg}%</span>
+                      </div>
+                    </td>
+                    <td style="text-align: center;">
+                      <span class="badge" style={`background:${r.predikat.bg};color:${r.predikat.color};font-weight:700;font-size:0.75rem;padding:0.2rem 0.55rem;border-radius:4px;white-space:nowrap;`}>
+                        {r.predikat.label} ({r.predikat.grade})
+                      </span>
+                    </td>
+                    <td style="text-align: center;" class="no-print">
+                      <a href={`/hrd/kpi/achievements?tab=individu&staff=${r.id}&period=${p.id}`} class="btn btn-secondary btn-xs" title="Lihat rincian rapor target KPI staf ini">
+                        Rapor &rarr;
+                      </a>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================================================== -->
+  <!-- TAB 2: DAFTAR SELURUH BERKAS LAPORAN LAPANGAN LENGKAP    -->
+  <!-- ======================================================== -->
+  <section class="tab-pane" id="pane-tab-berkas" style={activeTabParam === "berkas" ? "display:block;" : "display:none;"}>
+    <!-- Filter Status & Pencarian Interaktif -->
+    <div class="filter-controls-wrap no-print">
+      <div class="filter-tabs-bar" id="report-act-filter-tabs">
+        <button type="button" class="filter-tab is-active" data-status-filter="all">
+          Semua ({totalActsCount})
+        </button>
+        <button type="button" class="filter-tab" data-status-filter="approved">
+          Disetujui ({approvedActsCount})
+        </button>
+        <button type="button" class="filter-tab" data-status-filter="pending">
+          Menunggu ({pendingActsCount})
+        </button>
+        {revisionActsCount > 0 && (
+          <button type="button" class="filter-tab tab-warn" data-status-filter="revision">
+            Perlu Revisi ({revisionActsCount})
+          </button>
+        )}
+        {rejectedActsCount > 0 && (
+          <button type="button" class="filter-tab tab-bad" data-status-filter="rejected">
+            Ditolak ({rejectedActsCount})
+          </button>
+        )}
+      </div>
+
+      <div class="search-box-wrap">
+        <input
+          type="text"
+          id="report-act-search-input"
+          class="search-input"
+          placeholder="Cari ID berkas, nama staf, kategori, atau deskripsi..."
+          aria-label="Cari daftar seluruh berkas laporan"
+        />
+      </div>
     </div>
 
-    <div class="table-responsive">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Staf Pemasaran</th>
-            <th style="text-align: right; width: 140px;">Kas Tunai</th>
-            <th style="text-align: right; width: 140px;">Nilai Barter</th>
-            <th style="text-align: right; width: 130px;">Oplah Bersih</th>
-            <th style="text-align: center; width: 140px;">Status Laporan</th>
-            <th style="width: 180px;">Capaian Rata-Rata</th>
-            <th style="width: 100px; text-align: center;">Aksi</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.length === 0 ? (
-            <tr>
-              <td colspan="7" style="text-align: center; padding: 3rem 1.5rem; color: var(--color-muted);">
-                Belum ada data staf pemasaran untuk periode ini.
-              </td>
-            </tr>
-          ) : (
-            rows.map((r) => {
-              const isSuccess = r.avg >= 85;
-              const isGood = r.avg >= 70;
-              const isWarning = r.avg >= 55;
-              const barColor = isSuccess ? "#10b981" : isGood ? "#0284c7" : isWarning ? "#f59e0b" : "#ef4444";
+    <div class="card table-card">
+      <div class="card-head">
+        <div>
+          <h2>Rekapitulasi Berkas Laporan Lapangan Masuk</h2>
+          <p class="muted font-xs" style="margin: 0.15rem 0 0;">Daftar seluruh berkas kegiatan yang disubmit staf pemasaran pada periode {p.name} (Urutan Tanggal Terbaru &amp; ID Terbesar).</p>
+        </div>
+        <span class="badge badge-primary">{sortedActs.length} Berkas Tercatat</span>
+      </div>
 
-              return (
-                <tr>
+      <div class="table-responsive">
+        <table class="data-table" id="table-all-reports">
+          <thead>
+            <tr>
+              <th style="width: 110px;">ID Berkas</th>
+              <th style="width: 110px;">Tanggal</th>
+              <th style="width: 140px;">Kategori</th>
+              <th style="width: 170px;">Staf Pelapor</th>
+              <th>Rincian &amp; Deskripsi Laporan Lapangan</th>
+              <th style="width: 180px; text-align: right;">Volume / Komersial</th>
+              <th style="width: 110px; text-align: center;">Bukti Fisik</th>
+              <th style="width: 120px; text-align: center;">Status</th>
+              <th style="width: 110px; text-align: center;" class="no-print">Tindakan</th>
+            </tr>
+          </thead>
+          <tbody>
+            {actRows.length === 0 ? (
+              <tr>
+                <td colspan="9" style="text-align: center; padding: 3rem 1.5rem; color: var(--color-muted);">
+                  Tidak ada laporan lapangan yang diajukan pada periode {p.name}.
+                </td>
+              </tr>
+            ) : (
+              actRows.map((a) => (
+                <tr
+                  class="act-row-item"
+                  data-status={a.status}
+                  data-search={`${a.id} ${a.ownerName} ${a.ownerNip} ${a.typeLabel} ${a.description} ${a.volumeDesc}`.toLowerCase()}
+                >
                   <td>
-                    <div style="font-weight: 700; color: #0f172a;">{r.name}</div>
-                    <div class="muted text-xs">NIP: {r.nip} · {r.position}</div>
+                    <span class="mono-id">{a.id}</span>
                   </td>
-                  <td style="text-align: right; font-weight: 700; color: #065f46;">
-                    {r.cashVal > 0 ? rupiah(r.cashVal) : "—"}
+                  <td>
+                    <span class="date-txt">{dateID(a.date)}</span>
                   </td>
-                  <td style="text-align: right; font-weight: 700; color: #3730a3;">
-                    {r.barterVal > 0 ? rupiah(r.barterVal) : "—"}
+                  <td>
+                    <span class={`type-pill-badge type-${a.type}`}>
+                      {a.typeLabel}
+                    </span>
                   </td>
-                  <td style="text-align: right; font-weight: 700; color: #0369a1;">
-                    {r.soldOplah > 0 ? `${num(r.soldOplah)} eks` : "—"}
+                  <td>
+                    <div style="font-weight: 700; color: #0f172a;">{a.ownerName}</div>
+                    <div class="muted text-xs">NIP: {a.ownerNip}</div>
+                  </td>
+                  <td>
+                    <div style="font-weight: 600; color: #1e293b; margin-bottom: 0.15rem;">{a.description}</div>
+                    {a.type === "oplah" && a.editionName && (
+                      <div class="muted text-xs">Edisi: {a.editionName} · Kanal: {a.source || "Agen"} ({a.sourceName || "—"})</div>
+                    )}
+                  </td>
+                  <td style="text-align: right; font-weight: 600; font-size: 0.85rem; color: #0f172a;">
+                    {a.volumeDesc}
                   </td>
                   <td style="text-align: center;">
-                    <div style="display:flex;justify-content:center;gap:0.35rem;font-size:0.75rem;">
-                      <span class="badge-status-pill st-app" title="Disetujui">{r.approved}</span>
-                      <span class="badge-status-pill st-pen" title="Menunggu">{r.pending}</span>
-                      <span class="badge-status-pill st-rev" title="Revisi/Ditolak">{r.revision + r.rejected}</span>
-                    </div>
-                  </td>
-                  <td>
-                    <div class="meter-wrapper">
-                      <div class="meter-track">
-                        <div class="meter-fill" style={`width: ${Math.min(r.avg, 100)}%; background-color: ${barColor};`}></div>
-                      </div>
-                      <span class="meter-pct font-bold" style={`color: ${barColor};`}>{r.avg}%</span>
-                    </div>
+                    {a.hasProof ? (
+                      <a
+                        href={a.proofUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="btn-proof-view"
+                        title="Klik untuk membuka tautan bukti fisik lapangan"
+                      >
+                        <Icon name="document" size={13} />
+                        <span>Buka</span>
+                      </a>
+                    ) : (
+                      <span class="muted text-xs">—</span>
+                    )}
                   </td>
                   <td style="text-align: center;">
-                    <a href={`/hrd/kpi/achievements?tab=individu&staff=${r.id}&period=${p.id}`} class="btn btn-secondary btn-xs" title="Lihat rincian KPI staf ini">
-                      Rapor &rarr;
+                    <Badge status={a.status} />
+                  </td>
+                  <td style="text-align: center;" class="no-print">
+                    <a
+                      href={`/hrd/verifications/${a.id}`}
+                      class="btn btn-secondary btn-xs"
+                      title={`Periksa rincian dan verifikasi berkas ${a.id}`}
+                    >
+                      Periksa &rarr;
                     </a>
                   </td>
                 </tr>
-              );
-            })
-          )}
-        </tbody>
-      </table>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================================================== -->
+  <!-- TAB 3: BREAKDOWN PER MODUL OPERASIONAL                   -->
+  <!-- ======================================================== -->
+  <section class="tab-pane" id="pane-tab-modul" style={activeTabParam === "modul" ? "display:block;" : "display:none;"}>
+    <div class="modul-summary-grid">
+      <!-- Modul 1: Sirkulasi Oplah & Retur Koran -->
+      <div class="card modul-box">
+        <div class="modul-head tone-oplah">
+          <div style="display:flex;align-items:center;gap:0.5rem;">
+            <Icon name="news" size={18} />
+            <h3 style="margin:0;font-size:1.05rem;font-weight:700;">Modul Sirkulasi Oplah Koran</h3>
+          </div>
+          <span class="badge" style="background:#e0f2fe;color:#0369a1;font-weight:700;">IND-01</span>
+        </div>
+        <div class="modul-body">
+          <div class="modul-metric-row">
+            <span class="lbl">Total Koran Terdistribusi (Kirim):</span>
+            <span class="val font-bold">{num(divSentOplah)} Eksemplar</span>
+          </div>
+          <div class="modul-metric-row">
+            <span class="lbl">Total Retur Koran:</span>
+            <span class="val font-bold" style="color:#b91c1c;">{num(divReturnOplah)} Eksemplar</span>
+          </div>
+          <div class="modul-metric-row">
+            <span class="lbl">Oplah Bersih Terjual (Net):</span>
+            <span class="val font-bold" style="color:#0369a1;font-size:1.1rem;">{num(divSoldOplah)} Eksemplar</span>
+          </div>
+          <div class="modul-metric-row">
+            <span class="lbl">Rasio Retur Koran:</span>
+            <span class="val font-bold" style={Number(divReturnRate) > 10 ? "color:#b91c1c;" : "color:#15803d;"}>{divReturnRate}%</span>
+          </div>
+          <div class="modul-metric-row">
+            <span class="lbl">Jumlah Transaksi Sirkulasi:</span>
+            <span class="val muted">{oplahActs.length} transaksi tercatat</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modul 2: Iklan & Kemitraan Komersial -->
+      <div class="card modul-box">
+        <div class="modul-head tone-kas">
+          <div style="display:flex;align-items:center;gap:0.5rem;">
+            <Icon name="folder" size={18} />
+            <h3 style="margin:0;font-size:1.05rem;font-weight:700;">Iklan, Sponsorship &amp; Barter</h3>
+          </div>
+          <span class="badge" style="background:#dcfce7;color:#15803d;font-weight:700;">IND-05 &amp; IND-07</span>
+        </div>
+        <div class="modul-body">
+          <div class="modul-metric-row">
+            <span class="lbl">Total Proposal Penawaran Dibuat:</span>
+            <span class="val font-bold">{offerActs.length} proposal diajukan</span>
+          </div>
+          <div class="modul-metric-row">
+            <span class="lbl">Kesepakatan Deal Terverifikasi:</span>
+            <span class="val font-bold" style="color:#15803d;">{dealActs.length} transaksi deal</span>
+          </div>
+          <div class="modul-metric-row">
+            <span class="lbl">Omzet Kas Tunai Riil:</span>
+            <span class="val font-bold" style="color:#065f46;font-size:1.1rem;">{rupiah(divCash)}</span>
+          </div>
+          <div class="modul-metric-row">
+            <span class="lbl">Nilai Realisasi Barter:</span>
+            <span class="val font-bold" style="color:#3730a3;">{rupiah(divBarter)}</span>
+          </div>
+          <div class="modul-metric-row">
+            <span class="lbl">Total Nilai Komersial Sah:</span>
+            <span class="val font-bold" style="color:#0f172a;">{rupiah(divCash + divBarter)}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modul 3: Database Mitra & Profiling -->
+      <div class="card modul-box">
+        <div class="modul-head tone-barter">
+          <div style="display:flex;align-items:center;gap:0.5rem;">
+            <Icon name="building" size={18} />
+            <h3 style="margin:0;font-size:1.05rem;font-weight:700;">Ekspansi Mitra &amp; Riset Klien</h3>
+          </div>
+          <span class="badge" style="background:#ede9fe;color:#6b21a8;font-weight:700;">IND-02 &amp; RISET</span>
+        </div>
+        <div class="modul-body">
+          <div class="modul-metric-row">
+            <span class="lbl">Pendaftaran Klien / Mitra Baru:</span>
+            <span class="val font-bold" style="color:#6b21a8;">{clientActs.length} mitra baru</span>
+          </div>
+          <div class="modul-metric-row">
+            <span class="lbl">Riset Profiling Klien Terlaksana:</span>
+            <span class="val font-bold">{profilingActs.length} riset potensi</span>
+          </div>
+          <div class="modul-metric-row">
+            <span class="lbl">Total Database Klien Divisi:</span>
+            <span class="val font-bold">{db.clients.length} mitra terdaftar</span>
+          </div>
+          <div class="modul-metric-row">
+            <span class="lbl">Status Basis Data:</span>
+            <span class="val font-bold" style="color:#15803d;">Terverifikasi Aktif</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modul 4: Efektivitas Administrasi & Verifikasi HRD -->
+      <div class="card modul-box">
+        <div class="modul-head tone-kpi">
+          <div style="display:flex;align-items:center;gap:0.5rem;">
+            <Icon name="shield" size={18} />
+            <h3 style="margin:0;font-size:1.05rem;font-weight:700;">Tata Kelola Verifikasi HRD</h3>
+          </div>
+          <span class="badge" style="background:#f1f5f9;color:#334155;font-weight:700;">SOP RESMI</span>
+        </div>
+        <div class="modul-body">
+          <div class="modul-metric-row">
+            <span class="lbl">Total Berkas Diproses:</span>
+            <span class="val font-bold">{totalActsCount} berkas masuk</span>
+          </div>
+          <div class="modul-metric-row">
+            <span class="lbl">Tingkat Persetujuan (Approval Rate):</span>
+            <span class="val font-bold" style="color:#15803d;font-size:1.1rem;">{approvalRate}%</span>
+          </div>
+          <div class="modul-metric-row">
+            <span class="lbl">Berkas Memerlukan Revisi:</span>
+            <span class="val font-bold" style="color:#b45309;">{revisionActsCount} berkas</span>
+          </div>
+          <div class="modul-metric-row">
+            <span class="lbl">Berkas Tidak Valid / Ditolak:</span>
+            <span class="val font-bold" style="color:#b91c1c;">{rejectedActsCount} berkas</span>
+          </div>
+          <div class="modul-metric-row">
+            <span class="lbl">Kesesuaian SLA Verifikasi:</span>
+            <span class="val font-bold" style="color:#15803d;">Maks. 2 x 24 Jam Kerja</span>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 </DashboardLayout>
+
+<!-- Client Script untuk Navigasi Tab & Live Search Berkas -->
+<script is:inline>
+  window.switchReportTab = function(tabName) {
+    var panes = document.querySelectorAll(".tab-pane");
+    panes.forEach(function(p) { p.style.display = "none"; });
+
+    var btns = document.querySelectorAll(".report-tab-btn");
+    btns.forEach(function(b) { b.classList.remove("is-active"); });
+
+    var targetPane = document.getElementById("pane-tab-" + tabName);
+    var targetBtn = document.getElementById("btn-tab-" + tabName);
+    if (targetPane) targetPane.style.display = "block";
+    if (targetBtn) targetBtn.classList.add("is-active");
+
+    // Update URL parameter tanpa reload
+    var url = new URL(window.location.href);
+    url.searchParams.set("tab", tabName);
+    window.history.replaceState({}, "", url.toString());
+  };
+
+  // Live Filter & Search pada Tab Daftar Berkas Laporan
+  document.addEventListener("DOMContentLoaded", function() {
+    var filterTabs = document.querySelectorAll("#report-act-filter-tabs .filter-tab");
+    var searchInput = document.getElementById("report-act-search-input");
+    var rows = document.querySelectorAll("#table-all-reports .act-row-item");
+
+    var currentFilter = "all";
+    var currentQuery = "";
+
+    function applyFilterAndSearch() {
+      rows.forEach(function(row) {
+        var status = row.getAttribute("data-status");
+        var searchData = row.getAttribute("data-search") || "";
+        var matchFilter = currentFilter === "all" || status === currentFilter;
+        var matchSearch = !currentQuery || searchData.indexOf(currentQuery) !== -1;
+
+        if (matchFilter && matchSearch) {
+          row.style.display = "";
+        } else {
+          row.style.display = "none";
+        }
+      });
+    }
+
+    filterTabs.forEach(function(tab) {
+      tab.addEventListener("click", function() {
+        filterTabs.forEach(function(t) { t.classList.remove("is-active"); });
+        this.classList.add("is-active");
+        currentFilter = this.getAttribute("data-status-filter") || "all";
+        applyFilterAndSearch();
+      });
+    });
+
+    if (searchInput) {
+      searchInput.addEventListener("input", function() {
+        currentQuery = this.value.toLowerCase().trim();
+        applyFilterAndSearch();
+      });
+    }
+  });
+</script>
 
 <style>
   /* Grid 4 Stat Box SIMOKP */
   .stat-grid-4 {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 1.25rem;
+    gap: 1rem;
   }
 
-  @media (max-width: 900px) {
-    .stat-grid-4 {
-      grid-template-columns: repeat(2, 1fr);
-    }
+  @media (max-width: 992px) {
+    .stat-grid-4 { grid-template-columns: repeat(2, 1fr); }
   }
 
-  @media (max-width: 500px) {
-    .stat-grid-4 {
-      grid-template-columns: 1fr;
-    }
+  @media (max-width: 540px) {
+    .stat-grid-4 { grid-template-columns: 1fr; }
   }
 
   .stat-box {
     background: #ffffff;
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
-    padding: 1.25rem;
+    padding: 1.15rem 1.25rem;
     display: flex;
     flex-direction: column;
     border-left: 4px solid var(--color-primary-800);
   }
 
   .stat-box.tone-kas { border-left-color: #10b981; }
-  .stat-box.tone-barter { border-left-color: #6366f1; }
+  .stat-box.tone-barter { border-left-color: #8b5cf6; }
   .stat-box.tone-oplah { border-left-color: #0284c7; }
   .stat-box.tone-kpi { border-left-color: var(--color-primary-800); }
 
@@ -238,26 +752,121 @@ const divAvgPercent = rows.length ? Math.round(rows.reduce((s, r) => s + r.avg, 
     color: #475569;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.35rem;
   }
 
   .stat-val {
     font-family: var(--font-display);
-    font-size: 1.85rem;
+    font-size: 1.75rem;
     font-weight: 800;
     color: var(--color-primary-900);
-    line-height: 1.1;
+    line-height: 1.15;
     margin-bottom: 0.25rem;
   }
 
   .tone-kas .stat-val { color: #065f46; }
-  .tone-barter .stat-val { color: #3730a3; }
+  .tone-barter .stat-val { color: #5b21b6; }
   .tone-oplah .stat-val { color: #0369a1; }
   .tone-kpi .stat-val { color: var(--color-primary-900); }
 
   .stat-sub {
     font-size: 0.75rem;
     color: var(--color-muted);
+  }
+
+  /* Ringkasan Administrasi Strip Card */
+  .admin-summary-strip {
+    background: #ffffff;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+
+  .strip-card {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
+    align-items: center;
+    padding: 0.85rem 1.5rem;
+  }
+
+  @media (max-width: 860px) {
+    .strip-card {
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+    }
+    .strip-divider { display: none; }
+  }
+
+  .strip-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .strip-title {
+    font-size: 0.725rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .strip-num {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.1;
+  }
+
+  .strip-desc {
+    font-size: 0.72rem;
+    color: #94a3b8;
+  }
+
+  .strip-divider {
+    width: 1px;
+    height: 40px;
+    background: #e2e8f0;
+    margin: 0 1.25rem;
+  }
+
+  /* Tab Navigasi Halaman */
+  .report-nav-tabs-bar {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 0.25rem;
+    overflow-x: auto;
+  }
+
+  .report-tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.15rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #64748b;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+    border-radius: 4px 4px 0 0;
+  }
+
+  .report-tab-btn:hover {
+    color: #0f172a;
+    background: #f1f5f9;
+  }
+
+  .report-tab-btn.is-active {
+    color: #0369a1;
+    font-weight: 700;
+    border-bottom-color: #0284c7;
+    background: #f0f9ff;
   }
 
   /* Table Card */
@@ -306,6 +915,7 @@ const divAvgPercent = rows.length ? Math.round(rows.reduce((s, r) => s + r.avg, 
     text-transform: uppercase;
     letter-spacing: 0.05em;
     border-bottom: 1px solid var(--color-border);
+    white-space: nowrap;
   }
 
   .data-table td {
@@ -317,6 +927,45 @@ const divAvgPercent = rows.length ? Math.round(rows.reduce((s, r) => s + r.avg, 
   .data-table tbody tr:hover {
     background: #fafbfd;
   }
+
+  /* Monospace & Pill Badges */
+  .mono-id {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.78rem;
+    font-weight: 700;
+    background: #f1f5f9;
+    color: #334155;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    border: 1px solid #e2e8f0;
+    display: inline-block;
+  }
+
+  .date-txt {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #334155;
+    white-space: nowrap;
+  }
+
+  .type-pill-badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+  }
+
+  .type-oplah { background: #e0f2fe; color: #0369a1; }
+  .type-offer { background: #dcfce7; color: #15803d; }
+  .type-outcome { background: #ecfdf5; color: #047857; }
+  .type-client { background: #ede9fe; color: #6b21a8; }
+  .type-profiling { background: #fef3c7; color: #b45309; }
+  .type-program { background: #fae8ff; color: #a21caf; }
+  .type-progress { background: #f1f5f9; color: #475569; }
 
   .badge-status-pill {
     padding: 0.15rem 0.45rem;
@@ -361,5 +1010,164 @@ const divAvgPercent = rows.length ? Math.round(rows.reduce((s, r) => s + r.avg, 
     padding: 0.3rem 0.65rem;
     font-size: var(--text-xs);
     font-weight: 600;
+  }
+
+  .btn-proof-view {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.2rem 0.5rem;
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.15s ease;
+  }
+
+  .btn-proof-view:hover {
+    background: #dbeafe;
+    border-color: #93c5fd;
+  }
+
+  /* Filter & Search Bar */
+  .filter-controls-wrap {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .filter-tabs-bar {
+    display: flex;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+  }
+
+  .filter-tab {
+    padding: 0.4rem 0.85rem;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .filter-tab:hover {
+    background: #f8fafc;
+    border-color: #94a3b8;
+  }
+
+  .filter-tab.is-active {
+    background: #0284c7;
+    color: #ffffff;
+    border-color: #0284c7;
+  }
+
+  .filter-tab.tab-warn.is-active {
+    background: #d97706;
+    border-color: #d97706;
+  }
+
+  .filter-tab.tab-bad.is-active {
+    background: #dc2626;
+    border-color: #dc2626;
+  }
+
+  .search-box-wrap {
+    flex: 1;
+    max-width: 380px;
+    min-width: 260px;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 0.42rem 0.85rem;
+    font-size: 0.825rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
+
+  .search-input:focus {
+    border-color: #0284c7;
+    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15);
+  }
+
+  /* Modul Breakdown Grid */
+  .modul-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+
+  @media (max-width: 860px) {
+    .modul-summary-grid { grid-template-columns: 1fr; }
+  }
+
+  .modul-box {
+    background: #ffffff;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+
+  .modul-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.95rem 1.25rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .modul-head.tone-oplah { background: #f0f9ff; color: #0369a1; }
+  .modul-head.tone-kas { background: #f0fdf4; color: #15803d; }
+  .modul-head.tone-barter { background: #faf5ff; color: #6b21a8; }
+  .modul-head.tone-kpi { background: #f8fafc; color: #334155; }
+
+  .modul-body {
+    padding: 1.15rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  .modul-metric-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px dashed #f1f5f9;
+  }
+
+  .modul-metric-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .modul-metric-row .lbl {
+    color: #64748b;
+  }
+
+  .modul-metric-row .val {
+    color: #0f172a;
+  }
+
+  /* Print Stylesheet */
+  @media print {
+    .no-print { display: none !important; }
+    .print-only { display: block !important; }
+    .tab-pane { display: block !important; margin-bottom: 2rem; }
+    .card { box-shadow: none !important; border: 1px solid #000 !important; }
+    .stat-grid-4 { grid-template-columns: repeat(4, 1fr) !important; }
   }
 </style>

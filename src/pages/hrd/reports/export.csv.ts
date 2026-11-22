@@ -5,7 +5,7 @@ import { TYPE_LABEL } from "../../../lib/formatters";
 
 const cell = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
 export const GET: APIRoute = ({ url, locals }) => {
-  if (locals.user?.role !== "hrd") return new Response("Akses ditolak", { status: 403 });
+  if (!locals.user || (locals.user.role !== "hrd" && locals.user.role !== "admin")) return new Response("Akses ditolak", { status: 403 });
   const p = selectedPeriod(url) ?? period("");
   const head = ["ID", "Tanggal", "Jenis", "Pemilik", "Divisi", "Pencatat", "Status", "Deskripsi"];
   const lines = db.activities.filter((a) => a.periodId === p!.id).map((a) => [a.id, a.date, TYPE_LABEL[a.type], employeeName(a.ownerId), divisionName(db.employees.find((e) => e.id === a.ownerId)?.divisionId), employeeName(a.createdBy), a.status, a.description].map(cell).join(","));
