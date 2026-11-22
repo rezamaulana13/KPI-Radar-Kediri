@@ -49,7 +49,7 @@ export async function generateEmployeeExcel(userId: string, periodId: string): P
   // Data aktivitas dan KPI
   const myActs = activitiesFor({ id: userId, role: "employee" })
     .filter((a) => a.periodId === p.id && (a.ownerId === userId || a.createdBy === userId))
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    .sort((a, b) => (b.date || "").localeCompare(a.date || "") || (b.id || "").localeCompare(a.id || "", undefined, { numeric: true }));
 
   const rows = achievements(p.id);
   const myTargets = rows.filter((r) => r.target.employeeId === userId);

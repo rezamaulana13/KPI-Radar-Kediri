@@ -11,7 +11,7 @@ const u = Astro.locals.user!;
 const ids = visibleEmployeeIds(u);
 const rows = db.activities
   .filter((a) => a.type === "profiling" && ids.includes(a.ownerId))
-  .sort((a, b) => b.date.localeCompare(a.date))
+  .sort((a, b) => (b.date || "").localeCompare(a.date || "") || (b.id || "").localeCompare(a.id || "", undefined, { numeric: true }))
   .map((a) => ({
     ...a,
     owner: employeeName(a.ownerId),

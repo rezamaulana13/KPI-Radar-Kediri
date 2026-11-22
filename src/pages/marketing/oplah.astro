@@ -13,7 +13,9 @@ import { takeFormState } from "../../lib/utils/flash";
 
 const u = Astro.locals.user!;
 const ids = visibleEmployeeIds(u);
-const all = db.activities.filter((a) => a.type === "oplah" && ids.includes(a.ownerId)).sort((a, b) => b.date.localeCompare(a.date));
+const all = db.activities
+  .filter((a) => a.type === "oplah" && ids.includes(a.ownerId))
+  .sort((a, b) => (b.date || "").localeCompare(a.date || "") || (b.id || "").localeCompare(a.id || "", undefined, { numeric: true }));
 
 const rows = all.map((a) => {
   const returnQty = a.returnQty ?? 0;

@@ -11,7 +11,9 @@ import { takeFormState } from "../../lib/utils/flash";
 
 const u = Astro.locals.user!;
 const ids = visibleEmployeeIds(u);
-const userOffers = db.offers.filter((o) => ids.includes(o.ownerId)).sort((a, b) => b.date.localeCompare(a.date));
+const userOffers = db.offers
+  .filter((o) => ids.includes(o.ownerId))
+  .sort((a, b) => (b.date || "").localeCompare(a.date || "") || (b.id || "").localeCompare(a.id || "", undefined, { numeric: true }));
 
 const rows = userOffers.map((o) => {
   const pType = o.partnershipType || "tunai";

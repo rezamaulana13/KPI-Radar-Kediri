@@ -29,9 +29,9 @@ const approvedCount = count("approved");
 const revisionCount = count("revision");
 const rejectedCount = count("rejected");
 
-// Siapkan baris data dengan informasi volume dan komersial lengkap
+// Siapkan baris data dengan informasi volume dan komersial lengkap (Terbaru & ID Terbesar)
 const rows = periodActs
-  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  .sort((a, b) => (b.date || "").localeCompare(a.date || "") || (b.id || "").localeCompare(a.id || "", undefined, { numeric: true }))
   .map((a) => {
     const c = canVerify(u, a, db.employees);
     const emp = employee(a.ownerId);

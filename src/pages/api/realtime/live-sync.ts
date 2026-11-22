@@ -18,11 +18,11 @@ export const GET: APIRoute = async ({ request, locals }) => {
   const approvedActs = db.activities.filter((a) => a.status === "approved");
   const revisionActs = db.activities.filter((a) => a.status === "revision");
 
-  // Ambil aktivitas paling terakhir yang diajukan
+  // Ambil aktivitas paling terakhir yang diajukan (Terbaru & ID Terbesar)
   const sortedActs = db.activities.slice().sort((a, b) => {
-    const tA = new Date(a.createdAt || a.date).getTime();
-    const tB = new Date(b.createdAt || b.date).getTime();
-    return tB - tA;
+    const dDiff = (b.date || "").localeCompare(a.date || "");
+    if (dDiff !== 0) return dDiff;
+    return (b.id || "").localeCompare(a.id || "", undefined, { numeric: true });
   });
   const latestAct = sortedActs[0];
 

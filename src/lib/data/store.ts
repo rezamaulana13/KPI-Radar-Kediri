@@ -70,7 +70,9 @@ export function visibleEmployeeIds(v: Viewer): string[] {
 export const teamOf = (supervisorId: string) => db.employees.filter((e) => e.supervisorId === supervisorId);
 export const activitiesFor = (v: Viewer) => {
   const ids = visibleEmployeeIds(v);
-  return db.activities.filter((a) => ids.includes(a.ownerId) || a.createdBy === v.id).sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
+  return db.activities
+    .filter((a) => ids.includes(a.ownerId) || a.createdBy === v.id)
+    .sort((a, b) => (b.date || "").localeCompare(a.date || "") || (b.id || "").localeCompare(a.id || "", undefined, { numeric: true }));
 };
 export const activity = (id: string) => db.activities.find((a) => a.id === id);
 export const historyOf = (activityId: string) => db.verifications.filter((v) => v.activityId === activityId).sort((a, b) => a.at.localeCompare(b.at));
@@ -371,28 +373,38 @@ export function notificationsFor(v: Viewer) {
     });
 
     // c. Jika verifikator telah menyetujui aktivitas terbaru (kabar gembira)
-    db.activities.filter((a) => (a.ownerId === v.id || a.createdBy === v.id) && a.status === "approved").slice(0, 10).forEach((a) => {
-      const last = historyOf(a.id).at(-1);
-      const activityTypeName = {
-        oplah: "Distribusi Oplah Koran",
-        progress: "Kunjungan & Prospek Klien",
-        offer: "Pengajuan Proposal Penawaran Iklan",
-        client: "Pendaftaran Klien Baru",
-        program: "Kerjasama Event / Barter",
-        profiling: "Riset Profiling Klien",
-        outcome: "Hasil Kesepakatan",
-      }[a.type] ?? (TYPE_LABEL[a.type] ?? a.type);
+    db.activities
+      .filter((a) => (a.ownerId === v.id || a.createdBy === v.id) && a.status === "approved")
+      .sort((a, b) => (b.date || "").localeCompare(a.date || "") || (b.id || "").localeCompare(a.id || "", undefined, { numeric: true }))
+      .slice(0, 10)
+      .forEach((a) => {
+        const last = historyOf(a.id).at(-1);
+        const activityTypeName = {
+          oplah: "Distribusi Oplah Koran",
+          progress: "Kunjungan & Prospek Klien",
+          offer: "Pengajuan Proposal Penawaran Iklan",
+          client: "Pendaftaran Klien Baru",
+          program: "Kerjasama Event / Barter",
+          profiling: "Riset Profiling Klien",
+          outcome: "Hasil Kesepakatan",
+        }[a.type] ?? (TYPE_LABEL[a.type] ?? a.type);
 
-      out.push({
-        id: `appr-${a.id}`,
-        tone: "success",
-        title: `Aktivitas ${a.id} Disetujui!`,
-        body: `Laporan kegiatan "${activityTypeName}" Anda telah divalidasi dan dihitung ke target kinerja.`,
-        href: `/employee/activities/${a.id}`,
-        at: last?.at ?? a.createdAt ?? `${a.date}T07:00:00.000Z`
+        out.push({
+          id: `appr-${a.id}`,
+          tone: "success",
+          title: `Aktivitas ${a.id} Disetujui!`,
+          body: `Laporan kegiatan "${activityTypeName}" Anda telah divalidasi dan dihitung ke target kinerja.`,
+          href: `/employee/activities/${a.id}`,
+          at: last?.at ?? a.createdAt ?? `${a.date}T07:00:00.000Z`
+        });
       });
-    });
   }
 
-  return out.sort((a, b) => b.at.localeCompare(a.at));
+  return out.sort((a, b) => {
+    const dateA = (a.at || "").slice(0, 10);
+    const dateB = (b.at || "").slice(0, 10);
+    const dDiff = dateB.localeCompare(dateA);
+    if (dDiff !== 0) return dDiff;
+    return (b.id || "").localeCompare(a.id || "", undefined, { numeric: true });
+  });
 }
