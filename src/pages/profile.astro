@@ -6,7 +6,7 @@ import Alert from "../components/ui/Alert.astro";
 import Icon from "../components/ui/Icon.astro";
 import PeriodFilter from "../components/ui/PeriodFilter.astro";
 import { db, activePeriod, activitiesFor, employee, employeeName, divisionName, positionName, positions } from "../lib/data/store";
-import { achievements } from "../features/kpi/achievements";
+import { achievements, ensureEmployeeTargets } from "../features/kpi/achievements";
 import { selectedPeriod } from "../lib/utils/period";
 import { ROLE_LABEL, dateTimeID, rupiah, num, pct, dateID, initials } from "../lib/formatters";
 
@@ -20,48 +20,7 @@ const p = selectedPeriod(Astro.url);
 
 // Pastikan karyawan memiliki target individual standar jika belum diset manual oleh HRD
 if (u.role === "employee") {
-  const existingUserTargets = db.targets.filter((t) => t.employeeId === u.id && t.periodId === p.id);
-  const userActs = db.activities.filter((a) => a.ownerId === u.id && a.periodId === p.id);
-  const hasOplah = e.positionId === "POS-OPL" || userActs.some((a) => a.type === "oplah");
-  const hasMarketing = e.positionId === "POS-EXM" || userActs.some((a) => a.type === "offer" || a.type === "client" || a.type === "outcome");
-
-  if (existingUserTargets.length === 0) {
-    if (hasOplah && !hasMarketing) {
-      // Khusus Staf Sirkulasi & Oplah
-      db.targets.push(
-        { id: `TG-IND-${u.id.slice(0, 4)}-1`, indicatorId: "IND-01", periodId: p.id, scope: "individual", employeeId: u.id, value: 500 },
-        { id: `TG-IND-${u.id.slice(0, 4)}-4`, indicatorId: "IND-08", periodId: p.id, scope: "individual", employeeId: u.id, value: 15 }
-      );
-    } else if (hasOplah && hasMarketing) {
-      // Staf Operasional Gabungan (Sirkulasi + Iklan)
-      db.targets.push(
-        { id: `TG-IND-${u.id.slice(0, 4)}-1`, indicatorId: "IND-01", periodId: p.id, scope: "individual", employeeId: u.id, value: 500 },
-        { id: `TG-IND-${u.id.slice(0, 4)}-2`, indicatorId: "IND-03", periodId: p.id, scope: "individual", employeeId: u.id, value: 10 },
-        { id: `TG-IND-${u.id.slice(0, 4)}-3`, indicatorId: "IND-04", periodId: p.id, scope: "individual", employeeId: u.id, value: 3 },
-        { id: `TG-IND-${u.id.slice(0, 4)}-4`, indicatorId: "IND-08", periodId: p.id, scope: "individual", employeeId: u.id, value: 15 }
-      );
-    } else {
-      // Staf Account Executive / Iklan
-      db.targets.push(
-        { id: `TG-IND-${u.id.slice(0, 4)}-1`, indicatorId: "IND-02", periodId: p.id, scope: "individual", employeeId: u.id, value: 10 },
-        { id: `TG-IND-${u.id.slice(0, 4)}-2`, indicatorId: "IND-03", periodId: p.id, scope: "individual", employeeId: u.id, value: 15 },
-        { id: `TG-IND-${u.id.slice(0, 4)}-3`, indicatorId: "IND-04", periodId: p.id, scope: "individual", employeeId: u.id, value: 5 },
-        { id: `TG-IND-${u.id.slice(0, 4)}-4`, indicatorId: "IND-08", periodId: p.id, scope: "individual", employeeId: u.id, value: 20 }
-      );
-    }
-  } else {
-    // Jika target sudah diset oleh HRD, tapi staf punya aktivitas sirkulasi dan belum ada target IND-01:
-    if (hasOplah && !existingUserTargets.some((t) => t.indicatorId === "IND-01")) {
-      db.targets.push({
-        id: `TG-IND-${u.id.slice(0, 4)}-OPL`,
-        indicatorId: "IND-01",
-        periodId: p.id,
-        scope: "individual",
-        employeeId: u.id,
-        value: 500,
-      });
-    }
-  }
+  ensureEmployeeTargets(u.id, p.id);
 }
 
 // Data Target Capaian KPI
@@ -73,9 +32,15 @@ const divTargets = allRows.filter((r) => r.target.scope === "division" && (r.tar
 const acts = activitiesFor({ id: u.id, role: u.role }).filter((a) => a.periodId === p.id);
 const approvedActs = acts.filter((a) => a.status === "approved");
 
-// Hitung Indeks Kinerja Terbobot (Rata-rata Capaian Target Individu)
+// Hitung Indeks Kinerja Terbobot (Rata-rata Capaian Target Individu, Maksimal 100%)
 const measurable = myTargets.filter((r) => r.percent != null);
-const avgPercent = measurable.length ? Math.round(measurable.reduce((s, r) => s + Math.min(r.percent!, 100), 0) / measurable.length) : 0;
+const avgPercent = measurable.length ? Math.min(100, Math.round(measurable.reduce((s, r) => s + Math.min(r.percent!, 100), 0) / measurable.length)) : 0;
+
+// Status Progres Real-Time Karyawan
+const progressStatusText = avgPercent >= 100 ? "Tercapai Penuh (100%)" : avgPercent > 0 ? `In Progress (${avgPercent}%)` : "Belum Ada Realisasi (0%)";
+const progressBadgeBg = avgPercent >= 100 ? "#d1fae5" : avgPercent > 0 ? "#e0f2fe" : "#f1f5f9";
+const progressBadgeColor = avgPercent >= 100 ? "#065f46" : avgPercent > 0 ? "#0284c7" : "#64748b";
+const progressDotColor = avgPercent >= 100 ? "#10b981" : avgPercent > 0 ? "#0284c7" : "#94a3b8";
 
 // Penetapan Predikat Evaluasi Kinerja
 let predikat = {
@@ -214,13 +179,25 @@ const formatVal = (val: number | null | undefined, unit: string) => {
         <div class="kpi-grade-box">
           <div class="grade-circle" style={`border-color: ${predikat.color};`}>
             <span class="grade-pct" style={`color: ${predikat.color};`}>{avgPercent}%</span>
-            <span class="grade-caption">Rata-rata Target</span>
+            <span class="grade-caption">CAPAIAN</span>
           </div>
           <div class="grade-info">
-            <div class="grade-badge" style={`background-color: ${predikat.badgeBg}; color: ${predikat.badgeColor};`}>
-              Predikat: {predikat.label} ({predikat.grade})
+            <div class="grade-badges-row">
+              <span class="grade-progress-pill" style={`background-color: ${progressBadgeBg}; color: ${progressBadgeColor};`}>
+                <span class="pulse-dot" style={`background-color: ${progressDotColor};`}></span>
+                {progressStatusText}
+              </span>
+              <span class="grade-badge" style={`background-color: ${predikat.badgeBg}; color: ${predikat.badgeColor};`}>
+                Predikat: {predikat.label} ({predikat.grade})
+              </span>
             </div>
             <p class="grade-desc">{predikat.desc}</p>
+            <div class="grade-meter-row">
+              <div class="grade-meter-track">
+                <div class="grade-meter-fill" style={`width: ${avgPercent}%; background-color: ${predikat.color};`}></div>
+              </div>
+              <span class="grade-meter-note">{avgPercent}% dari 100% target</span>
+            </div>
           </div>
         </div>
 
@@ -304,15 +281,15 @@ const formatVal = (val: number | null | undefined, unit: string) => {
                 </tr>
               ) : (
                 myTargets.map((r) => {
-                  const pctVal = r.percent != null ? Math.round(r.percent) : 0;
+                  const pctVal = r.percent != null ? Math.min(100, Math.round(r.percent)) : 0;
                   const barWidth = Math.min(pctVal, 100);
                   const isSuccess = pctVal >= 100;
                   const isGood = pctVal >= 70;
                   const isWarning = pctVal >= 40;
                   const barColor = isSuccess ? "#10b981" : isGood ? "#0284c7" : isWarning ? "#f59e0b" : "#ef4444";
-                  const statusLabel = isSuccess ? "Tercapai" : isGood ? "Progres Baik" : isWarning ? "Berjalan" : "Perlu Ditingkatkan";
-                  const statusBadgeBg = isSuccess ? "#d1fae5" : isGood ? "#e0f2fe" : isWarning ? "#fef3c7" : "#fee2e2";
-                  const statusBadgeColor = isSuccess ? "#065f46" : isGood ? "#075985" : isWarning ? "#92400e" : "#991b1b";
+                  const statusLabel = isSuccess ? "Tercapai (100%)" : pctVal > 0 ? `In Progress (${pctVal}%)` : "Belum Ada Realisasi (0%)";
+                  const statusBadgeBg = isSuccess ? "#d1fae5" : pctVal > 0 ? "#e0f2fe" : "#f1f5f9";
+                  const statusBadgeColor = isSuccess ? "#065f46" : pctVal > 0 ? "#0284c7" : "#64748b";
 
                   return (
                     <tr>
@@ -335,7 +312,7 @@ const formatVal = (val: number | null | undefined, unit: string) => {
                         </div>
                       </td>
                       <td style="text-align: center;">
-                        <span class="status-pill" style={`background-color: ${statusBadgeBg}; color: ${statusBadgeColor};`}>
+                        <span class="status-pill" style={`background-color: ${statusBadgeBg}; color: ${statusBadgeColor}; white-space: nowrap; font-weight: 600; font-size: 0.75rem;`}>
                           {statusLabel}
                         </span>
                       </td>
@@ -677,31 +654,59 @@ const formatVal = (val: number | null | undefined, unit: string) => {
     box-shadow: 0 2px 8px rgba(0,0,0,0.03);
   }
   .grade-circle {
-    width: 5rem;
-    height: 5rem;
+    width: 5.6rem;
+    height: 5.6rem;
     border-radius: 50%;
-    border: 4px solid #10b981;
+    border: 5px solid #10b981;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
     background: #f8fafc;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    padding: 0.25rem;
+    box-sizing: border-box;
   }
   .grade-pct {
-    font-size: 1.35rem;
+    font-size: 1.45rem;
     font-weight: 800;
-    line-height: 1;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
   }
   .grade-caption {
-    font-size: 0.6rem;
+    font-size: 0.58rem;
     color: var(--color-muted);
     text-transform: uppercase;
-    font-weight: 600;
+    font-weight: 700;
+    letter-spacing: 0.06em;
     margin-top: 0.15rem;
   }
   .grade-info {
     flex: 1;
+    min-width: 0;
+  }
+  .grade-badges-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.35rem;
+  }
+  .grade-progress-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    font-size: var(--text-xs);
+    font-weight: 700;
+  }
+  .pulse-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    display: inline-block;
   }
   .grade-badge {
     display: inline-block;
@@ -709,13 +714,36 @@ const formatVal = (val: number | null | undefined, unit: string) => {
     border-radius: 6px;
     font-size: var(--text-xs);
     font-weight: 700;
-    margin-bottom: 0.35rem;
   }
   .grade-desc {
     font-size: var(--text-xs);
     color: var(--color-muted);
-    margin: 0;
+    margin: 0 0 0.5rem;
     line-height: 1.4;
+  }
+  .grade-meter-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .grade-meter-track {
+    flex: 1;
+    height: 6px;
+    background: #e2e8f0;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .grade-meter-fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.3s ease;
+  }
+  .grade-meter-note {
+    font-size: 0.7rem;
+    color: var(--color-muted);
+    font-family: monospace;
+    font-weight: 600;
+    white-space: nowrap;
   }
 
   /* 4 Metric Cards */

@@ -4,6 +4,7 @@ import Icon from "../components/ui/Icon.astro";
 import Badge from "../components/ui/Badge.astro";
 import Alert from "../components/ui/Alert.astro";
 import { db, activePeriod, activitiesFor, historyOf } from "../lib/data/store";
+import { achievements, ensureEmployeeTargets } from "../features/kpi/achievements";
 import { dateID, num, rupiah, TYPE_LABEL, STATUS_LABEL } from "../lib/formatters";
 
 const user = Astro.locals.user;
@@ -22,6 +23,21 @@ const pendingCount = count("pending");
 const revisionCount = count("revision");
 const rejectedCount = count("rejected");
 const created = Astro.url.searchParams.get("created");
+
+// KPI & Target Capaian Real-Time (Maks 100%)
+ensureEmployeeTargets(user.id, p.id);
+const allRows = achievements(p.id);
+const myKpiTargets = allRows.filter((r) => r.target.scope === "individual" && r.target.employeeId === user.id);
+const measurableKpi = myKpiTargets.filter((r) => r.percent != null);
+const kpiProgressPercent = measurableKpi.length
+  ? Math.min(100, Math.round(measurableKpi.reduce((s, r) => s + Math.min(r.percent!, 100), 0) / measurableKpi.length))
+  : 0;
+const achievedTargetsCount = myKpiTargets.filter((r) => r.percent != null && r.percent >= 100).length;
+
+const kpiStatusLabel = kpiProgressPercent >= 100 ? "Tercapai Penuh (100%)" : kpiProgressPercent > 0 ? `In Progress (${kpiProgressPercent}%)` : "Belum Ada Realisasi (0%)";
+const kpiStatusColor = kpiProgressPercent >= 100 ? "#10b981" : kpiProgressPercent >= 50 ? "#0284c7" : kpiProgressPercent > 0 ? "#f59e0b" : "#64748b";
+const kpiStatusBadgeBg = kpiProgressPercent >= 100 ? "#d1fae5" : kpiProgressPercent > 0 ? "#e0f2fe" : "#f1f5f9";
+const kpiStatusBadgeColor = kpiProgressPercent >= 100 ? "#065f46" : kpiProgressPercent > 0 ? "#0284c7" : "#64748b";
 
 // 3 Pilar SIMOKP Karyawan
 const approvedActs = mine.filter((a) => a.status === "approved");
@@ -87,6 +103,57 @@ const userSoldOplah = approvedActs
         </div>
       </div>
     )}
+
+    <!-- Kartu Progres Capaian Kinerja KPI Real-Time -->
+    <div class="kpi-live-progress-card">
+      <div class="kpi-live-head">
+        <div class="kpi-live-title-wrap">
+          <div class="kpi-live-tag-row">
+            <span class="live-indicator-pill">
+              <span class="live-dot" style={`background-color: ${kpiStatusColor};`}></span>
+              REAL-TIME KPI
+            </span>
+            <span class="status-pill" style={`background-color: ${kpiStatusBadgeBg}; color: ${kpiStatusBadgeColor}; font-weight:700; font-size:0.75rem;`}>
+              {kpiStatusLabel}
+            </span>
+          </div>
+          <h2 class="kpi-live-title">Progres Capaian Target Periode {p.name}</h2>
+          <p class="kpi-live-sub">
+            Realisasi terakumulasi langsung dari laporan aktivitas lapangan yang telah diverifikasi dan disetujui (Approved) oleh HRD.
+          </p>
+        </div>
+        <div class="kpi-live-action-wrap">
+          <a href="/profile#kpi" class="btn btn-secondary btn-sm" title="Buka rapor capaian KPI lengkap di Halaman Profil">
+            <span>Rapor Lengkap</span>
+            <span aria-hidden="true">&rarr;</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="kpi-live-bar-row">
+        <div class="kpi-live-meter-track">
+          <div class="kpi-live-meter-fill" style={`width: ${kpiProgressPercent}%; background-color: ${kpiStatusColor};`}></div>
+        </div>
+        <span class="kpi-live-pct" style={`color: ${kpiStatusColor};`}>{kpiProgressPercent}%</span>
+      </div>
+
+      <div class="kpi-live-footer">
+        <div class="kpi-live-stat-item">
+          <span class="kpi-stat-bullet" style={`background-color: ${kpiStatusColor};`}></span>
+          <span>Target Selesai: <strong>{achievedTargetsCount}</strong> dari <strong>{myKpiTargets.length}</strong> indikator (maks 100%)</span>
+        </div>
+        <div class="kpi-live-stat-item">
+          <span class="kpi-stat-bullet" style="background-color: #10b981;"></span>
+          <span>Laporan Disetujui: <strong>{approvedCount}</strong> berkas sah</span>
+        </div>
+        {pendingCount > 0 && (
+          <div class="kpi-live-stat-item" style="color: #d97706;">
+            <span class="kpi-stat-bullet" style="background-color: #f59e0b;"></span>
+            <span>Menunggu HRD: <strong>{pendingCount}</strong> berkas</span>
+          </div>
+        )}
+      </div>
+    </div>
 
     <!-- Bar Statistik 4 Pilar SIMOKP Karyawan -->
     <div class="stat-grid-4">
@@ -384,6 +451,131 @@ const userSoldOplah = approvedActs
     max-width: 48rem;
     line-height: 1.6;
     margin: 0;
+  }
+
+  /* Live KPI Progress Banner */
+  .kpi-live-progress-card {
+    background: #ffffff;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    border-top: 4px solid var(--color-primary-800);
+  }
+
+  .kpi-live-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.85rem;
+  }
+
+  .kpi-live-title-wrap {
+    flex: 1;
+    min-width: 260px;
+  }
+
+  .kpi-live-tag-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.4rem;
+  }
+
+  .live-indicator-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.6875rem;
+    font-weight: 800;
+    color: var(--color-primary-900);
+    background: #f1f5f9;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    letter-spacing: 0.06em;
+  }
+
+  .live-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  .kpi-live-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--color-primary-900);
+    margin: 0 0 0.25rem;
+  }
+
+  .kpi-live-sub {
+    font-size: var(--text-xs);
+    color: var(--color-muted);
+    margin: 0;
+    line-height: 1.45;
+  }
+
+  .kpi-live-action-wrap {
+    flex-shrink: 0;
+  }
+
+  .kpi-live-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .kpi-live-meter-track {
+    flex: 1;
+    height: 10px;
+    background: #f1f5f9;
+    border-radius: 999px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+  }
+
+  .kpi-live-meter-fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.4s ease;
+  }
+
+  .kpi-live-pct {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 800;
+    min-width: 3.5rem;
+    text-align: right;
+  }
+
+  .kpi-live-footer {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+    font-size: var(--text-xs);
+    color: #475569;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 0.75rem;
+  }
+
+  .kpi-live-stat-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .kpi-stat-bullet {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
   }
 
   /* Grid 4 Stat Box SIMOKP */

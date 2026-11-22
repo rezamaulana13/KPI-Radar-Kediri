@@ -29,6 +29,50 @@ function inScope(a: Activity, t: KpiTarget): boolean {
   return a.ownerId === t.employeeId;
 }
 
+/** Memastikan target individual standar terpasang untuk karyawan jika belum di-set manual oleh HRD */
+export function ensureEmployeeTargets(userId: string, periodId = activePeriod().id) {
+  const existingUserTargets = db.targets.filter((t) => t.employeeId === userId && t.periodId === periodId);
+  const userActs = db.activities.filter((a) => a.ownerId === userId && a.periodId === periodId);
+  const emp = db.employees.find((e) => e.id === userId);
+  const posId = emp?.positionId || "";
+  const hasOplah = posId === "POS-OPL" || userActs.some((a) => a.type === "oplah");
+  const hasMarketing = posId === "POS-EXM" || userActs.some((a) => a.type === "offer" || a.type === "client" || a.type === "outcome");
+
+  if (existingUserTargets.length === 0) {
+    if (hasOplah && !hasMarketing) {
+      db.targets.push(
+        { id: `TG-IND-${userId.slice(0, 4)}-1`, indicatorId: "IND-01", periodId, scope: "individual", employeeId: userId, value: 500 },
+        { id: `TG-IND-${userId.slice(0, 4)}-4`, indicatorId: "IND-08", periodId, scope: "individual", employeeId: userId, value: 15 }
+      );
+    } else if (hasOplah && hasMarketing) {
+      db.targets.push(
+        { id: `TG-IND-${userId.slice(0, 4)}-1`, indicatorId: "IND-01", periodId, scope: "individual", employeeId: userId, value: 500 },
+        { id: `TG-IND-${userId.slice(0, 4)}-2`, indicatorId: "IND-03", periodId, scope: "individual", employeeId: userId, value: 10 },
+        { id: `TG-IND-${userId.slice(0, 4)}-3`, indicatorId: "IND-04", periodId, scope: "individual", employeeId: userId, value: 3 },
+        { id: `TG-IND-${userId.slice(0, 4)}-4`, indicatorId: "IND-08", periodId, scope: "individual", employeeId: userId, value: 15 }
+      );
+    } else {
+      db.targets.push(
+        { id: `TG-IND-${userId.slice(0, 4)}-1`, indicatorId: "IND-02", periodId, scope: "individual", employeeId: userId, value: 10 },
+        { id: `TG-IND-${userId.slice(0, 4)}-2`, indicatorId: "IND-03", periodId, scope: "individual", employeeId: userId, value: 15 },
+        { id: `TG-IND-${userId.slice(0, 4)}-3`, indicatorId: "IND-04", periodId, scope: "individual", employeeId: userId, value: 5 },
+        { id: `TG-IND-${userId.slice(0, 4)}-4`, indicatorId: "IND-08", periodId, scope: "individual", employeeId: userId, value: 20 }
+      );
+    }
+  } else {
+    if (hasOplah && !existingUserTargets.some((t) => t.indicatorId === "IND-01")) {
+      db.targets.push({
+        id: `TG-IND-${userId.slice(0, 4)}-OPL`,
+        indicatorId: "IND-01",
+        periodId,
+        scope: "individual",
+        employeeId: userId,
+        value: 500,
+      });
+    }
+  }
+}
+
 /** Agregasi on-demand (DESIGN §13.2): dapat diaudit sampai ke aktivitas sumber. */
 export function achievements(periodId = activePeriod().id): AchievementRow[] {
   const approved = db.activities.filter((a) => a.status === "approved" && a.periodId === periodId);
@@ -37,7 +81,9 @@ export function achievements(periodId = activePeriod().id): AchievementRow[] {
     const mapped = mappings.some((m) => m.indicatorId === t.indicatorId);
     const sources = mapped ? approved.filter((a) => inScope(a, t) && contribution(a, t.indicatorId) !== null) : [];
     const actual = mapped ? sources.reduce((s, a) => s + (contribution(a, t.indicatorId) ?? 0), 0) : null;
-    const percent = actual == null || !t.value ? null : indicator.direction === "benefit" ? (actual / t.value) * 100 : actual === 0 ? 100 : (t.value / actual) * 100;
+    const rawPercent = actual == null || !t.value ? null : indicator.direction === "benefit" ? (actual / t.value) * 100 : actual === 0 ? 100 : (t.value / actual) * 100;
+    // Capaian dibatasi maksimal 100% sesuai standar evaluasi operasional Radar Kediri
+    const percent = rawPercent == null ? null : Math.min(100, Math.round(rawPercent));
     const subject = t.scope === "company" ? "Seluruh perusahaan" : t.scope === "division" ? (t.divisionId ?? "") : (t.employeeId ?? "");
     return { target: t, indicator, actual, percent, sources, mapped, subject };
   });
