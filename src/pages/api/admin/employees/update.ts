@@ -22,6 +22,16 @@ export const POST: APIRoute = async ({ request, locals, redirect }) => {
     return new Response("Karyawan tidak ditemukan.", { status: 404 });
   }
 
+  // KEAMANAN HIERARKI AKSES: Super Admin tidak boleh diubah oleh peran HRD
+  if (emp.role === "admin") {
+    return redirect("/admin/employees?error=admin_protected");
+  }
+
+  // HRD hanya memiliki wewenang untuk mengatur personel staf pemasaran
+  if (currentAdmin.role === "hrd" && emp.role !== "employee") {
+    return redirect("/admin/employees?error=hrd_unauthorized");
+  }
+
   const oldPos = emp.positionId;
   emp.positionId = positionId;
   emp.supervisorId = supervisorId;
