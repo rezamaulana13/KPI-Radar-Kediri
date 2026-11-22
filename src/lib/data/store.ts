@@ -82,8 +82,34 @@ export function offerOutcome(offerId: string): { status: "open" | "deal" | "no";
 }
 export const progressOf = (offerId: string) => db.activities.filter((a) => a.type === "progress" && a.offerId === offerId).sort((a, b) => a.date.localeCompare(b.date));
 
-let seq = 100;
-const nextId = (prefix: string) => `${prefix}-${String(++seq).padStart(3, "0")}`;
+export function nextId(prefix: string): string {
+  let maxNum = 100;
+  let list: string[] = [];
+
+  if (prefix === "ACT") list = db.activities.map((x) => x.id);
+  else if (prefix === "OFR") list = db.offers.map((x) => x.id);
+  else if (prefix === "CL") list = db.clients.map((x) => x.id);
+  else if (prefix === "VER") list = db.verifications.map((x) => x.id);
+  else if (prefix === "PRG") list = db.programs.map((x) => x.id);
+  else list = db.auditLogs.map((x) => x.id);
+
+  for (const str of list) {
+    const match = str.match(/\d+$/);
+    if (match) {
+      const n = parseInt(match[0], 10);
+      if (!isNaN(n) && n >= maxNum && n < 1000000) {
+        maxNum = n;
+      }
+    }
+  }
+
+  maxNum++;
+  let candidate = `${prefix}-${maxNum}`;
+  if (list.includes(candidate)) {
+    candidate = `${prefix}-${Date.now().toString().slice(-4)}${Math.floor(10 + Math.random() * 90)}`;
+  }
+  return candidate;
+}
 
 export function addAudit(actorId: string, action: string, entity: string, entityId: string, detail: string) {
   db.auditLogs.unshift({ id: nextId("AUD"), at: new Date().toISOString(), actorId, action, entity, entityId, detail });
