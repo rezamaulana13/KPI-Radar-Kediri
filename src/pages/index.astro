@@ -125,10 +125,7 @@ const count = (list: typeof mine, s: string) => list.filter((a) => a.status === 
               <span>Buka Modul Marketing</span>
             </a>
             <a class="btn btn-secondary btn-hero" href="/aktivitas-saya">
-              <span>Riwayat Saya ({mine.length})</span>
-            </a>
-            <a class="btn btn-secondary btn-hero" href="/profile#kpi">
-              <span>Capaian Target</span>
+              <span>Riwayat &amp; Rapor Saya ({mine.length})</span>
             </a>
           </div>
 
@@ -213,7 +210,7 @@ const count = (list: typeof mine, s: string) => list.filter((a) => a.status === 
           <div class="metric-item">
             <span class="metric-number" style="color: var(--color-primary-900);">{avgPercent != null ? `${avgPercent}%` : "—"}</span>
             <span class="metric-label">Capaian Target KPI</span>
-            <span class="metric-desc"><a href="/profile#kpi" style="color: var(--color-primary-800); text-decoration: underline; font-weight: 600;">Lihat di Profil &rarr;</a></span>
+            <span class="metric-desc"><a href="/aktivitas-saya" style="color: var(--color-primary-800); text-decoration: underline; font-weight: 600;">Lihat di Rapor Kinerja &rarr;</a></span>
           </div>
         </div>
 
@@ -376,8 +373,8 @@ const count = (list: typeof mine, s: string) => list.filter((a) => a.status === 
               <Icon name="download" size={14} />
               <span>Unduh Rekap (Excel)</span>
             </a>
-            <a href="/profile#kpi" class="btn btn-secondary btn-sm">
-              <span>Buka Rapor KPI di Profil &rarr;</span>
+            <a href="/aktivitas-saya" class="btn btn-secondary btn-sm">
+              <span>Buka Rapor &amp; Target Lengkap &rarr;</span>
             </a>
           </div>
         </div>
@@ -637,7 +634,7 @@ const count = (list: typeof mine, s: string) => list.filter((a) => a.status === 
               <p>Sistem evaluasi objektif bulanan yang merekapitulasi seluruh progres lapangan tervalidasi untuk transparansi penilaian performa.</p>
             </div>
             <div class="module-footer">
-              <a class="btn btn-secondary btn-sm" href="/profile#kpi">Detail Modul &rarr;</a>
+              <a class="btn btn-secondary btn-sm" href="/aktivitas-saya">Detail Modul &rarr;</a>
             </div>
           </div>
         </div>

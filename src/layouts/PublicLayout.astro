@@ -618,8 +618,8 @@ if (user) {
             <>
               <a class={`pub-menu-link ${activeNav === "beranda" ? "is-active" : ""}`} href="/">Beranda</a>
               <a class={`pub-menu-link ${activeNav === "modul-marketing" ? "is-active" : ""}`} href="/modul-marketing">Modul Marketing</a>
-              <a class={`pub-menu-link ${activeNav === "aktivitas-saya" ? "is-active" : ""}`} href="/aktivitas-saya">Aktivitas Saya</a>
-              <a class={`pub-menu-link ${activeNav === "profile" ? "is-active" : ""}`} href="/profile">Profil &amp; Target</a>
+              <a class={`pub-menu-link ${activeNav === "aktivitas-saya" ? "is-active" : ""}`} href="/aktivitas-saya">Aktivitas &amp; Rapor</a>
+              <a class={`pub-menu-link ${activeNav === "profile" ? "is-active" : ""}`} href="/profile">Profil Saya</a>
               <a class={`pub-menu-link ${activeNav === "alur-kerja" ? "is-active" : ""}`} href="/alur-kerja">Alur Kerja &amp; SOP</a>
             </>
           ) : (
@@ -692,7 +692,7 @@ if (user) {
                       <>
                         <a href="/profile" class="dropdown-item" role="menuitem">
                           <span class="dropdown-item-icon"><Icon name="user" size={17} /></span>
-                          <span>Profil &amp; Capaian KPI</span>
+                          <span>Profil Akun Saya</span>
                         </a>
                         <a href="/modul-marketing" class="dropdown-item" role="menuitem">
                           <span class="dropdown-item-icon"><Icon name="folder" size={17} /></span>
@@ -700,7 +700,7 @@ if (user) {
                         </a>
                         <a href="/aktivitas-saya" class="dropdown-item" role="menuitem">
                           <span class="dropdown-item-icon"><Icon name="clipboard" size={17} /></span>
-                          <span>Aktivitas Saya</span>
+                          <span>Aktivitas &amp; Rapor Kinerja</span>
                         </a>
                         <a href="/alur-kerja" class="dropdown-item" role="menuitem">
                           <span class="dropdown-item-icon"><Icon name="file" size={17} /></span>
@@ -841,11 +841,11 @@ if (user) {
             </a>
             <a class={`pub-mobile-link ${activeNav === "aktivitas-saya" ? "is-active" : ""}`} href="/aktivitas-saya">
               <Icon name="clipboard" size={18} />
-              <span>Aktivitas Saya</span>
+              <span>Aktivitas &amp; Rapor</span>
             </a>
             <a class={`pub-mobile-link ${activeNav === "profile" ? "is-active" : ""}`} href="/profile">
               <Icon name="user" size={18} />
-              <span>Profil &amp; Capaian Target</span>
+              <span>Profil Saya</span>
             </a>
             <a class={`pub-mobile-link ${activeNav === "alur-kerja" ? "is-active" : ""}`} href="/alur-kerja">
               <Icon name="file" size={18} />

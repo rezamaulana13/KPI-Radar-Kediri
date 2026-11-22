@@ -158,223 +158,37 @@ const formatVal = (val: number | null | undefined, unit: string) => {
       </div>
     </section>
 
-    {/* BAGIAN 1: CAPAIAN TARGET & EVALUASI KINERJA (KPI) */}
-    <div id="kpi" style="margin-top: 1.5rem;">
-      <div class="section-title-wrap">
-        <div>
-          <h2 class="section-main-title">Rapor Capaian Target &amp; Kinerja KPI</h2>
-          <p class="section-sub-title">Realisasi operasional periode <strong>{p.name}</strong> yang telah diverifikasi dan disetujui HRD.</p>
+    <!-- BANNER RINGKASAN STATUS KINERJA & TAUTAN KE AKTIVITAS & RAPOR -->
+    <div class="card kpi-redirect-card" style="margin-top: 1.25rem;">
+      <div class="kpi-redirect-body">
+        <div class="kpi-redirect-info">
+          <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.35rem; flex-wrap:wrap;">
+            <span class="badge badge-primary" style="font-size:0.75rem;">Status Capaian Periode {p.name}</span>
+            <span class="status-pill" style={`background-color: ${progressBadgeBg}; color: ${progressBadgeColor}; font-weight:700; font-size:0.75rem;`}>
+              {progressStatusText}
+            </span>
+            <span class="badge" style={`background-color: ${predikat.badgeBg}; color: ${predikat.badgeColor}; font-size:0.75rem; font-weight:700;`}>
+              Predikat {predikat.grade} ({predikat.label})
+            </span>
+          </div>
+          <h2 style="font-size:1.15rem; font-weight:700; color:var(--color-primary-900); margin:0 0 0.25rem;">
+            Rapor Capaian, Target Individu &amp; Kinerja Tim Divisi
+          </h2>
+          <p class="muted text-xs" style="margin:0; line-height:1.5;">
+            Seluruh rincian sasaran kinerja individu, target bersama tim divisi, 4 pilar metrik operasional, dan bukti verifikasi berkas telah dipusatkan pada halaman <strong>Aktivitas Saya</strong> agar halaman profil khusus memuat data identitas dan kepegawaian resmi.
+          </p>
         </div>
-        <div class="no-print">
-          <a href="/modul-marketing" class="btn btn-secondary btn-sm">
-            <Icon name="plus" size={14} />
-            <span>Input via Modul</span>
+        <div class="kpi-redirect-action">
+          <a href="/aktivitas-saya" class="btn btn-primary" style="padding:0.6rem 1.25rem; font-weight:600; white-space:nowrap;">
+            <Icon name="clipboard" size={16} />
+            <span>Buka Rapor &amp; Target di Aktivitas Saya</span>
+            <span aria-hidden="true">&rarr;</span>
           </a>
         </div>
       </div>
-
-      <!-- Skor KPI & 4 Metrik Operasional Utama -->
-      <div class="kpi-score-overview">
-        <!-- Panel Indeks Prestasi KPI -->
-        <div class="kpi-grade-box">
-          <div class="grade-circle" style={`border-color: ${predikat.color};`}>
-            <span class="grade-pct" style={`color: ${predikat.color};`}>{avgPercent}%</span>
-            <span class="grade-caption">CAPAIAN</span>
-          </div>
-          <div class="grade-info">
-            <div class="grade-badges-row">
-              <span class="grade-progress-pill" style={`background-color: ${progressBadgeBg}; color: ${progressBadgeColor};`}>
-                <span class="pulse-dot" style={`background-color: ${progressDotColor};`}></span>
-                {progressStatusText}
-              </span>
-              <span class="grade-badge" style={`background-color: ${predikat.badgeBg}; color: ${predikat.badgeColor};`}>
-                Predikat: {predikat.label} ({predikat.grade})
-              </span>
-            </div>
-            <p class="grade-desc">{predikat.desc}</p>
-            <div class="grade-meter-row">
-              <div class="grade-meter-track">
-                <div class="grade-meter-fill" style={`width: ${avgPercent}%; background-color: ${predikat.color};`}></div>
-              </div>
-              <span class="grade-meter-note">{avgPercent}% dari 100% target</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- 4 Kotak Metrik SIMOKP -->
-        <div class="kpi-metrics-grid">
-          <div class="kpi-metric-card tone-kas">
-            <div class="metric-head">
-              <span class="metric-label">Omzet Kas Tunai</span>
-              <span class="metric-icon">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-              </span>
-            </div>
-            <div class="metric-value">{rupiah(userCash)}</div>
-            <div class="metric-note">Penerimaan kas riil deal iklan</div>
-          </div>
-
-          <div class="kpi-metric-card tone-barter">
-            <div class="metric-head">
-              <span class="metric-label">Realisasi Barter</span>
-              <span class="metric-icon">
-                <Icon name="handshake" size={15} />
-              </span>
-            </div>
-            <div class="metric-value">{rupiah(userBarter)}</div>
-            <div class="metric-note">Barang/jasa promosi non-tunai</div>
-          </div>
-
-          <div class="kpi-metric-card tone-oplah">
-            <div class="metric-head">
-              <span class="metric-label">Oplah Bersih Terjual</span>
-              <span class="metric-icon">
-                <Icon name="news" size={15} />
-              </span>
-            </div>
-            <div class="metric-value">{num(userSoldOplah)} <small style="font-size:0.8rem;font-weight:600;">Eks</small></div>
-            <div class="metric-note">Sirkulasi terverifikasi bersih</div>
-          </div>
-
-          <div class="kpi-metric-card tone-retur">
-            <div class="metric-head">
-              <span class="metric-label">Rasio Retur Koran</span>
-              <span class="metric-icon">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
-              </span>
-            </div>
-            <div class="metric-value">{userReturnRate}%</div>
-            <div class="metric-note">{num(userReturnOplah)} retur / {num(userSentOplah)} kirim</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- TABEL CAPAIAN TARGET INDIVIDU -->
-      <section class="card target-table-card" style="margin-top: 1.25rem;">
-        <div class="card-head" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
-          <div>
-            <h3 style="font-size:1.05rem; margin:0; font-weight:700;">Rincian Target Kinerja Individu</h3>
-            <p class="muted text-xs" style="margin:0.2rem 0 0;">Daftar sasaran kerja yang ditetapkan HRD untuk periode {p.name}</p>
-          </div>
-          <span class="text-xs muted">{myTargets.length} Indikator Terpantau</span>
-        </div>
-
-        <div class="table-responsive">
-          <table class="target-table">
-            <thead>
-              <tr>
-                <th style="width: 80px;">Kode</th>
-                <th>Indikator Kinerja</th>
-                <th style="width: 100px;">Satuan</th>
-                <th style="width: 120px; text-align: right;">Target</th>
-                <th style="width: 120px; text-align: right;">Realisasi</th>
-                <th style="width: 200px;">Capaian (%)</th>
-                <th style="width: 130px; text-align: center;">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {myTargets.length === 0 ? (
-                <tr>
-                  <td colspan="7" style="text-align: center; padding: 2rem; color: var(--color-muted);">
-                    Belum ada target khusus yang ditetapkan untuk periode ini.
-                  </td>
-                </tr>
-              ) : (
-                myTargets.map((r) => {
-                  const pctVal = r.percent != null ? Math.min(100, Math.round(r.percent)) : 0;
-                  const barWidth = Math.min(pctVal, 100);
-                  const isSuccess = pctVal >= 100;
-                  const isGood = pctVal >= 70;
-                  const isWarning = pctVal >= 40;
-                  const barColor = isSuccess ? "#10b981" : isGood ? "#0284c7" : isWarning ? "#f59e0b" : "#ef4444";
-                  const statusLabel = isSuccess ? "Tercapai (100%)" : pctVal > 0 ? `In Progress (${pctVal}%)` : "Belum Ada Realisasi (0%)";
-                  const statusBadgeBg = isSuccess ? "#d1fae5" : pctVal > 0 ? "#e0f2fe" : "#f1f5f9";
-                  const statusBadgeColor = isSuccess ? "#065f46" : pctVal > 0 ? "#0284c7" : "#64748b";
-
-                  return (
-                    <tr>
-                      <td><span class="mono-code">{r.indicator.code}</span></td>
-                      <td>
-                        <div class="font-bold text-dark">{r.indicator.name}</div>
-                        <div class="indicator-def">{r.indicator.definition || "Indikator standar marketing operasional"}</div>
-                      </td>
-                      <td><span class="badge-unit">{r.indicator.unit}</span></td>
-                      <td style="text-align: right; font-weight: 600;">{formatVal(r.target.value, r.indicator.unit)}</td>
-                      <td style="text-align: right; font-weight: 700; color: var(--color-primary-900);">
-                        {formatVal(r.actual, r.indicator.unit)}
-                      </td>
-                      <td>
-                        <div class="meter-wrapper">
-                          <div class="meter-track">
-                            <div class="meter-fill" style={`width: ${barWidth}%; background-color: ${barColor};`}></div>
-                          </div>
-                          <span class="meter-pct font-bold" style={`color: ${barColor};`}>{pctVal}%</span>
-                        </div>
-                      </td>
-                      <td style="text-align: center;">
-                        <span class="status-pill" style={`background-color: ${statusBadgeBg}; color: ${statusBadgeColor}; white-space: nowrap; font-weight: 600; font-size: 0.75rem;`}>
-                          {statusLabel}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      {/* TARGET BERSAMA DIVISI (Jika ada) */}
-      {divTargets.length > 0 && (
-        <section class="card target-table-card" style="margin-top: 1.25rem;">
-          <div class="card-head">
-            <h3 style="font-size:1.05rem; margin:0; font-weight:700;">Target Kolektif Divisi Pemasaran &amp; Sirkulasi</h3>
-            <p class="muted text-xs" style="margin:0.2rem 0 0;">Capaian tim bersama yang memengaruhi kinerja korporat</p>
-          </div>
-          <div class="table-responsive">
-            <table class="target-table">
-              <thead>
-                <tr>
-                  <th style="width: 80px;">Kode</th>
-                  <th>Sasaran Divisi</th>
-                  <th style="width: 100px;">Satuan</th>
-                  <th style="width: 130px; text-align: right;">Target Divisi</th>
-                  <th style="width: 130px; text-align: right;">Realisasi Tim</th>
-                  <th style="width: 200px;">Capaian (%)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {divTargets.map((r) => {
-                  const pctVal = r.percent != null ? Math.round(r.percent) : 0;
-                  const barWidth = Math.min(pctVal, 100);
-                  const barColor = pctVal >= 100 ? "#10b981" : pctVal >= 70 ? "#0284c7" : pctVal >= 40 ? "#f59e0b" : "#ef4444";
-                  return (
-                    <tr>
-                      <td><span class="mono-code">{r.indicator.code}</span></td>
-                      <td class="font-bold">{r.indicator.name}</td>
-                      <td><span class="badge-unit">{r.indicator.unit}</span></td>
-                      <td style="text-align: right; font-weight: 600;">{formatVal(r.target.value, r.indicator.unit)}</td>
-                      <td style="text-align: right; font-weight: 700; color: var(--color-primary-900);">{formatVal(r.actual, r.indicator.unit)}</td>
-                      <td>
-                        <div class="meter-wrapper">
-                          <div class="meter-track">
-                            <div class="meter-fill" style={`width: ${barWidth}%; background-color: ${barColor};`}></div>
-                          </div>
-                          <span class="meter-pct font-bold" style={`color: ${barColor};`}>{pctVal}%</span>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      )}
     </div>
 
-    {/* BAGIAN 2: PENGATURAN PROFIL & DATA KEPEGAWAIAN RESMI */}
+    {/* BAGIAN: PENGATURAN PROFIL & DATA KEPEGAWAIAN RESMI */}
     <div style="margin-top: 2rem;">
       <div class="section-title-wrap">
         <div>
@@ -642,128 +456,30 @@ const formatVal = (val: number | null | undefined, unit: string) => {
     }
   }
 
-  /* Grade Box */
-  .kpi-grade-box {
-    background: #fff;
+  /* Redirect Card to Aktivitas & Rapor */
+  .kpi-redirect-card {
+    background: #ffffff;
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
-    padding: var(--space-4);
+    padding: 1.25rem 1.5rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    border-left: 4px solid var(--color-primary-800);
+    margin-bottom: 1.5rem;
+  }
+  .kpi-redirect-body {
     display: flex;
-    align-items: center;
-    gap: var(--space-4);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-  }
-  .grade-circle {
-    width: 5.6rem;
-    height: 5.6rem;
-    border-radius: 50%;
-    border: 5px solid #10b981;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    background: #f8fafc;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    padding: 0.25rem;
-    box-sizing: border-box;
-  }
-  .grade-pct {
-    font-size: 1.45rem;
-    font-weight: 800;
-    line-height: 1.1;
-    letter-spacing: -0.02em;
-  }
-  .grade-caption {
-    font-size: 0.58rem;
-    color: var(--color-muted);
-    text-transform: uppercase;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    margin-top: 0.15rem;
-  }
-  .grade-info {
-    flex: 1;
-    min-width: 0;
-  }
-  .grade-badges-row {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    margin-bottom: 0.35rem;
-  }
-  .grade-progress-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    padding: 0.25rem 0.65rem;
-    border-radius: 999px;
-    font-size: var(--text-xs);
-    font-weight: 700;
-  }
-  .pulse-dot {
-    width: 0.5rem;
-    height: 0.5rem;
-    border-radius: 50%;
-    display: inline-block;
-  }
-  .grade-badge {
-    display: inline-block;
-    padding: 0.25rem 0.65rem;
-    border-radius: 6px;
-    font-size: var(--text-xs);
-    font-weight: 700;
-  }
-  .grade-desc {
-    font-size: var(--text-xs);
-    color: var(--color-muted);
-    margin: 0 0 0.5rem;
-    line-height: 1.4;
-  }
-  .grade-meter-row {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-  .grade-meter-track {
-    flex: 1;
-    height: 6px;
-    background: #e2e8f0;
-    border-radius: 999px;
-    overflow: hidden;
-  }
-  .grade-meter-fill {
-    height: 100%;
-    border-radius: 999px;
-    transition: width 0.3s ease;
-  }
-  .grade-meter-note {
-    font-size: 0.7rem;
-    color: var(--color-muted);
-    font-family: monospace;
-    font-weight: 600;
-    white-space: nowrap;
-  }
-
-  /* 4 Metric Cards */
-  .kpi-metrics-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: var(--space-3);
-  }
-  .kpi-metric-card {
-    background: #fff;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    padding: var(--space-3) var(--space-4);
-    display: flex;
-    flex-direction: column;
     justify-content: space-between;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-    border-left-width: 4px;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
   }
-  .kpi-metric-card.tone-kas { border-left-color: #10b981; }
+  .kpi-redirect-info {
+    flex: 1;
+    min-width: 280px;
+  }
+  .kpi-redirect-action {
+    flex-shrink: 0;
+  }
   .kpi-metric-card.tone-barter { border-left-color: #0284c7; }
   .kpi-metric-card.tone-oplah { border-left-color: #0d9488; }
   .kpi-metric-card.tone-retur { border-left-color: #f59e0b; }
@@ -771,116 +487,6 @@ const formatVal = (val: number | null | undefined, unit: string) => {
   .metric-head {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.25rem;
-  }
-  .metric-label {
-    font-size: 0.72rem;
-    color: var(--color-muted);
-    font-weight: 600;
-    text-transform: uppercase;
-  }
-  .metric-icon {
-    font-size: 0.95rem;
-  }
-  .metric-value {
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: var(--color-primary-900);
-    margin-bottom: 0.15rem;
-  }
-  .metric-note {
-    font-size: 0.68rem;
-    color: var(--color-muted);
-    line-height: 1.3;
-  }
-
-  /* Target Table */
-  .target-table-card {
-    background: #fff;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    overflow: hidden;
-  }
-  .table-responsive {
-    overflow-x: auto;
-  }
-  .target-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: var(--text-xs);
-  }
-  .target-table th {
-    background: #f8fafc;
-    color: var(--color-muted);
-    font-weight: 600;
-    padding: 0.65rem 0.85rem;
-    text-align: left;
-    border-bottom: 1px solid var(--color-border);
-    white-space: nowrap;
-  }
-  .target-table td {
-    padding: 0.75rem 0.85rem;
-    border-bottom: 1px solid #f1f5f9;
-    vertical-align: middle;
-  }
-  .target-table tr:last-child td {
-    border-bottom: none;
-  }
-  .mono-code {
-    font-family: var(--font-mono);
-    font-weight: 700;
-    background: #f1f5f9;
-    color: #334155;
-    padding: 0.15rem 0.4rem;
-    border-radius: 4px;
-    font-size: 0.7rem;
-  }
-  .indicator-def {
-    font-size: 0.68rem;
-    color: var(--color-muted);
-    margin-top: 0.15rem;
-  }
-  .badge-unit {
-    background: #f8fafc;
-    color: #475569;
-    padding: 0.15rem 0.45rem;
-    border-radius: 4px;
-    font-weight: 600;
-    font-size: 0.7rem;
-    border: 1px solid #e2e8f0;
-  }
-  .meter-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-  .meter-track {
-    flex: 1;
-    height: 8px;
-    background: #e2e8f0;
-    border-radius: 999px;
-    overflow: hidden;
-  }
-  .meter-fill {
-    height: 100%;
-    border-radius: 999px;
-    transition: width 0.3s ease;
-  }
-  .meter-pct {
-    font-size: 0.75rem;
-    min-width: 2.5rem;
-    text-align: right;
-  }
-  .status-pill {
-    display: inline-block;
-    padding: 0.2rem 0.6rem;
-    border-radius: 999px;
-    font-size: 0.68rem;
-    font-weight: 600;
-    white-space: nowrap;
-  }
-
   /* Form Edit Profil & Locked Info */
   .grid-profile-settings {
     display: grid;
