@@ -11,16 +11,21 @@ export function contribution(a: Activity, indicatorId: string): number | null {
   const m = mappings.find((x) => x.indicatorId === indicatorId && x.activityType === a.type && (!x.outcome || x.outcome === a.outcome));
   if (!m) return null;
   if (m.field === "count") return 1;
-  if (m.field === "qty") return (a.soldQty ?? a.qty) ?? 0;
+  if (m.field === "qty") {
+    const rawQty = a.soldQty != null ? a.soldQty : a.qty;
+    return Number(rawQty) || 0;
+  }
   if (indicatorId === "IND-05") {
     // Omzet Kas Tunai dari penawaran Deal
-    return (a.cashValue != null ? a.cashValue : a.value) ?? 0;
+    const cash = a.cashValue != null ? a.cashValue : a.value;
+    return Number(cash) || 0;
   }
   if (indicatorId === "IND-07") {
     // Nilai Realisasi Barter
-    return (a.barterValue != null ? a.barterValue : (a.value ?? 0));
+    const barter = a.barterValue != null ? a.barterValue : a.value;
+    return Number(barter) || 0;
   }
-  return a.value ?? 0;
+  return Number(a.value) || 0;
 }
 
 function inScope(a: Activity, t: KpiTarget): boolean {

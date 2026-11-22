@@ -83,23 +83,23 @@ if (avgPercent >= 85) {
   };
 }
 
-// 4 Metrik Operasional SIMOKP Karyawan
+// 4 Metrik Operasional SIMOKP Karyawan (Selalu dikonversi ke Number agar kalkulasi multi-aktivitas akurat)
 const approvedActs = mine.filter((a) => a.status === "approved");
 const userCash = approvedActs
   .filter((a) => a.type === "outcome" && a.outcome === "deal")
-  .reduce((s, a) => s + (a.cashValue != null ? a.cashValue : (a.value || 0)), 0);
+  .reduce((s, a) => s + Number(a.cashValue != null ? a.cashValue : (a.value || 0)), 0);
 const userBarter = approvedActs
   .filter((a) => (a.type === "outcome" && a.outcome === "deal" && (a.barterValue || 0) > 0) || a.type === "program")
-  .reduce((s, a) => s + (a.barterValue != null ? a.barterValue : 0), 0);
+  .reduce((s, a) => s + Number(a.barterValue != null ? a.barterValue : 0), 0);
 const userSentOplah = approvedActs
   .filter((a) => a.type === "oplah")
-  .reduce((s, a) => s + (a.qty || 0), 0);
+  .reduce((s, a) => s + Number(a.qty || 0), 0);
 const userReturnOplah = approvedActs
   .filter((a) => a.type === "oplah")
-  .reduce((s, a) => s + (a.returnQty || 0), 0);
+  .reduce((s, a) => s + Number(a.returnQty || 0), 0);
 const userSoldOplah = approvedActs
   .filter((a) => a.type === "oplah")
-  .reduce((s, a) => s + (a.soldQty != null ? a.soldQty : Math.max(0, (a.qty || 0) - (a.returnQty || 0))), 0);
+  .reduce((s, a) => s + Number(a.soldQty != null ? a.soldQty : Math.max(0, (Number(a.qty) || 0) - (Number(a.returnQty) || 0))), 0);
 const userReturnRate = userSentOplah > 0 ? ((userReturnOplah / userSentOplah) * 100).toFixed(1) : "0.0";
 
 const formatVal = (val: number | null | undefined, unit: string) => {
