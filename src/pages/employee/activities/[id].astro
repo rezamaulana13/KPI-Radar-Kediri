@@ -4,6 +4,7 @@ import PublicLayout from "../../../layouts/PublicLayout.astro";
 import Icon from "../../../components/ui/Icon.astro";
 import FormError from "../../../components/ui/FormError.astro";
 import ActivityDetail from "../../../components/ui/ActivityDetail.astro";
+import ProofUploader from "../../../components/ui/ProofUploader.astro";
 import { activity, historyOf, employeeName, visibleEmployeeIds, employee, divisionName } from "../../../lib/data/store";
 import { canEditAfterRevision } from "../../../features/verification/rules";
 import { takeFormState } from "../../../lib/utils/flash";
@@ -274,22 +275,14 @@ const resubmittedParam = Astro.url.searchParams.get("resubmitted");
                   </div>
                 )}
 
-                <!-- Link Bukti Fisik / Foto / Nota Baru -->
-                <div class="field" style="margin-top:1rem; margin-bottom:1rem;">
-                  <label for="proofUrl" class="form-label font-bold">
-                    Link Berkas / Foto Bukti Fisik Perbaikan
-                  </label>
-                  <input
-                    class="input form-control"
-                    id="proofUrl"
-                    name="proofUrl"
-                    type="url"
-                    placeholder="https://drive.google.com/... atau URL foto nota"
-                    value={st.values.proofUrl ?? a.proofUrl ?? ""}
+                <!-- Berkas / Bukti Fisik: Bisa Unggah File, Pilih Folder, atau Input Link Drive -->
+                <div style="margin-top:1.25rem; margin-bottom:1.25rem;">
+                  <ProofUploader
+                    id="revision-proof"
+                    label="Berkas / Bukti Fisik Lapangan & Perbaikan"
+                    hint="Bisa pilih file nota/foto langsung, upload satu folder berkas sekaligus, atau tempel tautan Google Drive / Cloud folder."
+                    initialUrl={st.values.proofUrl ?? a.proofUrl ?? ""}
                   />
-                  <span class="hint text-xs muted">
-                    Pastikan tautan dapat diakses publik atau supervisor HRD untuk memvalidasi bukti fisik.
-                  </span>
                 </div>
 
                 <!-- Catatan Penjelasan Staf Kepada HRD -->

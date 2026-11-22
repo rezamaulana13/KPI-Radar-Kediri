@@ -4,12 +4,14 @@ interface Props {
   id?: string;
   label?: string;
   hint?: string;
+  initialUrl?: string;
 }
 
 const {
   id = "proof",
   label = "Berkas / Bukti Fisik Lapangan",
   hint = "Unggah foto nota, dokumentasi penyerahan oplah, PDF proposal, scan MoU, atau berkas pendukung lainnya (Bisa pilih per file atau satu folder sekaligus).",
+  initialUrl = "",
 } = Astro.props;
 
 const fileInputId = `file-input-${id}`;
@@ -27,7 +29,7 @@ const driveWrapId = `drive-wrap-${id}`;
   </label>
 
   <!-- Hidden input untuk menyimpan URL bukti yang dikirim ke server -->
-  <input type="hidden" name="proofUrl" id={proofUrlId} value="" />
+  <input type="hidden" name="proofUrl" id={proofUrlId} value={initialUrl || ""} />
 
   <!-- Hidden File & Folder Inputs -->
   <input
@@ -53,6 +55,7 @@ const driveWrapId = `drive-wrap-${id}`;
         type="button"
         class="upload-picker-btn"
         onclick={`document.getElementById('${fileInputId}').click()`}
+        title="Pilih satu atau beberapa file (foto/PDF/dokumen) dari komputer/HP"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -60,7 +63,7 @@ const driveWrapId = `drive-wrap-${id}`;
           <line x1="12" y1="18" x2="12" y2="12"/>
           <line x1="9" y1="15" x2="15" y2="15"/>
         </svg>
-        <span>Pilih Berkas File</span>
+        <span>Pilih File</span>
       </button>
 
       <button
@@ -74,7 +77,7 @@ const driveWrapId = `drive-wrap-${id}`;
           <line x1="12" y1="11" x2="12" y2="17"/>
           <line x1="9" y1="14" x2="15" y2="14"/>
         </svg>
-        <span>Pilih Folder Bukti</span>
+        <span>Pilih Folder</span>
       </button>
 
       <button
@@ -82,12 +85,13 @@ const driveWrapId = `drive-wrap-${id}`;
         class="upload-picker-btn"
         id={driveToggleId}
         style="background: #f8fafc; border-style: dashed;"
+        title="Tempel link Google Drive, Dropbox, atau Cloud folder"
       >
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
           <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
         </svg>
-        <span>Input Link Drive</span>
+        <span>Link / Drive</span>
       </button>
     </div>
 
@@ -99,6 +103,7 @@ const driveWrapId = `drive-wrap-${id}`;
           class="form-control"
           id={`drive-input-${id}`}
           placeholder="https://drive.google.com/... atau tautan Dropbox/Cloud"
+          value={initialUrl || ""}
           style="font-size: 0.8125rem;"
         />
         <button
@@ -113,13 +118,15 @@ const driveWrapId = `drive-wrap-${id}`;
     </div>
 
     <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.2rem;">
-      Format yang didukung: JPG, PNG, WEBP, PDF, DOCX, XLSX (Maks. 25 MB per berkas)
+      Format: JPG, PNG, WEBP, PDF, DOCX, XLSX, ZIP (Pilih file langsung, folder utuh, atau tautan Drive)
     </div>
 
     <!-- Kotak Status Berkas yang Dipilih / Diunggah -->
-    <div class="upload-status-box" id={statusBoxId}>
+    <div class="upload-status-box" id={statusBoxId} style={initialUrl ? "display: block;" : "display: none;"}>
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
-        <span style="font-weight: 700; color: #166534;" id={`status-title-${id}`}>Mengunggah berkas...</span>
+        <span style="font-weight: 700; color: #166534;" id={`status-title-${id}`}>
+          {initialUrl ? "Berkas Bukti Terlampir:" : "Mengunggah berkas..."}
+        </span>
         <button
           type="button"
           id={`btn-reset-${id}`}
@@ -129,7 +136,13 @@ const driveWrapId = `drive-wrap-${id}`;
         </button>
       </div>
       <div id={`status-desc-${id}`} style="color: #334155; word-break: break-all; font-size: 0.75rem;">
-        Menyiapkan berkas...
+        {initialUrl ? (
+          <a href={initialUrl} target="_blank" rel="noopener noreferrer" style="color: #0284c7; text-decoration: underline; font-weight: 600;">
+            {initialUrl} &rarr;
+          </a>
+        ) : (
+          "Menyiapkan berkas..."
+        )}
       </div>
       <div id={`progress-bar-${id}`} style="margin-top: 0.4rem; height: 4px; background: #e2e8f0; border-radius: 999px; overflow: hidden; display: none;">
         <div id={`progress-fill-${id}`} style="height: 100%; width: 0%; background: #16a34a; transition: width 0.3s ease;"></div>
