@@ -4,6 +4,7 @@ import "../assets/styles/global.css";
 import Sidebar from "../components/layout/Sidebar.astro";
 import Topbar from "../components/layout/Topbar.astro";
 import MobileBottomNav from "../components/layout/MobileBottomNav.astro";
+import RealtimeLiveWatcher from "../components/common/RealtimeLiveWatcher.astro";
 const { title } = Astro.props as { title: string };
 const user = Astro.locals.user;
 ---
@@ -64,5 +65,6 @@ const user = Astro.locals.user;
       initDashboardScripts();
     </script>
     <MobileBottomNav role={user?.role} />
+    <RealtimeLiveWatcher role={user?.role} userId={user?.id} />
   </body>
 </html>

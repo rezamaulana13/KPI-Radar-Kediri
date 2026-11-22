@@ -305,16 +305,25 @@ export async function syncDeleteTarget(targetId: string): Promise<boolean> {
   }
 }
 
-// 6. SINKRONISASI HYDRATION (Pemuatan Awal Data dari Supabase ke Memory)
-const gState = globalThis as unknown as { __rk_hydrated?: boolean; __rk_hydrating?: Promise<void> | null };
+// 6. SINKRONISASI HYDRATION (Pemuatan Awal & Sinkronisasi Berkala Data dari Supabase ke Memory)
+const gState = globalThis as unknown as {
+  __rk_hydrated?: boolean;
+  __rk_hydrating?: Promise<void> | null;
+  __rk_last_sync_time?: number;
+};
 
-export async function hydrateFromSupabase(): Promise<void> {
-  if (gState.__rk_hydrated) return;
+export async function hydrateFromSupabase(force = false): Promise<void> {
+  const now = Date.now();
+  const lastSync = gState.__rk_last_sync_time || 0;
+  const isStale = now - lastSync > 3500; // Selalu perbarui jika data lebih dari 3.5 detik untuk menjamin realtime multi-user di Vercel
+
+  if (gState.__rk_hydrated && !force && !isStale) return;
   if (gState.__rk_hydrating) return gState.__rk_hydrating;
 
   const supabase = createSupabaseAdminClient();
   if (!supabase) {
     gState.__rk_hydrated = true;
+    gState.__rk_last_sync_time = now;
     return;
   }
 
@@ -440,7 +449,7 @@ export async function hydrateFromSupabase(): Promise<void> {
       }
 
       gState.__rk_hydrated = true;
-      console.log("[Supabase Sync] Hydration selesai secara paralel. Data tersinkron.");
+      gState.__rk_last_sync_time = Date.now();
     } catch (err) {
       console.error("[Supabase Sync] Exception saat hydration:", err);
     } finally {

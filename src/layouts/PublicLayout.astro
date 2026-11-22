@@ -3,6 +3,7 @@ import { ClientRouter } from "astro:transitions";
 import "../assets/styles/global.css";
 import Icon from "../components/ui/Icon.astro";
 import MobileBottomNav from "../components/layout/MobileBottomNav.astro";
+import RealtimeLiveWatcher from "../components/common/RealtimeLiveWatcher.astro";
 import { ROLE_LABEL, initials } from "../lib/formatters";
 import { employee, divisionName, positions, notificationsFor } from "../lib/data/store";
 
@@ -1097,6 +1098,7 @@ if (user) {
       initPublicLayoutScripts();
     </script>
     <MobileBottomNav role={user?.role} />
+    <RealtimeLiveWatcher role={user?.role} userId={user?.id} />
   </body>
 </html>
 
