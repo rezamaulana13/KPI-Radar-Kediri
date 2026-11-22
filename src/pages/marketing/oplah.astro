@@ -4,6 +4,7 @@ import PublicLayout from "../../layouts/PublicLayout.astro";
 import ListPage from "../../components/ui/ListPage.astro";
 import StatCard from "../../components/dashboard/StatCard.astro";
 import Alert from "../../components/ui/Alert.astro";
+import Icon from "../../components/ui/Icon.astro";
 import ProofUploader from "../../components/ui/ProofUploader.astro";
 import { db, employeeName, visibleEmployeeIds } from "../../lib/data/store";
 import { num } from "../../lib/formatters";
@@ -202,6 +203,62 @@ const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
         </form>
       </div>
     </dialog>
+
+    <!-- Pop-Up Modal Sukses Pengajuan Oplah (Tengah Halaman, Simple & Modern) -->
+    {created && (
+      <dialog id="modal-success-oplah" class="success-popup-dialog">
+        <div class="success-popup-card">
+          <button type="button" class="success-popup-close" onclick="closeSuccessModal()" title="Tutup Pop-up">&times;</button>
+          
+          <div class="success-icon-wrap">
+            <div class="success-icon-circle">
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+          </div>
+
+          <span class="success-tag">BERHASIL DIAJUKAN</span>
+          <h2 class="success-title">Laporan Oplah Berhasil Diajukan!</h2>
+          <p class="success-desc">
+            Pencatatan sirkulasi koran telah masuk ke dalam antrean sistem dan sedang menunggu verifikasi bukti fisik oleh tim HRD.
+          </p>
+
+          <div class="success-meta-box">
+            <div class="meta-row">
+              <span class="meta-lbl">ID Berkas Laporan</span>
+              <span class="meta-val mono-badge">{created}</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-lbl">Status Verifikasi</span>
+              <span class="status-pill-pending">
+                <span class="pending-dot"></span>
+                Menunggu HRD
+              </span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-lbl">Indikator Kinerja</span>
+              <span class="meta-val">IND-01 Sirkulasi Oplah</span>
+            </div>
+          </div>
+
+          <div class="success-actions">
+            <a href="/aktivitas-saya" class="btn btn-primary" style="flex: 1; justify-content: center; gap: 0.45rem;">
+              <Icon name="clipboard" size={16} />
+              <span>Pantau di Aktivitas Saya</span>
+            </a>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="closeSuccessModal()"
+              style="padding: 0.6rem 1.25rem;"
+            >
+              Tutup &amp; Selesai
+            </button>
+          </div>
+        </div>
+      </dialog>
+    )}
   </div>
 </Layout>
 
@@ -223,4 +280,195 @@ const Layout = u.role === "employee" ? PublicLayout : DashboardLayout;
     const dlg = document.getElementById('modal-input-oplah');
     if (dlg && typeof dlg.showModal === 'function') dlg.showModal();
   }
+
+  // Auto-open modal pop-up sukses pengajuan
+  const successDlg = document.getElementById('modal-success-oplah');
+  if (successDlg && typeof successDlg.showModal === 'function') {
+    successDlg.showModal();
+    // Tutup dialog saat klik di luar area kartu (backdrop)
+    successDlg.addEventListener('click', (e) => {
+      const rect = successDlg.getBoundingClientRect();
+      const inDialog = (
+        rect.top <= e.clientY && e.clientY <= rect.top + rect.height &&
+        rect.left <= e.clientX && e.clientX <= rect.left + rect.width
+      );
+      if (!inDialog) closeSuccessModal();
+    });
+  }
+
+  function closeSuccessModal() {
+    const dlg = document.getElementById('modal-success-oplah');
+    if (dlg) dlg.close();
+    // Bersihkan parameter ?created dari URL tanpa me-reload halaman
+    const url = new URL(window.location.href);
+    url.searchParams.delete('created');
+    window.history.replaceState({}, '', url.pathname + (url.search ? url.search : ''));
+  }
 </script>
+
+<style>
+  /* Success Popup Dialog (Tengah Halaman, Simple & Modern) */
+  .success-popup-dialog {
+    padding: 0;
+    border: none;
+    border-radius: 20px;
+    background: transparent;
+    max-width: 440px;
+    width: 90%;
+    margin: auto;
+    box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.28);
+    overflow: visible;
+  }
+  .success-popup-dialog::backdrop {
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    animation: fadeInBackdrop 0.2s ease-out;
+  }
+  @keyframes fadeInBackdrop {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .success-popup-card {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 2.25rem 2rem 2rem;
+    text-align: center;
+    position: relative;
+    border: 1px solid rgba(226, 232, 240, 0.85);
+    animation: popUpScale 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes popUpScale {
+    from {
+      opacity: 0;
+      transform: scale(0.92) translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+  .success-popup-close {
+    position: absolute;
+    top: 1rem;
+    right: 1.15rem;
+    background: #f1f5f9;
+    border: none;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 1.25rem;
+    color: #64748b;
+    cursor: pointer;
+    line-height: 1;
+    transition: all 0.15s ease;
+  }
+  .success-popup-close:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+  }
+  .success-icon-wrap {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1.25rem;
+  }
+  .success-icon-circle {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #dcfce7;
+    color: #16a34a;
+    display: grid;
+    place-items: center;
+    box-shadow: 0 0 0 8px #f0fdf4;
+    animation: pulseCheck 1.8s infinite;
+  }
+  @keyframes pulseCheck {
+    0% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.35); }
+    70% { box-shadow: 0 0 0 12px rgba(22, 163, 74, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
+  }
+  .success-tag {
+    display: inline-block;
+    font-size: 0.6875rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: #16a34a;
+    background: #f0fdf4;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    border: 1px solid #bbf7d0;
+    margin-bottom: 0.65rem;
+  }
+  .success-title {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 0.5rem;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+  }
+  .success-desc {
+    font-size: 0.875rem;
+    color: #64748b;
+    margin: 0 0 1.5rem;
+    line-height: 1.55;
+  }
+  .success-meta-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1rem 1.15rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    text-align: left;
+  }
+  .meta-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8125rem;
+  }
+  .meta-lbl {
+    color: #64748b;
+    font-weight: 500;
+  }
+  .meta-val {
+    font-weight: 700;
+    color: #1e293b;
+  }
+  .mono-badge {
+    font-family: monospace;
+    background: #e2e8f0;
+    padding: 0.15rem 0.45rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    color: #0f172a;
+  }
+  .status-pill-pending {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: #fef3c7;
+    color: #b45309;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+  .pending-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #d97706;
+  }
+  .success-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+</style>
